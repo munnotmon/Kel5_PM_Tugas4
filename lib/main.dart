@@ -36,7 +36,7 @@ class _MainScreenState extends State<MainScreen> {
   // Daftar halaman untuk navigasi
   final List<Widget> _pages = const [
     HomeScreen(),
-    ActivityScreen(),
+    ActivityScreen(), // Ini sekarang berisi kodingan Ayu
     InboxScreen(),
     CounselingScreen(),
     ProfileScreen(),
@@ -55,7 +55,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-// --- HALAMAN HOME (Gabungan UI Header kamu) ---
+// --- HALAMAN HOME (Kodingan Kamu) ---
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -67,7 +67,6 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Section
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -118,8 +117,6 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 22),
-
-            // Greeting Section
             Text(
               'Halo, My Kisah!',
               style: GoogleFonts.plusJakartaSans(
@@ -139,8 +136,6 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 15),
-
-            // Gradient Button
             Container(
               width: double.infinity,
               height: 60,
@@ -173,7 +168,7 @@ class HomeScreen extends StatelessWidget {
                   'Laporkan Perundungan',
                   style: GoogleFonts.plusJakartaSans(
                     color: Colors.white,
-                    fontSize: 19, // Ukuran disesuaikan agar pas
+                    fontSize: 19,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -193,7 +188,189 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// --- CUSTOM NAVIGATION BAR ---
+// --- HALAMAN ACTIVITY (Kodingan Ayu) ---
+class ActivityScreen extends StatelessWidget {
+  const ActivityScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F6F9),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Ayu
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Aktivitas Saya",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF1A1A1A),
+                    ),
+                  ),
+                  Text(
+                    "Lihat Semua",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1D9E75),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // CARD 1 - DIPROSES
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2ECC71),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            "DIPROSES",
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          "12 Okt",
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      "ID Laporan: #29482",
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Insiden Kantin",
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: 0.75,
+                        minHeight: 5,
+                        backgroundColor: const Color(0xFFE0E0E0),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xFF1D9E75),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // CARD 2 - LAPORAN BARU
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFFCCCCCC),
+                        width: 1,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.play_arrow,
+                      color: Color(0xFF378ADD),
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Laporan Baru",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      Text(
+                        "Status: Dikirim",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                "Tim audit sedang meninjau dokumen awal Anda.",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  color: const Color(0xFF555555),
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// --- CUSTOM NAVIGATION BAR (Kodingan Kamu) ---
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -236,7 +413,6 @@ class CustomBottomNavBar extends StatelessWidget {
               children: List.generate(_items.length, (i) {
                 final item = _items[i];
                 if (item.isCenterFab) return const Expanded(child: SizedBox());
-
                 final isActive = currentIndex == i;
                 return Expanded(
                   child: GestureDetector(
@@ -329,8 +505,7 @@ class CustomBottomNavBar extends StatelessWidget {
   }
 }
 
-// --- KOMPONEN PENDUKUNG ---
-
+// --- MODUL LAINNYA ---
 class _NavItem {
   final IconData icon;
   final String label;
@@ -340,13 +515,6 @@ class _NavItem {
     required this.label,
     this.isCenterFab = false,
   });
-}
-
-class ActivityScreen extends StatelessWidget {
-  const ActivityScreen({super.key});
-  @override
-  Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: Text('Activity Screen')));
 }
 
 class InboxScreen extends StatelessWidget {
