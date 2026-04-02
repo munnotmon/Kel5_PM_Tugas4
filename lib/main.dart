@@ -54,7 +54,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-// --- HALAMAN HOME (GABUNGAN DESAIN KAMU + AYU) ---
+// --- HALAMAN HOME (GABUNGAN DESAIN MUNA + AYU + WILDAN) ---
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -67,7 +67,7 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Section
+              // Header Section (Muna)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -137,7 +137,7 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 15),
-              // Button Lapor
+              // Button Lapor (Muna)
               Container(
                 width: double.infinity,
                 height: 60,
@@ -177,8 +177,13 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
 
-              // --- INTEGRASI DESAIN AYU ---
+              // --- SECTION AKTIVITAS (Ayu) ---
               const ActivitySection(),
+
+              const SizedBox(height: 32),
+
+              // --- SECTION KONSELING (Wildan) ---
+              const WildanCounselingSection(),
             ],
           ),
         ),
@@ -295,52 +300,145 @@ class ActivitySection extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 20),
+      ],
+    );
+  }
+}
+
+// --- WIDGET KONSELING (Diadaptasi dari Wildan) ---
+class WildanCounselingSection extends StatelessWidget {
+  const WildanCounselingSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFCCCCCC)),
-              ),
-              child: const Icon(
-                Icons.play_arrow,
-                color: Color(0xFF378ADD),
-                size: 22,
+            Text(
+              "Konseling",
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Laporan Baru",
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
+            GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HalamanRiwayat()),
+              ),
+              child: Text(
+                "Riwayat",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1D9BFF),
                 ),
-                Text(
-                  "Status: Dikirim",
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 10),
-        Text(
-          "Tim audit sedang meninjau dokumen awal Anda.",
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13,
-            color: const Color(0xFF555555),
-            height: 1.5,
+        const SizedBox(height: 16),
+        // Card Atas Wildan
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 219, 237, 219),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Butuh teman bicara?",
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Jadwalkan sesi privat dengan konselor kami.",
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HalamanJadwal(),
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 43, 103, 47),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                child: const Text("Jadwalkan"),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Card Jadwal Wildan
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const DetailSesi()),
+            ),
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8F9FA),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              ),
+              child: Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 22,
+                    backgroundColor: Colors.blueGrey,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "BESOK, 10:00",
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          "Sesi dengan dr. WILDAN",
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right, color: Colors.grey),
+                ],
+              ),
+            ),
           ),
         ),
       ],
@@ -348,11 +446,10 @@ class ActivitySection extends StatelessWidget {
   }
 }
 
-// --- NAVBAR ORIGINAL KAMU (TIDAK DIUBAH) ---
+// --- NAVBAR ORIGINAL MUNA (TIDAK DIUBAH) ---
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
-
   const CustomBottomNavBar({
     super.key,
     required this.currentIndex,
@@ -490,7 +587,7 @@ class _NavItem {
   });
 }
 
-// --- PLACEHOLDER PAGES ---
+// --- SEMUA HALAMAN PENDUKUNG ---
 class ActivityScreen extends StatelessWidget {
   const ActivityScreen({super.key});
   @override
@@ -534,5 +631,32 @@ class LaporPerundunganPage extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text("Form Laporan")),
     body: const Center(child: Text("Isi laporan di sini")),
+  );
+}
+
+class HalamanJadwal extends StatelessWidget {
+  const HalamanJadwal({super.key});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text("Pilih Jadwal")),
+    body: const Center(child: Text("Halaman Jadwal")),
+  );
+}
+
+class HalamanRiwayat extends StatelessWidget {
+  const HalamanRiwayat({super.key});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text("Riwayat Konseling")),
+    body: const Center(child: Text("Belum ada riwayat")),
+  );
+}
+
+class DetailSesi extends StatelessWidget {
+  const DetailSesi({super.key});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text("Detail Sesi")),
+    body: const Center(child: Text("Detail sesi tersedia di sini")),
   );
 }
