@@ -15,6 +15,7 @@ class _LoginCareState extends State<LoginCare> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isObscure = true;
+  bool _isSubmitted = false;
 
   @override
   void dispose() {
@@ -24,39 +25,31 @@ class _LoginCareState extends State<LoginCare> {
   }
 
   void _login() {
-    if (_formKey.currentState!.validate()) {
-      if (_emailController.text == "admin@gmail.com" &&
-          _passwordController.text == "123456") {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Login Polinema care Berhasil!',
-              style: GoogleFonts.plusJakartaSans(),
-            ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+    setState(() {
+      _isSubmitted = true; // Set ke true saat tombol ditekan
+    });
 
-        Future.delayed(const Duration(seconds: 1), () {
-          if (!mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const MainScreen()),
-          );
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Email atau Password Salah',
-              style: GoogleFonts.plusJakartaSans(),
-            ),
-            backgroundColor: Colors.redAccent,
-            behavior: SnackBarBehavior.floating,
+    // Panggil validate untuk memicu visual error
+    if (_formKey.currentState!.validate()) {
+      // Jika semua validator return null (Kredensial Benar)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Login Berhasil!',
+            style: GoogleFonts.plusJakartaSans(),
           ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      Future.delayed(const Duration(seconds: 1), () {
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
         );
-      }
+      });
     }
   }
 
@@ -140,6 +133,7 @@ class _LoginCareState extends State<LoginCare> {
                     ),
                     child: Form(
                       key: _formKey,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -154,16 +148,38 @@ class _LoginCareState extends State<LoginCare> {
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _emailController,
+                            onChanged: (value) {
+                              if (_isSubmitted) {
+                                setState(() {
+                                  _isSubmitted =
+                                      false; // Reset status agar error hilang saat user mengetik kembali
+                                });
+                              }
+                            },
                             style: GoogleFonts.plusJakartaSans(),
                             keyboardType: TextInputType.emailAddress,
                             decoration: _inputDecoration(
                               hint: 'Masukkan Email',
                               icon: Icons.person_outline,
                             ),
-                            validator: (value) =>
-                                (value == null || value.isEmpty)
-                                ? 'Email wajib diisi'
-                                : null,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Email wajib diisi';
+                              }
+
+                              // Regex untuk validasi format email
+                              final emailRegex = RegExp(
+                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                              );
+                              if (!emailRegex.hasMatch(value)) {
+                                return 'Format email tidak valid (contoh: user@gmail.com)';
+                              }
+
+                              if (_isSubmitted && value != "admin@gmail.com") {
+                                return 'Email salah. Silakan coba lagi.';
+                              }
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 20),
                           Text(
@@ -177,29 +193,50 @@ class _LoginCareState extends State<LoginCare> {
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _passwordController,
-                            obscureText: _isObscure,
+                            obscureText:
+                                _isObscure, // Mengontrol sembunyi/lihat teks
+                            onChanged: (value) {
+                              if (_isSubmitted) {
+                                setState(() => _isSubmitted = false);
+                              }
+                            },
                             style: GoogleFonts.plusJakartaSans(),
                             decoration:
                                 _inputDecoration(
                                   hint: 'Masukkan Kata Sandi',
                                   icon: Icons.lock_outline,
                                 ).copyWith(
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _isObscure
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined,
-                                      color: Colors.black38,
-                                    ),
-                                    onPressed: () => setState(
-                                      () => _isObscure = !_isObscure,
+                                  suffixIcon: Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: IconButton(
+                                      icon: Icon(
+                                        _isObscure
+                                            ? Icons.visibility_off_outlined
+                                            : Icons.visibility_outlined,
+                                        color: Colors.black38,
+                                        size: 22,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _isObscure =
+                                              !_isObscure; // Toggle state
+                                        });
+                                      },
                                     ),
                                   ),
                                 ),
-                            validator: (value) =>
-                                (value == null || value.isEmpty)
-                                ? 'Password wajib diisi'
-                                : null,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Password wajib diisi';
+                              }
+                              if (value.length < 6) {
+                                return 'Password minimal harus 6 karakter';
+                              }
+                              if (_isSubmitted && value != "123456") {
+                                return 'kata sandi salah. Silakan coba lagi.';
+                              }
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 12),
                           GestureDetector(
@@ -369,15 +406,39 @@ class _LoginCareState extends State<LoginCare> {
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: GoogleFonts.plusJakartaSans(color: Colors.black38),
+      hintStyle: GoogleFonts.plusJakartaSans(
+        color: Colors.black38,
+        fontSize: 14,
+      ),
       prefixIcon: Icon(icon, color: Colors.black38),
       filled: true,
       fillColor: const Color(0xFFF5F7F9),
       contentPadding: const EdgeInsets.symmetric(vertical: 18),
+
+      // Teks Error di bawah field
+      errorStyle: GoogleFonts.plusJakartaSans(
+        color: const Color(0xFFB71C1C), // Merah gelap sesuai gambar
+        fontSize: 12,
+      ),
+
+      // Border kondisi Normal
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15.0),
         borderSide: BorderSide.none,
       ),
+
+      // Border saat Error
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15.0),
+        borderSide: const BorderSide(color: Color(0xFFB71C1C), width: 1.5),
+      ),
+
+      // Border saat Error dan sedang di-klik
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15.0),
+        borderSide: const BorderSide(color: Color(0xFFB71C1C), width: 2.0),
+      ),
+
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15.0),
         borderSide: const BorderSide(color: Color(0xFF67B9ED), width: 1.5),
