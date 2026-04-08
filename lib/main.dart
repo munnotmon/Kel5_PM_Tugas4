@@ -83,38 +83,36 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header Section (Muna)
+              // --- HEADER SECTION (GANTI BAGIAN INI) ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Bagian Logo Perisai & Judul
                   Row(
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFF1A5D8A),
-                            width: 2.0,
+                      Stack(
+                        alignment: Alignment.center,
+                        children: const [
+                          Icon(
+                            Icons.shield,
+                            color: Color(0xFF1068A3),
+                            size: 32,
                           ),
-                        ),
-                        child: const CircleAvatar(
-                          radius: 22,
-                          backgroundColor: Colors.white,
-                          backgroundImage: AssetImage(
-                            'assets/images/logo-sementara.jpeg',
-                          ),
-                        ),
+                          Icon(Icons.favorite, color: Colors.white, size: 14),
+                        ],
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Text(
-                        'Polinema Care+',
+                        "Polinema Care+",
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1A5D8A),
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF2D3142),
                         ),
                       ),
                     ],
                   ),
+                  // Tombol Notifikasi tetap di kanan
                   IconButton(
                     onPressed: () {
                       Navigator.push(
@@ -126,7 +124,7 @@ class HomeScreen extends StatelessWidget {
                     },
                     icon: const Icon(
                       Icons.notifications_none,
-                      color: Color(0xFF1A5D8A),
+                      color: Color(0xFF1068A3),
                       size: 28,
                     ),
                   ),
