@@ -1,53 +1,65 @@
+// Lokasi: lib/register_care.dart
 import 'package:flutter/material.dart';
-import 'main.dart'; // Pastikan file main.dart berisi class MainScreen
 import 'package:google_fonts/google_fonts.dart';
+import 'verification_care.dart';
+import 'input_decoration_helper.dart';
 
-class LoginCare extends StatefulWidget {
-  const LoginCare({super.key});
+class RegisterCare extends StatefulWidget {
+  const RegisterCare({super.key});
 
   @override
-  State<LoginCare> createState() => _LoginCareState();
+  State<RegisterCare> createState() => _RegisterCareState();
 }
 
-class _LoginCareState extends State<LoginCare> {
+class _RegisterCareState extends State<RegisterCare> {
   final _formKey = GlobalKey<FormState>();
+
+  // Controller untuk setiap field sesuai image_1.png
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isObscure = true;
-  bool _isSubmitted = false;
+  bool _isSubmitted =
+      false; // Status untuk memicu error spesifik setelah tombol ditekan
 
   @override
   void dispose() {
+    _fullNameController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  void _login() {
+  void _register() {
     setState(() {
-      _isSubmitted = true; // Set ke true saat tombol ditekan
+      _isSubmitted = true;
     });
 
-    // Panggil validate untuk memicu visual error
     if (_formKey.currentState!.validate()) {
-      // Jika semua validator return null (Kredensial Benar)
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Login Berhasil!',
+            'Data valid! Mengirim kode verifikasi...',
             style: GoogleFonts.plusJakartaSans(),
           ),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
         ),
       );
-
       Future.delayed(const Duration(seconds: 1), () {
         if (!mounted) return;
-        Navigator.pushReplacement(
+
+        Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+          MaterialPageRoute(
+            builder: (context) => VerificationCare(
+              email:
+                  _emailController.text, // Mengirim email ke halaman berikutnya
+            ),
+          ),
         );
       });
     }
@@ -56,6 +68,7 @@ class _LoginCareState extends State<LoginCare> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Menggunakan background gradient yang sama
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -76,7 +89,7 @@ class _LoginCareState extends State<LoginCare> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10), // Sedikit penyesuaian jarak atas
                   // --- HEADER ---
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -87,16 +100,16 @@ class _LoginCareState extends State<LoginCare> {
                           Icon(
                             Icons.shield,
                             color: Color(0xFF1068A3),
-                            size: 32,
+                            size: 28, // Ukuran ikon sedikit diperkecil
                           ),
-                          Icon(Icons.favorite, color: Colors.white, size: 14),
+                          Icon(Icons.favorite, color: Colors.white, size: 12),
                         ],
                       ),
                       const SizedBox(width: 10),
                       Text(
                         "Polinema Care+",
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 22,
+                          fontSize: 20, // Ukuran font sedikit diperkecil
                           fontWeight: FontWeight.w800,
                           color: const Color(0xFF2D3142),
                         ),
@@ -104,24 +117,36 @@ class _LoginCareState extends State<LoginCare> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    "Selamat Datang",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 34,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF2D3142),
+
+                  // Menyesuaikan teks "Daftar Akun Baru" dengan gradient warna sesuai image_1.png
+                  RichText(
+                    text: TextSpan(
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 30, // Sedikit lebih kecil agar rapi
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF2D3142),
+                      ),
+                      children: const [
+                        TextSpan(text: "Daftar "),
+                        TextSpan(
+                          text: "Akun Baru",
+                          style: TextStyle(
+                            color: Color(0xFF1068A3), // Warna utama
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    "Masuk untuk kembali ke ruang amanmu.",
+                    "Mari bergabung dalam komunitas kampus yang aman dan saling mendukung. Langkah awal menuju kenyamanan bersama.",
                     textAlign: TextAlign.center,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 16,
+                      fontSize: 14,
                       color: const Color(0xFF6B7280),
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
                   // --- FORM CONTAINER ---
                   Container(
@@ -133,126 +158,110 @@ class _LoginCareState extends State<LoginCare> {
                     ),
                     child: Form(
                       key: _formKey,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      autovalidateMode: AutovalidateMode
+                          .onUserInteraction, // Error hilang saat user mulai mengetik
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "Email",
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF4B5563),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
+                          // 1. Nama Lengkap Field
+                          _buildFieldLabel("Nama Lengkap"),
                           TextFormField(
-                            controller: _emailController,
-                            onChanged: (value) {
-                              if (_isSubmitted) {
-                                setState(() {
-                                  _isSubmitted =
-                                      false; // Reset status agar error hilang saat user mengetik kembali
-                                });
-                              }
-                            },
+                            controller: _fullNameController,
+                            onChanged: (value) => _resetSubmittedState(),
                             style: GoogleFonts.plusJakartaSans(),
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: _inputDecoration(
-                              hint: 'Masukkan Email',
+                            decoration: PolinemaCareInputDecoration.get(
+                              hint: 'Masukkan nama lengkap Anda',
                               icon: Icons.person_outline,
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Email wajib diisi';
-                              }
+                              if (value == null || value.isEmpty)
+                                return 'Nama lengkap wajib diisi';
+                              if (!RegExp(r'^[a-z A-Z]+$').hasMatch(value))
+                                return 'Nama hanya boleh berisi huruf';
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
 
-                              // Regex untuk validasi format email
+                          // 2. Username Field
+                          _buildFieldLabel("Username"),
+                          TextFormField(
+                            controller: _usernameController,
+                            onChanged: (value) => _resetSubmittedState(),
+                            style: GoogleFonts.plusJakartaSans(),
+                            decoration: PolinemaCareInputDecoration.get(
+                              hint: 'Masukkan username',
+                              icon: Icons.badge_outlined, // Ikon ID card
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty)
+                                return 'Username wajib diisi';
+                              if (value.length < 4)
+                                return 'Username minimal 4 karakter';
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // 3. Email Field
+                          _buildFieldLabel("Email"),
+                          TextFormField(
+                            controller: _emailController,
+                            onChanged: (value) => _resetSubmittedState(),
+                            style: GoogleFonts.plusJakartaSans(),
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: PolinemaCareInputDecoration.get(
+                              hint: 'nama@mahasiswa.ac.id',
+                              icon: Icons.mail_outline,
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty)
+                                return 'Email wajib diisi';
                               final emailRegex = RegExp(
                                 r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                               );
-                              if (!emailRegex.hasMatch(value)) {
-                                return 'Format email tidak valid (contoh: user@gmail.com)';
-                              }
-
-                              if (_isSubmitted && value != "admin@gmail.com") {
-                                return 'Email salah. Silakan coba lagi.';
-                              }
+                              if (!emailRegex.hasMatch(value))
+                                return 'Format email tidak valid';
                               return null;
                             },
                           ),
-                          const SizedBox(height: 20),
-                          Text(
-                            "Kata Sandi",
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF4B5563),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
+
+                          // 4. Kata Sandi Field
+                          _buildFieldLabel("Kata Sandi"),
                           TextFormField(
                             controller: _passwordController,
-                            obscureText:
-                                _isObscure, // Mengontrol sembunyi/lihat teks
-                            onChanged: (value) {
-                              if (_isSubmitted) {
-                                setState(() => _isSubmitted = false);
-                              }
-                            },
+                            obscureText: _isObscure,
+                            onChanged: (value) => _resetSubmittedState(),
                             style: GoogleFonts.plusJakartaSans(),
-                            decoration:
-                                _inputDecoration(
-                                  hint: 'Masukkan Kata Sandi',
-                                  icon: Icons.lock_outline,
-                                ).copyWith(
-                                  suffixIcon: Padding(
-                                    padding: const EdgeInsets.only(right: 8.0),
-                                    child: IconButton(
-                                      icon: Icon(
-                                        _isObscure
-                                            ? Icons.visibility_off_outlined
-                                            : Icons.visibility_outlined,
-                                        color: Colors.black38,
-                                        size: 22,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _isObscure =
-                                              !_isObscure; // Toggle state
-                                        });
-                                      },
-                                    ),
-                                  ),
+                            decoration: PolinemaCareInputDecoration.get(
+                              hint: 'Buat kata sandi yang kuat',
+                              icon: Icons.lock_outline,
+                              // See/Unsee logic
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isObscure
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: Colors.black38,
                                 ),
+                                onPressed: () =>
+                                    setState(() => _isObscure = !_isObscure),
+                              ),
+                            ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
+                              if (value == null || value.isEmpty)
                                 return 'Password wajib diisi';
-                              }
-                              if (value.length < 6) {
+                              if (value.length < 6)
                                 return 'Password minimal harus 6 karakter';
-                              }
-                              if (_isSubmitted && value != "123456") {
-                                return 'kata sandi salah. Silakan coba lagi.';
-                              }
                               return null;
                             },
                           ),
-                          const SizedBox(height: 12),
-                          GestureDetector(
-                            onTap: () {},
-                            child: Text(
-                              "Lupa Kata Sandi?",
-                              style: GoogleFonts.plusJakartaSans(
-                                color: const Color(0xFF1068A3),
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 30),
 
-                          // --- LOGIN BUTTON ---
+                          const SizedBox(
+                            height: 24,
+                          ), // Tambahan jarak sebelum tombol
+                          // --- REGISTER BUTTON (Daftar Sekarang) ---
                           Container(
                             width: double.infinity,
                             height: 55,
@@ -272,7 +281,7 @@ class _LoginCareState extends State<LoginCare> {
                               ],
                             ),
                             child: ElevatedButton(
-                              onPressed: _login,
+                              onPressed: _register,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.transparent,
                                 shadowColor: Colors.transparent,
@@ -281,7 +290,7 @@ class _LoginCareState extends State<LoginCare> {
                                 ),
                               ),
                               child: Text(
-                                'Masuk',
+                                'Daftar Sekarang',
                                 style: GoogleFonts.plusJakartaSans(
                                   color: Colors.white,
                                   fontSize: 16,
@@ -290,9 +299,13 @@ class _LoginCareState extends State<LoginCare> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 20),
 
-                          // --- GOOGLE LOGIN ---
+                          // --- SEPARATOR ---
+                          _buildSeparator(),
+                          const SizedBox(height: 20),
+
+                          // --- GOOGLE REGISTER (Daftar dengan Google) ---
                           SizedBox(
                             width: double.infinity,
                             height: 55,
@@ -307,6 +320,7 @@ class _LoginCareState extends State<LoginCare> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
+                                  // Google Icon (G warna-warni)
                                   ShaderMask(
                                     shaderCallback: (bounds) =>
                                         const LinearGradient(
@@ -328,7 +342,7 @@ class _LoginCareState extends State<LoginCare> {
                                   ),
                                   const SizedBox(width: 12),
                                   Text(
-                                    'Masuk dengan Google',
+                                    'Daftar dengan Google',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 16,
                                       color: const Color(0xFF2D3142),
@@ -343,52 +357,36 @@ class _LoginCareState extends State<LoginCare> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+
                   // --- FOOTER LINKS ---
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Belum punya akun? ",
+                        "Sudah punya akun? ",
                         style: GoogleFonts.plusJakartaSans(
                           color: const Color(0xFF6B7280),
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.pop(context); // Kembali ke halaman Login
+                        },
                         child: Text(
-                          "Daftar Akun Baru",
+                          "Masuk di sini",
                           style: GoogleFonts.plusJakartaSans(
                             color: const Color(0xFF1068A3),
                             fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                            decorationColor: const Color(0xFF1068A3),
                           ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 15),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "PRIVACY POLICY",
-                        style: GoogleFonts.plusJakartaSans(
-                          color: const Color(0xFF9CA3AF),
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Text(
-                        "TERMS OF SERVICE",
-                        style: GoogleFonts.plusJakartaSans(
-                          color: const Color(0xFF9CA3AF),
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+                  _buildFooterLinks(),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -400,49 +398,72 @@ class _LoginCareState extends State<LoginCare> {
   }
 
   // --- HELPER WIDGETS ---
-  InputDecoration _inputDecoration({
-    required String hint,
-    required IconData icon,
-  }) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: GoogleFonts.plusJakartaSans(
-        color: Colors.black38,
-        fontSize: 14,
-      ),
-      prefixIcon: Icon(icon, color: Colors.black38),
-      filled: true,
-      fillColor: const Color(0xFFF5F7F9),
-      contentPadding: const EdgeInsets.symmetric(vertical: 18),
 
-      // Teks Error di bawah field
-      errorStyle: GoogleFonts.plusJakartaSans(
-        color: const Color(0xFFB71C1C), // Merah gelap sesuai gambar
-        fontSize: 12,
-      ),
-
-      // Border kondisi Normal
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15.0),
-        borderSide: BorderSide.none,
-      ),
-
-      // Border saat Error
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15.0),
-        borderSide: const BorderSide(color: Color(0xFFB71C1C), width: 1.5),
-      ),
-
-      // Border saat Error dan sedang di-klik
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15.0),
-        borderSide: const BorderSide(color: Color(0xFFB71C1C), width: 2.0),
-      ),
-
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15.0),
-        borderSide: const BorderSide(color: Color(0xFF67B9ED), width: 1.5),
+  Widget _buildFieldLabel(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Text(
+        label,
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 13, // Sedikit lebih kecil agar presisi
+          fontWeight: FontWeight.w600,
+          color: const Color(0xFF4B5563),
+        ),
       ),
     );
+  }
+
+  Widget _buildSeparator() {
+    return Row(
+      children: [
+        const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            "ATAU",
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF9CA3AF),
+            ),
+          ),
+        ),
+        const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
+      ],
+    );
+  }
+
+  Widget _buildFooterLinks() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          "PRIVACY POLICY",
+          style: GoogleFonts.plusJakartaSans(
+            color: const Color(0xFF9CA3AF),
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(width: 20),
+        Text(
+          "TERMS OF SERVICE",
+          style: GoogleFonts.plusJakartaSans(
+            color: const Color(0xFF9CA3AF),
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Fungsi untuk reset status submit agar error hilang saat mengetik kembali
+  void _resetSubmittedState() {
+    if (_isSubmitted) {
+      setState(() {
+        _isSubmitted = false;
+      });
+    }
   }
 }
