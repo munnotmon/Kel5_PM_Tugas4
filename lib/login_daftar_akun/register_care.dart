@@ -42,7 +42,7 @@ class _RegisterCareState extends State<RegisterCare> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Data valid! Mengirim kode verifikasi...',
+            'Data valid! Mengirim kode verifikasi.',
             style: GoogleFonts.plusJakartaSans(),
           ),
           backgroundColor: Colors.green,
@@ -196,8 +196,8 @@ class _RegisterCareState extends State<RegisterCare> {
                             validator: (value) {
                               if (value == null || value.isEmpty)
                                 return 'Username wajib diisi';
-                              if (value.length < 4)
-                                return 'Username minimal 4 karakter';
+                              if (value.length < 8)
+                                return 'Username minimal 8 karakter';
                               return null;
                             },
                           ),
@@ -211,7 +211,7 @@ class _RegisterCareState extends State<RegisterCare> {
                             style: GoogleFonts.plusJakartaSans(),
                             keyboardType: TextInputType.emailAddress,
                             decoration: PolinemaCareInputDecoration.get(
-                              hint: 'nama@mahasiswa.ac.id',
+                              hint: 'Masukkan Email',
                               icon: Icons.mail_outline,
                             ),
                             validator: (value) {

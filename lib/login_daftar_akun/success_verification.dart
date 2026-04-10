@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'main.dart';
+import '../main.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SuccessVerificationCare extends StatelessWidget {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'main.dart';
+import '../main.dart';
 import 'register_care.dart';
 import 'package:google_fonts/google_fonts.dart';
 
