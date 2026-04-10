@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'login_care.dart';
+import 'dart:async'; // Penting untuk fungsi Timer
 import 'package:google_fonts/google_fonts.dart';
+import 'login_care.dart'; // Pastikan file ini ada di folder lib kamu
 
 void main() {
   runApp(const MyApp());
@@ -19,11 +20,79 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         textTheme: GoogleFonts.plusJakartaSansTextTheme(),
       ),
-      home: LoginCare(),
+      // Halaman pertama yang dibuka adalah SplashScreen
+      home: const SplashScreen(),
     );
   }
 }
 
+// --- HALAMAN SPLASH SCREEN ---
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Berpindah ke halaman LoginCare setelah 3 detik
+    Timer(const Duration(seconds: 3), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginCare()),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // Menggunakan warna utama aplikasi
+      backgroundColor: const Color(0xFF1A6B7A), 
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Logo Perisai
+            Stack(
+              alignment: Alignment.center,
+              children: const [
+                Icon(
+                  Icons.shield,
+                  color: Colors.white,
+                  size: 100,
+                ),
+                Icon(
+                  Icons.favorite,
+                  color: Color(0xFF1A6B7A),
+                  size: 40,
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Text(
+              "Polinema Care+",
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// --- HALAMAN UTAMA (DITAMPILKAN SETELAH LOGIN BERHASIL) ---
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -45,7 +114,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Bungkus IndexedStack dengan Container untuk menerapkan gradasi
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -82,12 +150,9 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Section (Muna)
-              // --- HEADER SECTION (GANTI BAGIAN INI) ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Bagian Logo Perisai & Judul
                   Row(
                     children: [
                       Stack(
@@ -112,7 +177,6 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  // Tombol Notifikasi tetap di kanan
                   IconButton(
                     onPressed: () {
                       Navigator.push(
@@ -150,7 +214,6 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 15),
-              // Button Lapor (Muna)
               Container(
                 width: double.infinity,
                 height: 60,
@@ -189,13 +252,8 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 32),
-
-              // --- SECTION AKTIVITAS (Ayu) ---
               const ActivitySection(),
-
               const SizedBox(height: 32),
-
-              // --- SECTION KONSELING (Wildan) ---
               const WildanCounselingSection(),
             ],
           ),
@@ -205,7 +263,6 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// Widget untuk isi Aktivitas (Ayu's UI - UPDATED)
 class ActivitySection extends StatelessWidget {
   const ActivitySection({super.key});
 
@@ -248,8 +305,6 @@ class ActivitySection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-
-        // --- CARD 1: Insiden Kantin (Bisa Dipencet) ---
         Material(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -334,91 +389,11 @@ class ActivitySection extends StatelessWidget {
             ),
           ),
         ),
-
-        const SizedBox(height: 16),
-
-        // --- CARD 2: Laporan Baru (Bisa Dipencet) ---
-        Material(
-          color: const Color(0xFFF8FBFB),
-          borderRadius: BorderRadius.circular(25),
-          child: InkWell(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const HalamanDetailLaporanBaru(),
-              ),
-            ),
-            borderRadius: BorderRadius.circular(25),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(color: Colors.grey.withOpacity(0.1)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFD6EAF8),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Transform.rotate(
-                          angle: -0.5,
-                          child: const Icon(
-                            Icons.send_rounded,
-                            color: Color(0xFF2E86C1),
-                            size: 24,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Laporan Baru",
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF2D3142),
-                            ),
-                          ),
-                          Text(
-                            "Status: Dikirim",
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    "Tim audit sedang meninjau dokumen awal Anda.",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
 }
 
-// --- WIDGET KONSELING (Diadaptasi dari Wildan) ---
 class WildanCounselingSection extends StatelessWidget {
   const WildanCounselingSection({super.key});
 
@@ -437,7 +412,6 @@ class WildanCounselingSection extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            // MODIFIKASI: Menambahkan Material & InkWell untuk efek tap premium
             Material(
               color: Colors.transparent,
               child: InkWell(
@@ -447,14 +421,9 @@ class WildanCounselingSection extends StatelessWidget {
                     builder: (context) => const HalamanRiwayat(),
                   ),
                 ),
-                borderRadius: BorderRadius.circular(
-                  8,
-                ), // Agar efek klik kotak melengkung
+                borderRadius: BorderRadius.circular(8),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   child: Text(
                     "Riwayat",
                     style: GoogleFonts.plusJakartaSans(
@@ -469,7 +438,6 @@ class WildanCounselingSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        // Card Atas Wildan
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -516,59 +484,6 @@ class WildanCounselingSection extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 12),
-        // Card Jadwal Wildan
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const DetailSesi()),
-            ),
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8F9FA),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.grey.withOpacity(0.2)),
-              ),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 22,
-                    backgroundColor: Colors.blueGrey,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "BESOK, 10:00",
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          "Sesi dengan dr. WILDAN",
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.chevron_right, color: Colors.grey),
-                ],
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -583,12 +498,7 @@ class CustomBottomNavBar extends StatelessWidget {
     required this.onTap,
   });
 
-  static const _bgLightGrey = Color.fromARGB(
-    255,
-    240,
-    244,
-    247,
-  ); // Sedikit lebih gelap agar terlihat kontras
+  static const _bgLightGrey = Color.fromARGB(255, 240, 244, 247);
   static const _iconGrey = Color(0xFF8A97A8);
   static const _activeGreen = Color(0xFFD6F5E3);
   static const _darkGreen = Color(0xFF004D40);
@@ -607,11 +517,9 @@ class CustomBottomNavBar extends StatelessWidget {
     return SafeArea(
       bottom: true,
       child: Stack(
-        // Gunakan Stack paling luar
-        clipBehavior: Clip.none, // Biarkan konten meluap ke atas
+        clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          // 1. BACKGROUND NAVBAR (Yang melengkung)
           Container(
             height: 85,
             decoration: const BoxDecoration(
@@ -628,7 +536,6 @@ class CustomBottomNavBar extends StatelessWidget {
                 ),
               ],
             ),
-            // Di sini TIDAK boleh pakai Clip.antiAlias agar FAB tidak terpotong
             child: Row(
               children: List.generate(_items.length, (i) {
                 final item = _items[i];
@@ -663,9 +570,7 @@ class CustomBottomNavBar extends StatelessWidget {
                           item.label,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
-                            fontWeight: isActive
-                                ? FontWeight.bold
-                                : FontWeight.w500,
+                            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
                             color: isActive ? _darkGreen : _iconGrey,
                           ),
                         ),
@@ -676,10 +581,8 @@ class CustomBottomNavBar extends StatelessWidget {
               }),
             ),
           ),
-
-          // 2. TOMBOL INBOX (Diletakkan di luar Container background agar tidak terpotong)
           Positioned(
-            top: -30, // Melayang keluar dari batas Container bawah
+            top: -30,
             child: GestureDetector(
               onTap: () => onTap(2),
               child: AnimatedContainer(
@@ -710,8 +613,6 @@ class CustomBottomNavBar extends StatelessWidget {
               ),
             ),
           ),
-
-          // 3. LABEL INBOX
           Positioned(
             bottom: 10,
             child: GestureDetector(
@@ -720,9 +621,7 @@ class CustomBottomNavBar extends StatelessWidget {
                 'Inbox',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11,
-                  fontWeight: currentIndex == 2
-                      ? FontWeight.bold
-                      : FontWeight.w500,
+                  fontWeight: currentIndex == 2 ? FontWeight.bold : FontWeight.w500,
                   color: currentIndex == 2 ? _darkGreen : _iconGrey,
                 ),
               ),
@@ -738,116 +637,66 @@ class _NavItem {
   final IconData icon;
   final String label;
   final bool isCenterFab;
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    this.isCenterFab = false,
-  });
+  const _NavItem({required this.icon, required this.label, this.isCenterFab = false});
 }
 
-// --- SEMUA HALAMAN PENDUKUNG ---
+// --- PLACEHOLDER SCREENS ---
 class ActivityScreen extends StatelessWidget {
   const ActivityScreen({super.key});
   @override
-  Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: Text('Activity Screen')));
+  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Activity Screen')));
 }
 
 class InboxScreen extends StatelessWidget {
   const InboxScreen({super.key});
   @override
-  Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: Text('Inbox Screen')));
+  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Inbox Screen')));
 }
 
 class CounselingScreen extends StatelessWidget {
   const CounselingScreen({super.key});
   @override
-  Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: Text('Counseling Screen')));
+  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Counseling Screen')));
 }
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
   @override
-  Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: Text('Profile Screen')));
+  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Profile Screen')));
 }
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text("Notifikasi")),
-    body: const Center(child: Text("Belum ada notifikasi")),
-  );
+  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text("Notifikasi")));
 }
 
 class LaporPerundunganPage extends StatelessWidget {
   const LaporPerundunganPage({super.key});
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text("Form Laporan")),
-    body: const Center(child: Text("Isi laporan di sini")),
-  );
+  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text("Form Laporan")));
 }
 
 class HalamanJadwal extends StatelessWidget {
   const HalamanJadwal({super.key});
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text("Pilih Jadwal")),
-    body: const Center(child: Text("Halaman Jadwal")),
-  );
+  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text("Pilih Jadwal")));
 }
 
 class HalamanRiwayat extends StatelessWidget {
   const HalamanRiwayat({super.key});
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text("Riwayat Konseling")),
-    body: const Center(child: Text("Belum ada riwayat")),
-  );
-}
-
-class DetailSesi extends StatelessWidget {
-  const DetailSesi({super.key});
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text("Detail Sesi")),
-    body: const Center(child: Text("Detail sesi tersedia di sini")),
-  );
+  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text("Riwayat Konseling")));
 }
 
 class HalamanLihatSemua extends StatelessWidget {
   const HalamanLihatSemua({super.key});
-
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Semua Aktivitas"),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: const Center(
-        child: Text("Daftar seluruh aktivitas laporan Anda ada di sini."),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text("Semua Aktivitas")));
 }
 
 class HalamanDetailLaporan extends StatelessWidget {
   const HalamanDetailLaporan({super.key});
   @override
-  Widget build(BuildContext context) =>
-      Scaffold(appBar: AppBar(title: const Text("Detail Laporan Kantin")));
-}
-
-class HalamanDetailLaporanBaru extends StatelessWidget {
-  const HalamanDetailLaporanBaru({super.key});
-  @override
-  Widget build(BuildContext context) =>
-      Scaffold(appBar: AppBar(title: const Text("Detail Laporan Baru")));
+  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text("Detail Laporan")));
 }
