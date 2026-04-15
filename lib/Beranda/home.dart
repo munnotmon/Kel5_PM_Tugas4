@@ -1,6 +1,7 @@
+// Lokasi: lib/Beranda/home.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:go_router/go_router.dart'; // Wajib tambahkan ini
+import 'package:go_router/go_router.dart';
 
 import 'activity.dart';
 import 'counseling.dart';
@@ -9,7 +10,6 @@ import '../halaman_pendukung/notification_page.dart';
 import '../halaman_pendukung/laporan_perundungan.dart';
 
 class HomeScreen extends StatelessWidget {
-  // Constructor sekarang bersih dan sederhana
   const HomeScreen({super.key});
 
   @override
@@ -51,7 +51,6 @@ class HomeScreen extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: () {
-                      // Catatan: Ini masih pakai cara lama, tidak apa-apa dibiarkan dulu
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -69,8 +68,9 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 22),
 
+              // Penyesuaian nama sesuai desain UI
               Text(
-                'Halo, My Kisah!',
+                'Halo, Rayhan',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 18,
                   color: Colors.grey[600],
@@ -102,7 +102,6 @@ class HomeScreen extends StatelessWidget {
                 ),
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    // Catatan: Ini juga masih pakai cara lama, tidak apa-apa dibiarkan dulu
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -132,20 +131,149 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 32),
 
               // --- SECTION AKTIVITAS ---
-              // PERUBAHAN DI SINI: Langsung panggil context.go
-              ActivitySection(
-                onSeeAll: () => context.go('/activity'),
-              ),
+              ActivitySection(onSeeAll: () => context.go('/activity')),
 
               const SizedBox(height: 32),
 
               // --- SECTION KONSELING ---
-              // PERUBAHAN DI SINI: Langsung panggil context.go
-              CounselingSection(
-                onNavigate: () => context.go('/counseling'),
+              CounselingSection(onNavigate: () => context.go('/counseling')),
+
+              const SizedBox(height: 32),
+
+              // --- SECTION INBOX (BARU) ---
+              InboxSection(
+                onNavigate: () =>
+                    context.go('/inbox'), // Navigasi ke halaman Inbox
               ),
+
+              const SizedBox(
+                height: 100,
+              ), // Memberi jarak agar tidak tertutup Bottom Navigation Bar
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// WIDGET INBOX SECTION (Diletakkan di file yang sama agar rapi)
+// =====================================================================
+class InboxSection extends StatelessWidget {
+  final VoidCallback? onNavigate;
+
+  const InboxSection({super.key, this.onNavigate});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Inbox",
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF1A1A1A),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Card Pesan 1 (Belum dibaca / Ada tanda biru)
+        _buildInboxCard(
+          title: "Sistem Respon",
+          time: "2 JAM LALU",
+          message: "Bukti baru telah ditambahkan ke lapora...",
+          isUnread: true,
+          onTap: onNavigate,
+        ),
+        const SizedBox(height: 12),
+
+        // Card Pesan 2 (Sudah dibaca)
+        _buildInboxCard(
+          title: "Admin Kampus",
+          time: "KEMARIN",
+          message: "Selamat datang di platform Respon &...",
+          isUnread: false,
+          onTap: onNavigate,
+        ),
+      ],
+    );
+  }
+
+  // Desain kartu Inbox yang bisa digunakan berulang
+  Widget _buildInboxCard({
+    required String title,
+    required String time,
+    required String message,
+    required bool isUnread,
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(25),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FBFB),
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    if (isUnread) ...[
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF1068A3),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(
+                      title,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF2D3142),
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  time,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              // Geser teks menyesuaikan jika ada titik biru di atasnya
+              padding: EdgeInsets.only(left: isUnread ? 16.0 : 0),
+              child: Text(
+                message,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

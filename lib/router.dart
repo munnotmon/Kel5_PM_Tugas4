@@ -15,6 +15,7 @@ import 'login_daftar_akun/login_care.dart';
 import 'login_daftar_akun/register_care.dart';
 import 'login_daftar_akun/verification_care.dart';
 import 'login_daftar_akun/success_verification.dart';
+import 'login_daftar_akun/google_account.dart';
 
 // Kunci navigasi global (penting agar halaman detail bisa menutupi navbar)
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -39,6 +40,11 @@ final GoRouter appRouter = GoRouter(
         final email = state.extra as String? ?? '';
         return VerificationCare(email: email);
       },
+    ),
+
+    GoRoute(
+      path: '/google_account',
+      builder: (context, state) => const GoogleAccountSelection(),
     ),
     GoRoute(
       path: '/success_verification',
