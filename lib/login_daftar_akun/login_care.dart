@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import '../main.dart';
-import 'register_care.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginCare extends StatefulWidget {
   const LoginCare({super.key});
@@ -46,10 +45,7 @@ class _LoginCareState extends State<LoginCare> {
 
       Future.delayed(const Duration(seconds: 1), () {
         if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
-        );
+        context.go('/home');
       });
     }
   }
@@ -363,12 +359,9 @@ class _LoginCareState extends State<LoginCare> {
                           4,
                         ), // Agar efek highlight rapi
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const RegisterCare(),
-                            ),
-                          );
+                          context.push(
+                            '/register',
+                          ); // Jangan lupa daftarkan rutenya di router.dart
                         },
                         // Warna saat ditekan (opsional)
                         highlightColor: const Color(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart'; // Wajib tambahkan ini
 
 import 'activity.dart';
 import 'counseling.dart';
@@ -8,15 +9,8 @@ import '../halaman_pendukung/notification_page.dart';
 import '../halaman_pendukung/laporan_perundungan.dart';
 
 class HomeScreen extends StatelessWidget {
-  final VoidCallback onNavigateToActivity;
-  // Tambahkan variabel baru untuk konseling
-  final VoidCallback onNavigateToCounseling;
-
-  const HomeScreen({
-    super.key,
-    required this.onNavigateToActivity,
-    required this.onNavigateToCounseling, // Wajib diisi dari main.dart
-  });
+  // Constructor sekarang bersih dan sederhana
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +51,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: () {
+                      // Catatan: Ini masih pakai cara lama, tidak apa-apa dibiarkan dulu
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -107,6 +102,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 child: ElevatedButton.icon(
                   onPressed: () {
+                    // Catatan: Ini juga masih pakai cara lama, tidak apa-apa dibiarkan dulu
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -136,12 +132,18 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 32),
 
               // --- SECTION AKTIVITAS ---
-              ActivitySection(onSeeAll: onNavigateToActivity),
+              // PERUBAHAN DI SINI: Langsung panggil context.go
+              ActivitySection(
+                onSeeAll: () => context.go('/activity'),
+              ),
 
               const SizedBox(height: 32),
 
               // --- SECTION KONSELING ---
-              CounselingSection(onNavigate: onNavigateToCounseling),
+              // PERUBAHAN DI SINI: Langsung panggil context.go
+              CounselingSection(
+                onNavigate: () => context.go('/counseling'),
+              ),
             ],
           ),
         ),

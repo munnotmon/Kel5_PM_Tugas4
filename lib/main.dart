@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 
-import 'login_daftar_akun/login_care.dart';
-import 'Beranda/home.dart';
-import 'Beranda/activity.dart';
-import 'Beranda/inbox.dart';
-import 'Beranda/counseling.dart';
-import 'Beranda/profile.dart';
-import 'splash_screen/splash_care.dart';
+import 'router.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,7 +13,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'Polinema Care+',
       theme: ThemeData(
@@ -28,44 +23,18 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         textTheme: GoogleFonts.plusJakartaSansTextTheme(),
       ),
-      // Ganti home menjadi SplashScreen
-      home: const SplashScreen(),
+      routerConfig: appRouter,
     );
   }
 }
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+class MainScreen extends StatelessWidget {
+  final StatefulNavigationShell navigationShell;
 
-  @override
-  State<MainScreen> createState() => _MainScreenState();
-}
-
-class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  const MainScreen({super.key, required this.navigationShell});
 
   @override
   Widget build(BuildContext context) {
-    // Tambahkan onNavigateToCounseling
-    final List<Widget> pages = [
-      HomeScreen(
-        onNavigateToActivity: () {
-          setState(() {
-            _currentIndex = 1; // Pindah ke tab Activity
-          });
-        },
-        onNavigateToCounseling: () {
-          setState(() {
-            _currentIndex = 3; // Pindah ke tab Counseling (Indeks 3)
-          });
-        },
-      ),
-      const ActivityScreen(),
-      const InboxScreen(),
-      const CounselingScreen(),
-      const ProfileScreen(),
-    ];
-
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -80,11 +49,16 @@ class _MainScreenState extends State<MainScreen> {
             ],
           ),
         ),
-        child: IndexedStack(index: _currentIndex, children: pages),
+        child: navigationShell,
       ),
       bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        currentIndex: navigationShell.currentIndex,
+        onTap: (index) {
+          navigationShell.goBranch(
+            index,
+            initialLocation: index == navigationShell.currentIndex,
+          );
+        },
       ),
     );
   }

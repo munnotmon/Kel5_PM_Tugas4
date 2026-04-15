@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../main.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 
 class SuccessVerificationCare extends StatelessWidget {
   const SuccessVerificationCare({super.key});
@@ -121,13 +121,7 @@ class SuccessVerificationCare extends StatelessWidget {
                   ),
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MainScreen(),
-                        ),
-                        (route) => false,
-                      );
+                      context.go('/home');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,

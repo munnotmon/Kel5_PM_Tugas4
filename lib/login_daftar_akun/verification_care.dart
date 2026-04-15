@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'success_verification.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 
 class VerificationCare extends StatefulWidget {
   final String email; // Menerima email dari halaman pendaftaran
@@ -51,8 +51,7 @@ class _VerificationCareState extends State<VerificationCare> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1068A3)),
-          onPressed: () =>
-              Navigator.pop(context), // Cukup satu onPressed untuk kembali
+          onPressed: () => context.pop(), // Cukup satu onPressed untuk kembali
         ),
         title: Text(
           "Konfirmasi Registrasi",
@@ -131,15 +130,7 @@ class _VerificationCareState extends State<VerificationCare> {
               ),
               child: ElevatedButton(
                 onPressed: () {
-                  // PINDAH KE HALAMAN SUKSES SAAT TOMBOL INI DITEKAN
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SuccessVerificationCare(),
-                    ),
-                    (route) =>
-                        false, // User tidak bisa back ke halaman OTP lagi
-                  );
+                  context.go('/success_verification');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,

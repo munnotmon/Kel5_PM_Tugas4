@@ -1,8 +1,8 @@
 // Lokasi: lib/register_care.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'verification_care.dart';
 import 'input_decoration_helper.dart';
+import 'package:go_router/go_router.dart';
 
 class RegisterCare extends StatefulWidget {
   const RegisterCare({super.key});
@@ -49,19 +49,7 @@ class _RegisterCareState extends State<RegisterCare> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-      Future.delayed(const Duration(seconds: 1), () {
-        if (!mounted) return;
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => VerificationCare(
-              email:
-                  _emailController.text, // Mengirim email ke halaman berikutnya
-            ),
-          ),
-        );
-      });
+      context.go('/verification', extra: _emailController.text);
     }
   }
 
@@ -371,7 +359,7 @@ class _RegisterCareState extends State<RegisterCare> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pop(context); // Kembali ke halaman Login
+                          context.go('/login'); // Kembali ke halaman Login
                         },
                         child: Text(
                           "Masuk di sini",
