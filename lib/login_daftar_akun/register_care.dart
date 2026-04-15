@@ -1,8 +1,9 @@
-// Lokasi: lib/register_care.dart
+// Lokasi: lib/login_daftar_akun/register_care.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'verification_care.dart';
 import 'input_decoration_helper.dart';
+import 'google_account.dart'; // <--- IMPORT INI WAJIB ADA AGAR TOMBOL GOOGLE BERFUNGSI
 
 class RegisterCare extends StatefulWidget {
   const RegisterCare({super.key});
@@ -14,15 +15,14 @@ class RegisterCare extends StatefulWidget {
 class _RegisterCareState extends State<RegisterCare> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controller untuk setiap field sesuai image_1.png
+  // Controller untuk setiap field
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isObscure = true;
-  bool _isSubmitted =
-      false; // Status untuk memicu error spesifik setelah tombol ditekan
+  bool _isSubmitted = false;
 
   @override
   void dispose() {
@@ -65,10 +65,17 @@ class _RegisterCareState extends State<RegisterCare> {
     }
   }
 
+  void _resetSubmittedState() {
+    if (_isSubmitted) {
+      setState(() {
+        _isSubmitted = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Menggunakan background gradient yang sama
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -89,7 +96,7 @@ class _RegisterCareState extends State<RegisterCare> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 10), // Sedikit penyesuaian jarak atas
+                  const SizedBox(height: 10),
                   // --- HEADER ---
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -100,7 +107,7 @@ class _RegisterCareState extends State<RegisterCare> {
                           Icon(
                             Icons.shield,
                             color: Color(0xFF1068A3),
-                            size: 28, // Ukuran ikon sedikit diperkecil
+                            size: 28,
                           ),
                           Icon(Icons.favorite, color: Colors.white, size: 12),
                         ],
@@ -109,7 +116,7 @@ class _RegisterCareState extends State<RegisterCare> {
                       Text(
                         "Polinema Care+",
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 20, // Ukuran font sedikit diperkecil
+                          fontSize: 20,
                           fontWeight: FontWeight.w800,
                           color: const Color(0xFF2D3142),
                         ),
@@ -118,11 +125,10 @@ class _RegisterCareState extends State<RegisterCare> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Menyesuaikan teks "Daftar Akun Baru" dengan gradient warna sesuai image_1.png
                   RichText(
                     text: TextSpan(
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 30, // Sedikit lebih kecil agar rapi
+                        fontSize: 30,
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF2D3142),
                       ),
@@ -130,9 +136,7 @@ class _RegisterCareState extends State<RegisterCare> {
                         TextSpan(text: "Daftar "),
                         TextSpan(
                           text: "Akun Baru",
-                          style: TextStyle(
-                            color: Color(0xFF1068A3), // Warna utama
-                          ),
+                          style: TextStyle(color: Color(0xFF1068A3)),
                         ),
                       ],
                     ),
@@ -158,12 +162,10 @@ class _RegisterCareState extends State<RegisterCare> {
                     ),
                     child: Form(
                       key: _formKey,
-                      autovalidateMode: AutovalidateMode
-                          .onUserInteraction, // Error hilang saat user mulai mengetik
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 1. Nama Lengkap Field
                           _buildFieldLabel("Nama Lengkap"),
                           TextFormField(
                             controller: _fullNameController,
@@ -183,7 +185,6 @@ class _RegisterCareState extends State<RegisterCare> {
                           ),
                           const SizedBox(height: 16),
 
-                          // 2. Username Field
                           _buildFieldLabel("Username"),
                           TextFormField(
                             controller: _usernameController,
@@ -191,7 +192,7 @@ class _RegisterCareState extends State<RegisterCare> {
                             style: GoogleFonts.plusJakartaSans(),
                             decoration: PolinemaCareInputDecoration.get(
                               hint: 'Masukkan username',
-                              icon: Icons.badge_outlined, // Ikon ID card
+                              icon: Icons.badge_outlined,
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty)
@@ -203,7 +204,6 @@ class _RegisterCareState extends State<RegisterCare> {
                           ),
                           const SizedBox(height: 16),
 
-                          // 3. Email Field
                           _buildFieldLabel("Email"),
                           TextFormField(
                             controller: _emailController,
@@ -227,7 +227,6 @@ class _RegisterCareState extends State<RegisterCare> {
                           ),
                           const SizedBox(height: 16),
 
-                          // 4. Kata Sandi Field
                           _buildFieldLabel("Kata Sandi"),
                           TextFormField(
                             controller: _passwordController,
@@ -237,7 +236,6 @@ class _RegisterCareState extends State<RegisterCare> {
                             decoration: PolinemaCareInputDecoration.get(
                               hint: 'Buat kata sandi yang kuat',
                               icon: Icons.lock_outline,
-                              // See/Unsee logic
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _isObscure
@@ -258,10 +256,9 @@ class _RegisterCareState extends State<RegisterCare> {
                             },
                           ),
 
-                          const SizedBox(
-                            height: 24,
-                          ), // Tambahan jarak sebelum tombol
-                          // --- REGISTER BUTTON (Daftar Sekarang) ---
+                          const SizedBox(height: 24),
+
+                          // --- REGISTER BUTTON ---
                           Container(
                             width: double.infinity,
                             height: 55,
@@ -301,16 +298,23 @@ class _RegisterCareState extends State<RegisterCare> {
                           ),
                           const SizedBox(height: 20),
 
-                          // --- SEPARATOR ---
                           _buildSeparator(),
                           const SizedBox(height: 20),
 
-                          // --- GOOGLE REGISTER (Daftar dengan Google) ---
+                          // --- GOOGLE REGISTER BUTTON ---
                           SizedBox(
                             width: double.infinity,
                             height: 55,
                             child: OutlinedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const GoogleAccountSelection(),
+                                  ),
+                                );
+                              },
                               style: OutlinedButton.styleFrom(
                                 side: BorderSide(color: Colors.grey.shade300),
                                 shape: RoundedRectangleBorder(
@@ -320,7 +324,6 @@ class _RegisterCareState extends State<RegisterCare> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  // Google Icon (G warna-warni)
                                   ShaderMask(
                                     shaderCallback: (bounds) =>
                                         const LinearGradient(
@@ -369,17 +372,24 @@ class _RegisterCareState extends State<RegisterCare> {
                           color: const Color(0xFF6B7280),
                         ),
                       ),
-                      GestureDetector(
+                      InkWell(
+                        borderRadius: BorderRadius.circular(4),
                         onTap: () {
                           Navigator.pop(context); // Kembali ke halaman Login
                         },
-                        child: Text(
-                          "Masuk di sini",
-                          style: GoogleFonts.plusJakartaSans(
-                            color: const Color(0xFF1068A3),
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
-                            decorationColor: const Color(0xFF1068A3),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          child: Text(
+                            "Masuk di sini",
+                            style: GoogleFonts.plusJakartaSans(
+                              color: const Color(0xFF1068A3),
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline,
+                              decorationColor: const Color(0xFF1068A3),
+                            ),
                           ),
                         ),
                       ),
@@ -387,7 +397,7 @@ class _RegisterCareState extends State<RegisterCare> {
                   ),
                   const SizedBox(height: 15),
                   _buildFooterLinks(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 35),
                 ],
               ),
             ),
@@ -405,7 +415,7 @@ class _RegisterCareState extends State<RegisterCare> {
       child: Text(
         label,
         style: GoogleFonts.plusJakartaSans(
-          fontSize: 13, // Sedikit lebih kecil agar presisi
+          fontSize: 13,
           fontWeight: FontWeight.w600,
           color: const Color(0xFF4B5563),
         ),
@@ -456,14 +466,5 @@ class _RegisterCareState extends State<RegisterCare> {
         ),
       ],
     );
-  }
-
-  // Fungsi untuk reset status submit agar error hilang saat mengetik kembali
-  void _resetSubmittedState() {
-    if (_isSubmitted) {
-      setState(() {
-        _isSubmitted = false;
-      });
-    }
   }
 }

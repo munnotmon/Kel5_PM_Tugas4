@@ -1,6 +1,8 @@
+// Lokasi: lib/login_daftar_akun/login_care.dart
 import 'package:flutter/material.dart';
 import '../main.dart';
 import 'register_care.dart';
+import 'google_account.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class LoginCare extends StatefulWidget {
@@ -152,8 +154,7 @@ class _LoginCareState extends State<LoginCare> {
                             onChanged: (value) {
                               if (_isSubmitted) {
                                 setState(() {
-                                  _isSubmitted =
-                                      false; // Reset status agar error hilang saat user mengetik kembali
+                                  _isSubmitted = false;
                                 });
                               }
                             },
@@ -167,15 +168,12 @@ class _LoginCareState extends State<LoginCare> {
                               if (value == null || value.isEmpty) {
                                 return 'Email wajib diisi';
                               }
-
-                              // Regex untuk validasi format email
                               final emailRegex = RegExp(
                                 r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                               );
                               if (!emailRegex.hasMatch(value)) {
                                 return 'Format email tidak valid (contoh: user@gmail.com)';
                               }
-
                               if (_isSubmitted && value != "admin@gmail.com") {
                                 return 'Email salah. Silakan coba lagi.';
                               }
@@ -194,8 +192,7 @@ class _LoginCareState extends State<LoginCare> {
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _passwordController,
-                            obscureText:
-                                _isObscure, // Mengontrol sembunyi/lihat teks
+                            obscureText: _isObscure,
                             onChanged: (value) {
                               if (_isSubmitted) {
                                 setState(() => _isSubmitted = false);
@@ -219,8 +216,7 @@ class _LoginCareState extends State<LoginCare> {
                                       ),
                                       onPressed: () {
                                         setState(() {
-                                          _isObscure =
-                                              !_isObscure; // Toggle state
+                                          _isObscure = !_isObscure;
                                         });
                                       },
                                     ),
@@ -240,7 +236,6 @@ class _LoginCareState extends State<LoginCare> {
                             },
                           ),
                           const SizedBox(height: 12),
-
                           GestureDetector(
                             onTap: () {},
                             child: Text(
@@ -299,7 +294,16 @@ class _LoginCareState extends State<LoginCare> {
                             width: double.infinity,
                             height: 55,
                             child: OutlinedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                // --- DIPERBAIKI: Navigasi ke Pilih Akun Google ---
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const GoogleAccountSelection(),
+                                  ),
+                                );
+                              },
                               style: OutlinedButton.styleFrom(
                                 side: BorderSide(color: Colors.grey.shade300),
                                 shape: RoundedRectangleBorder(
@@ -357,12 +361,10 @@ class _LoginCareState extends State<LoginCare> {
                           color: const Color(0xFF6B7280),
                         ),
                       ),
-                      // Menggunakan InkWell untuk efek interaktif
                       InkWell(
-                        borderRadius: BorderRadius.circular(
-                          4,
-                        ), // Agar efek highlight rapi
+                        borderRadius: BorderRadius.circular(4),
                         onTap: () {
+                          // --- DIPERBAIKI: HANYA PINDAH KE REGISTER ---
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -370,7 +372,6 @@ class _LoginCareState extends State<LoginCare> {
                             ),
                           );
                         },
-                        // Warna saat ditekan (opsional)
                         highlightColor: const Color(
                           0xFF1068A3,
                         ).withOpacity(0.1),
@@ -442,25 +443,21 @@ class _LoginCareState extends State<LoginCare> {
       fillColor: const Color(0xFFF5F7F9),
       contentPadding: const EdgeInsets.symmetric(vertical: 18),
 
-      // Teks Error di bawah field
       errorStyle: GoogleFonts.plusJakartaSans(
-        color: const Color(0xFFB71C1C), // Merah gelap sesuai gambar
+        color: const Color(0xFFB71C1C),
         fontSize: 12,
       ),
 
-      // Border kondisi Normal
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15.0),
         borderSide: BorderSide.none,
       ),
 
-      // Border saat Error
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15.0),
         borderSide: const BorderSide(color: Color(0xFFB71C1C), width: 1.5),
       ),
 
-      // Border saat Error dan sedang di-klik
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15.0),
         borderSide: const BorderSide(color: Color(0xFFB71C1C), width: 2.0),
