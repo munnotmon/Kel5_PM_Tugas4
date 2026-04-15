@@ -296,8 +296,9 @@ class _LoginCareState extends State<LoginCare> {
                             height: 55,
                             child: OutlinedButton(
                               onPressed: () {
-                                context.push('/google_account');
+                                context.push('/google_account', extra: true);
                               },
+
                               style: OutlinedButton.styleFrom(
                                 side: BorderSide(color: Colors.grey.shade300),
                                 shape: RoundedRectangleBorder(

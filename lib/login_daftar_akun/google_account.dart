@@ -1,16 +1,19 @@
+// Lokasi: lib/login_daftar_akun/google_account.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 
 class GoogleAccountSelection extends StatelessWidget {
-  const GoogleAccountSelection({super.key});
+  // Tambahkan variabel ini untuk mengecek apakah user sedang login atau register
+  final bool isLogin;
+
+  // Jadikan parameter isLogin wajib diisi saat halaman ini dipanggil
+  const GoogleAccountSelection({super.key, required this.isLogin});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(
-        0xFFF8F9FA,
-      ), // Abu-abu sangat terang khas Google
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -130,7 +133,14 @@ class GoogleAccountSelection extends StatelessWidget {
 
               // --- BUTTON BATAL ---
               InkWell(
-                onTap: () => Navigator.pop(context),
+                onTap: () {
+                  // Perbaikan navigasi Batal yang tadi error merah
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go(isLogin ? '/login' : '/register');
+                  }
+                },
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -163,7 +173,28 @@ class GoogleAccountSelection extends StatelessWidget {
   }) {
     return InkWell(
       onTap: () {
-        context.go('/home');
+        if (!context.mounted) return; // Pengecekan aman
+
+        // LOGIKA PENGECEKAN:
+        if (isLogin) {
+          // JIKA LOGIN: Langsung masuk ke Home tanpa verifikasi
+          context.go('/home');
+        } else {
+          // JIKA REGISTER: Harus verifikasi dulu
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Mengirim kode verifikasi ke $email...',
+                style: GoogleFonts.plusJakartaSans(),
+              ),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          // Gunakan push agar tombol panah kembali bisa dipakai
+          context.push('/verification', extra: email);
+        }
       },
       borderRadius: BorderRadius.circular(40),
       child: Container(
@@ -214,6 +245,7 @@ class GoogleAccountSelection extends StatelessWidget {
       onTap: () {},
       borderRadius: BorderRadius.circular(40),
       child: Container(
+        // ... (Kode UI Tambah Akun tetap sama persis) ...
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
           color: const Color(0xFFF3F4F6),

@@ -299,8 +299,9 @@ class _RegisterCareState extends State<RegisterCare> {
                             height: 55,
                             child: OutlinedButton(
                               onPressed: () {
-                                context.push('/google_account');
+                                context.push('/google_account', extra: false);
                               },
+
                               style: OutlinedButton.styleFrom(
                                 side: BorderSide(color: Colors.grey.shade300),
                                 shape: RoundedRectangleBorder(

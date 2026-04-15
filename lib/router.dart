@@ -44,7 +44,11 @@ final GoRouter appRouter = GoRouter(
 
     GoRoute(
       path: '/google_account',
-      builder: (context, state) => const GoogleAccountSelection(),
+      builder: (context, state) {
+        final bool isFromLogin = state.extra as bool? ?? true;
+
+        return GoogleAccountSelection(isLogin: isFromLogin);
+      },
     ),
     GoRoute(
       path: '/success_verification',
