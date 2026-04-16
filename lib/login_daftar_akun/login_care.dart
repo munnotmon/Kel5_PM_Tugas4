@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'input_decoration_helper.dart';
 
 class LoginCare extends StatefulWidget {
   const LoginCare({super.key});
@@ -155,7 +156,7 @@ class _LoginCareState extends State<LoginCare> {
                             },
                             style: GoogleFonts.plusJakartaSans(),
                             keyboardType: TextInputType.emailAddress,
-                            decoration: _inputDecoration(
+                            decoration: PolinemaCareInputDecoration.get(
                               hint: 'Masukkan Email',
                               icon: Icons.person_outline,
                             ),
@@ -199,7 +200,7 @@ class _LoginCareState extends State<LoginCare> {
                             },
                             style: GoogleFonts.plusJakartaSans(),
                             decoration:
-                                _inputDecoration(
+                                PolinemaCareInputDecoration.get(
                                   hint: 'Masukkan Kata Sandi',
                                   icon: Icons.lock_outline,
                                 ).copyWith(
@@ -418,53 +419,6 @@ class _LoginCareState extends State<LoginCare> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  // --- HELPER WIDGETS ---
-  InputDecoration _inputDecoration({
-    required String hint,
-    required IconData icon,
-  }) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: GoogleFonts.plusJakartaSans(
-        color: Colors.black38,
-        fontSize: 14,
-      ),
-      prefixIcon: Icon(icon, color: Colors.black38),
-      filled: true,
-      fillColor: const Color(0xFFF5F7F9),
-      contentPadding: const EdgeInsets.symmetric(vertical: 18),
-
-      // Teks Error di bawah field
-      errorStyle: GoogleFonts.plusJakartaSans(
-        color: const Color(0xFFB71C1C), // Merah gelap sesuai gambar
-        fontSize: 12,
-      ),
-
-      // Border kondisi Normal
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15.0),
-        borderSide: BorderSide.none,
-      ),
-
-      // Border saat Error
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15.0),
-        borderSide: const BorderSide(color: Color(0xFFB71C1C), width: 1.5),
-      ),
-
-      // Border saat Error dan sedang di-klik
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15.0),
-        borderSide: const BorderSide(color: Color(0xFFB71C1C), width: 2.0),
-      ),
-
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15.0),
-        borderSide: const BorderSide(color: Color(0xFF67B9ED), width: 1.5),
       ),
     );
   }

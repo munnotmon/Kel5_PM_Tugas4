@@ -67,7 +67,6 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 22),
 
-              // Penyesuaian nama sesuai desain UI
               Text(
                 'Halo, Rayhan',
                 style: GoogleFonts.plusJakartaSans(
@@ -139,7 +138,7 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 32),
 
-              // --- SECTION INBOX (BARU) ---
+              // --- SECTION INBOX ---
               InboxSection(
                 onNavigate: () =>
                     context.go('/inbox'), // Navigasi ke halaman Inbox
@@ -156,9 +155,6 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// WIDGET INBOX SECTION (Diletakkan di file yang sama agar rapi)
-// =====================================================================
 class InboxSection extends StatelessWidget {
   final VoidCallback? onNavigate;
 

@@ -4,15 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import '../halaman_pendukung/detail_laporan.dart';
 import '../halaman_pendukung/detail_laporan_baru.dart';
 
-// =====================================================================
-// 1. HALAMAN UTUH (Ditampilkan saat Tab Activity di Bottom Navbar ditekan)
-// =====================================================================
 class ActivityScreen extends StatelessWidget {
   const ActivityScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Wajib pakai SafeArea agar tidak tertutup jam/sinyal HP
     return SafeArea(
       child: SingleChildScrollView(
         child: Padding(
@@ -38,7 +34,6 @@ class ActivityScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Memanggil komponen kartu agar tidak perlu menulis kode panjang berulang-ulang
               _buildCardInsidenKantin(context),
               const SizedBox(height: 16),
               _buildCardLaporanBaru(context),
@@ -50,9 +45,6 @@ class ActivityScreen extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// 2. POTONGAN UI (Ditampilkan di dalam HomeScreen)
-// =====================================================================
 class ActivitySection extends StatelessWidget {
   // Fungsi yang dipanggil saat tulisan "Lihat Semua" ditekan
   final VoidCallback onSeeAll;
@@ -76,7 +68,7 @@ class ActivitySection extends StatelessWidget {
               ),
             ),
             InkWell(
-              // DISINI PERUBAHANNYA: Eksekusi pindah tab!
+              // DISINI PERUBAHANNYA
               onTap: onSeeAll,
               borderRadius: BorderRadius.circular(8),
               child: Padding(
@@ -101,10 +93,6 @@ class ActivitySection extends StatelessWidget {
     );
   }
 }
-
-// =====================================================================
-// WIDGET BANTUAN (Agar desain kartu bisa dipakai di Home & Activity)
-// =====================================================================
 
 Widget _buildCardInsidenKantin(BuildContext context) {
   return Material(

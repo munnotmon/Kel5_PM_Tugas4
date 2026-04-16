@@ -5,7 +5,6 @@ import '../halaman_pendukung/riwayat.dart';
 import '../halaman_pendukung/jadwal.dart';
 import '../halaman_pendukung/detail_sesi.dart';
 
-// --- 1. HALAMAN UTUH (Gunakan kode yang sudah kamu buat) ---
 class CounselingScreen extends StatelessWidget {
   const CounselingScreen({super.key});
 
@@ -28,7 +27,6 @@ class CounselingScreen extends StatelessWidget {
   }
 }
 
-// --- 2. POTONGAN UI (Untuk ditampilkan di HOME) ---
 class CounselingSection extends StatelessWidget {
   // Callback untuk pindah tab dari Home ke fitur Counseling
   final VoidCallback? onNavigate;
@@ -126,7 +124,6 @@ class CounselingSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        // Menampilkan ringkasan jadwal yang sama dengan di fitur utama
         _buildJadwalCard(context),
       ],
     );

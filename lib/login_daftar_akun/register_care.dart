@@ -209,7 +209,7 @@ class _RegisterCareState extends State<RegisterCare> {
                                 r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                               );
                               if (!emailRegex.hasMatch(value))
-                                return 'Format email tidak valid';
+                                return 'Format email tidak valid (contoh: user@gmail.com)';
                               return null;
                             },
                           ),

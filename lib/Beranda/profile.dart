@@ -5,7 +5,6 @@ import '../login_daftar_akun/login_care.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  // Fungsi untuk menampilkan pop-up konfirmasi logout
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -44,8 +43,6 @@ class ProfileScreen extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                // Tutup dialog dan arahkan kembali ke halaman Login.
-                // Menggunakan pushAndRemoveUntil agar semua riwayat halaman dihapus (tidak bisa di-back)
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginCare()),
