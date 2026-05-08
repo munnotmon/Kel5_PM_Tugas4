@@ -8,8 +8,8 @@ import 'Beranda/activity.dart';
 import 'Beranda/inbox.dart';
 import 'Beranda/counseling.dart';
 import 'Beranda/profile.dart';
-import 'halaman_pendukung/detail_laporan.dart';
-import 'halaman_pendukung/detail_laporan_baru.dart';
+import 'Laporan_Perundungan/detail_laporan.dart';
+import 'Laporan_Perundungan/detail_laporan_baru.dart';
 import 'splash_screen/splash_care.dart';
 import 'login_daftar_akun/login_care.dart';
 import 'login_daftar_akun/register_care.dart';
@@ -54,6 +54,7 @@ final GoRouter appRouter = GoRouter(
       path: '/success_verification',
       builder: (context, state) => const SuccessVerificationCare(),
     ),
+
 
     // === RUTE MENGGUNAKAN BOTTOM NAVBAR ===
     StatefulShellRoute.indexedStack(
