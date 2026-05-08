@@ -162,10 +162,12 @@ class _RegisterCareState extends State<RegisterCare> {
                               icon: Icons.person_outline,
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty)
+                              if (value == null || value.isEmpty) {
                                 return 'Nama lengkap wajib diisi';
-                              if (!RegExp(r'^[a-z A-Z]+$').hasMatch(value))
+                              }
+                              if (!RegExp(r'^[a-z A-Z]+$').hasMatch(value)) {
                                 return 'Nama hanya boleh berisi huruf';
+                              }
                               return null;
                             },
                           ),
@@ -182,10 +184,12 @@ class _RegisterCareState extends State<RegisterCare> {
                               icon: Icons.badge_outlined, // Ikon ID card
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty)
+                              if (value == null || value.isEmpty) {
                                 return 'Username wajib diisi';
-                              if (value.length < 8)
+                              }
+                              if (value.length < 8) {
                                 return 'Username minimal 8 karakter';
+                              }
                               return null;
                             },
                           ),
@@ -203,13 +207,15 @@ class _RegisterCareState extends State<RegisterCare> {
                               icon: Icons.mail_outline,
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty)
+                              if (value == null || value.isEmpty) {
                                 return 'Email wajib diisi';
+                              }
                               final emailRegex = RegExp(
                                 r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                               );
-                              if (!emailRegex.hasMatch(value))
+                              if (!emailRegex.hasMatch(value)) {
                                 return 'Format email tidak valid';
+                              }
                               return null;
                             },
                           ),
@@ -238,10 +244,12 @@ class _RegisterCareState extends State<RegisterCare> {
                               ),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty)
+                              if (value == null || value.isEmpty) {
                                 return 'Password wajib diisi';
-                              if (value.length < 6)
+                              }
+                              if (value.length < 6) {
                                 return 'Password minimal harus 6 karakter';
+                              }
                               return null;
                             },
                           ),
