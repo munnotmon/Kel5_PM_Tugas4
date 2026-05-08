@@ -16,6 +16,9 @@ import 'login_daftar_akun/register_care.dart';
 import 'login_daftar_akun/verification_care.dart';
 import 'login_daftar_akun/success_verification.dart';
 import 'login_daftar_akun/google_account.dart';
+import 'Laporan_Perundungan/LaporPerundunganPage.dart';
+import 'Laporan_Perundungan/LaporanStep2Page.dart';
+import 'Laporan_Perundungan/LaporanStep3Page.dart';
 
 // Kunci navigasi global (penting agar halaman detail bisa menutupi navbar)
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -55,7 +58,6 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const SuccessVerificationCare(),
     ),
 
-
     // === RUTE MENGGUNAKAN BOTTOM NAVBAR ===
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
@@ -89,6 +91,23 @@ final GoRouter appRouter = GoRouter(
                   path: 'detail-laporan-baru',
                   parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) => const HalamanDetailLaporanBaru(),
+                ),
+                GoRoute(
+                  path: 'laporan',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) => const LaporanPerundunganPage(),
+                  routes: [
+                    GoRoute(
+                      path: 'step2',
+                      parentNavigatorKey: _rootNavigatorKey,
+                      builder: (context, state) => const LaporanStep2Page(),
+                    ),
+                    GoRoute(
+                      path: 'step3',
+                      parentNavigatorKey: _rootNavigatorKey,
+                      builder: (context, state) => const LaporanStep3Page(),
+                    ),
+                  ],
                 ),
               ],
             ),

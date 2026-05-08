@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 
-import '../halaman_pendukung/laporan_perundungan.dart';
+// Pastikan import path ini sesuai dengan lokasi file LaporanPerundunganPage yang baru diperbaiki
+import '../Laporan_Perundungan/LaporPerundunganPage.dart';
 
 // =====================================================================
 // 1. HALAMAN UTUH (Ditampilkan saat Tab Activity di Bottom Navbar ditekan)
-//    Langsung menampilkan form LaporPerundunganPage
 // =====================================================================
 class ActivityScreen extends StatelessWidget {
   const ActivityScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const LaporPerundunganPage();
+    // Menampilkan halaman laporan. Karena LaporanPerundunganPage sudah
+    // menghapus Navbar-nya sendiri, maka Navbar dari MainScreen akan tetap terlihat.
+    return const LaporanPerundunganPage();
   }
 }
 
@@ -59,6 +61,7 @@ class ActivitySection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
+        // Gunakan fungsi builder yang sudah diperbaiki di bawah
         _buildCardPreviewLapor(context, onSeeAll),
       ],
     );

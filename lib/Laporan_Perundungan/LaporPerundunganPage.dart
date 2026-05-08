@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart'; // Pastikan go_router diimport untuk context.pop()
 
 class LaporanPerundunganPage extends StatefulWidget {
   const LaporanPerundunganPage({super.key});
@@ -36,15 +37,14 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
 
   void _handleNext() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Navigate to Step 2
-      // Navigator.pushNamed(context, '/laporan-step2', arguments: {
-      //   'nama': _namaController.text,
-      //   'nim': _nimController.text,
-      //   'telepon': _teleponController.text,
-      //   'prodi': _selectedProdi,
-      // });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Melanjutkan ke langkah 2...')),
+      context.push(
+        '/activity/laporan/step2',
+        extra: {
+          'nama': _namaController.text,
+          'nim': _nimController.text,
+          'telepon': _teleponController.text,
+          'prodi': _selectedProdi,
+        },
       );
     }
   }
@@ -59,7 +59,10 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -82,7 +85,7 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
+      // bottomNavigationBar telah dihapus agar menggunakan navbar dari MainScreen/ShellRoute
     );
   }
 
@@ -92,7 +95,16 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Color(0xFF1A6B8A)),
-        onPressed: () => Navigator.pop(context),
+        onPressed: () {
+          // PERBAIKAN DI SINI:
+          // Cek dulu apakah ada halaman yang bisa di-pop (mundur)
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            // Jika tidak ada (karena ini halaman root tab), arahkan ke Home
+            context.go('/home');
+          }
+        },
       ),
       title: const Text(
         'Laporkan Perundungan',
@@ -108,11 +120,7 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
           child: CircleAvatar(
             radius: 18,
             backgroundColor: const Color(0xFFE8D5C4),
-            child: ClipOval(
-              child: Container(
-                color: const Color(0xFFE8D5C4),
-              ),
-            ),
+            child: ClipOval(child: Container(color: const Color(0xFFE8D5C4))),
           ),
         ),
       ],
@@ -166,11 +174,7 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
         const SizedBox(height: 8),
         Text(
           'Ceritakan secara jujur. Keamanan Anda adalah\nprioritas utama kami.',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
-            height: 1.5,
-          ),
+          style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.5),
         ),
       ],
     );
@@ -288,10 +292,7 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
           ),
         ),
         const SizedBox(width: 4),
-        const Text(
-          '*',
-          style: TextStyle(color: Colors.red, fontSize: 14),
-        ),
+        const Text('*', style: TextStyle(color: Colors.red, fontSize: 14)),
       ],
     );
   }
@@ -312,8 +313,10 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
         hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
         filled: true,
         fillColor: const Color(0xFFF0F2F5),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -350,8 +353,10 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
       decoration: InputDecoration(
         filled: true,
         fillColor: const Color(0xFFF0F2F5),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -372,10 +377,7 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
       validator: (val) => val == null ? 'Program studi wajib dipilih' : null,
       onChanged: (val) => setState(() => _selectedProdi = val),
       items: _prodiList.map((prodi) {
-        return DropdownMenuItem(
-          value: prodi,
-          child: Text(prodi),
-        );
+        return DropdownMenuItem(value: prodi, child: Text(prodi));
       }).toList(),
     );
   }
@@ -423,58 +425,6 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildBottomNavBar() {
-    return BottomAppBar(
-      color: Colors.white,
-      elevation: 10,
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8,
-      child: SizedBox(
-        height: 60,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(Icons.home_outlined, 'Home', false),
-            _buildNavItem(Icons.bar_chart, 'Activity', true),
-            const SizedBox(width: 40), // FAB notch space
-            _buildNavItem(Icons.psychology_outlined, 'Counseling', false),
-            _buildNavItem(Icons.person_outline, 'Profile', false),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, bool isActive) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          decoration: isActive
-              ? BoxDecoration(
-                  color: const Color(0xFFE0F2ED),
-                  borderRadius: BorderRadius.circular(8),
-                )
-              : null,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          child: Icon(
-            icon,
-            color: isActive ? const Color(0xFF1A6B8A) : Colors.grey[500],
-            size: 22,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: isActive ? const Color(0xFF1A6B8A) : Colors.grey[500],
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ],
     );
   }
 }
