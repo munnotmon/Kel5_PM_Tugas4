@@ -3,7 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 
 class LaporanStep3Page extends StatefulWidget {
-  const LaporanStep3Page({super.key});
+  final Map<String, dynamic> prevData;
+
+  const LaporanStep3Page({super.key, this.prevData = const {}});
 
   @override
   State<LaporanStep3Page> createState() => _LaporanStep3PageState();
@@ -12,14 +14,19 @@ class LaporanStep3Page extends StatefulWidget {
 class _LaporanStep3PageState extends State<LaporanStep3Page> {
   final _formKey = GlobalKey<FormState>();
 
-  // Siapa Korbannya
-  String _selectedKorban = 'saya'; // 'saya' atau 'orang_lain'
-
-  // Identitas Pelaku
+  String _selectedKorban = 'saya';
   final TextEditingController _pelakuController = TextEditingController();
-
-  // Saksi
   final TextEditingController _saksiController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final d = widget.prevData;
+    // Pre-fill dari data sebelumnya (saat edit dari Step4)
+    if (d['korban'] != null) _selectedKorban = d['korban'];
+    _pelakuController.text = d['pelaku'] ?? '';
+    _saksiController.text = d['saksi'] ?? '';
+  }
 
   @override
   void dispose() {
@@ -33,15 +40,14 @@ class _LaporanStep3PageState extends State<LaporanStep3Page> {
   // =====================================================================
   void _handleNext() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Navigasi ke Step 4
-      context.push(
-        '/activity/laporan/step4',
-        extra: {
-          'korban': _selectedKorban,
-          'pelaku': _pelakuController.text,
-          'saksi': _saksiController.text,
-        },
-      );
+      context.push('/activity/laporan/step4', extra: {
+        // Data dari step 1 & 2
+        ...widget.prevData,
+        // Data step 3
+        'korban': _selectedKorban,
+        'pelaku': _pelakuController.text,
+        'saksi': _saksiController.text,
+      });
     }
   }
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-// Import semua halaman yang dibutuhkan
 import 'main.dart';
 import 'Beranda/home.dart';
 import 'Beranda/activity.dart';
@@ -19,18 +18,18 @@ import 'login_daftar_akun/google_account.dart';
 import 'Laporan_Perundungan/LaporPerundunganPage.dart';
 import 'Laporan_Perundungan/LaporanStep2Page.dart';
 import 'Laporan_Perundungan/LaporanStep3Page.dart';
+import 'Laporan_Perundungan/LaporanStep4Page.dart';
 
-// Kunci navigasi global (penting agar halaman detail bisa menutupi navbar)
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> activityNavigatorKey = GlobalKey<NavigatorState>();
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/login', // Halaman pertama kali dibuka
+  initialLocation: '/login',
   routes: [
-    // --- PASTIKAN KEDUA RUTE INI ADA DI SINI ---
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(
-      path: '/login', // <--- INI ADALAH RUTE YANG DICARI OLEH SISTEM
+      path: '/login',
       builder: (context, state) => const LoginCare(),
     ),
     GoRoute(
@@ -44,12 +43,10 @@ final GoRouter appRouter = GoRouter(
         return VerificationCare(email: email);
       },
     ),
-
     GoRoute(
       path: '/google_account',
       builder: (context, state) {
         final bool isFromLogin = state.extra as bool? ?? true;
-
         return GoogleAccountSelection(isLogin: isFromLogin);
       },
     ),
@@ -75,37 +72,51 @@ final GoRouter appRouter = GoRouter(
         ),
         // Tab 1: Activity
         StatefulShellBranch(
+          navigatorKey: activityNavigatorKey,
           routes: [
             GoRoute(
               path: '/activity',
               builder: (context, state) => const ActivityScreen(),
               routes: [
-                // Sub-rute: Detail Laporan Lama
+                // Detail Laporan — tetap menutupi navbar
                 GoRoute(
                   path: 'detail-laporan',
                   parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) => const HalamanDetailLaporan(),
                 ),
-                // Sub-rute: Detail Laporan Baru
                 GoRoute(
                   path: 'detail-laporan-baru',
                   parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) => const HalamanDetailLaporanBaru(),
                 ),
+                // Step 1, 2, 3, 4 — TANPA parentNavigatorKey agar navbar tampil
                 GoRoute(
                   path: 'laporan',
-                  parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) => const LaporanPerundunganPage(),
                   routes: [
                     GoRoute(
                       path: 'step2',
-                      parentNavigatorKey: _rootNavigatorKey,
-                      builder: (context, state) => const LaporanStep2Page(),
+                      builder: (context, state) {
+                        final extra =
+                            state.extra as Map<String, dynamic>? ?? {};
+                        return LaporanStep2Page(prevData: extra);
+                      },
                     ),
                     GoRoute(
                       path: 'step3',
-                      parentNavigatorKey: _rootNavigatorKey,
-                      builder: (context, state) => const LaporanStep3Page(),
+                      builder: (context, state) {
+                        final extra =
+                            state.extra as Map<String, dynamic>? ?? {};
+                        return LaporanStep3Page(prevData: extra);
+                      },
+                    ),
+                    GoRoute(
+                      path: 'step4',
+                      builder: (context, state) {
+                        final extra =
+                            state.extra as Map<String, dynamic>? ?? {};
+                        return LaporanStep4Page(data: extra);
+                      },
                     ),
                   ],
                 ),

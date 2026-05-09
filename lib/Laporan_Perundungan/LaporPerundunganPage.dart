@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart'; // Pastikan go_router diimport untuk context.pop()
+import 'package:go_router/go_router.dart';
 
 class LaporanPerundunganPage extends StatefulWidget {
   const LaporanPerundunganPage({super.key});
@@ -54,38 +54,31 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: _buildAppBar(),
+      // Tombol sekarang ada di dalam scroll, bukan di luar
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildStepIndicator(),
-                      const SizedBox(height: 20),
-                      _buildHeader(),
-                      const SizedBox(height: 24),
-                      _buildSecurityCard(),
-                      const SizedBox(height: 28),
-                      _buildFormFields(),
-                      const SizedBox(height: 32),
-                    ],
-                  ),
-                ),
-              ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildStepIndicator(),
+                const SizedBox(height: 20),
+                _buildHeader(),
+                const SizedBox(height: 24),
+                _buildSecurityCard(),
+                const SizedBox(height: 28),
+                _buildFormFields(),
+                const SizedBox(height: 32),
+                // Tombol "Selanjutnya" ikut scroll bersama konten
+                _buildNextButton(),
+                const SizedBox(height: 16),
+              ],
             ),
-            _buildNextButton(),
-          ],
+          ),
         ),
       ),
-      // bottomNavigationBar telah dihapus agar menggunakan navbar dari MainScreen/ShellRoute
     );
   }
 
@@ -96,12 +89,9 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Color(0xFF1A6B8A)),
         onPressed: () {
-          // PERBAIKAN DI SINI:
-          // Cek dulu apakah ada halaman yang bisa di-pop (mundur)
           if (context.canPop()) {
             context.pop();
           } else {
-            // Jika tidak ada (karena ini halaman root tab), arahkan ke Home
             context.go('/home');
           }
         },
@@ -383,45 +373,41 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
   }
 
   Widget _buildNextButton() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-      color: const Color(0xFFF5F7FA),
-      child: SizedBox(
-        width: double.infinity,
-        height: 52,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1A6B8A), Color(0xFF2AAFCF)],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-            borderRadius: BorderRadius.circular(30),
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF1A6B8A), Color(0xFF2AAFCF)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
           ),
-          child: ElevatedButton(
-            onPressed: _handleNext,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              shadowColor: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: ElevatedButton(
+          onPressed: _handleNext,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
             ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Selanjutnya',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Selanjutnya',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-              ],
-            ),
+              ),
+              SizedBox(width: 8),
+              Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+            ],
           ),
         ),
       ),

@@ -1,5 +1,6 @@
 // Lokasi: lib/halaman_pendukung/laporan_step2.dart
-import 'dart:io';
+import 'dart:io' show Directory, File;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
@@ -11,7 +12,9 @@ import 'package:camerawesome/pigeon.dart';
 import 'package:geolocator/geolocator.dart';
 
 class LaporanStep2Page extends StatefulWidget {
-  const LaporanStep2Page({super.key});
+  final Map<String, dynamic> prevData;
+
+  const LaporanStep2Page({super.key, this.prevData = const {}});
 
   @override
   State<LaporanStep2Page> createState() => _LaporanStep2PageState();
@@ -31,8 +34,51 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
   bool _isLoadingLocation = false;
 
   // Lampiran
-  final List<File> _attachments = [];
+  final List<XFile> _attachments = [];
   final ImagePicker _imagePicker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    final d = widget.prevData;
+    // Pre-fill field dari data sebelumnya (saat edit dari Step4)
+    _lokasiController.text = d['lokasi'] ?? '';
+    _jenisController.text = d['jenis'] ?? '';
+    _deskripsiController.text = d['deskripsi'] ?? '';
+    // Restore lampiran path jika ada
+    final lampiranPaths = d['lampiran'];
+    if (lampiranPaths is List) {
+      for (final path in lampiranPaths) {
+        _attachments.add(XFile(path.toString()));
+      }
+    }
+    // Restore DateTime dari string 'waktu' format: "9 Mei 2026, 15:17"
+    final waktuStr = d['waktu'] as String?;
+    if (waktuStr != null && waktuStr.isNotEmpty) {
+      _selectedDateTime = _parseWaktu(waktuStr);
+    }
+  }
+
+  DateTime? _parseWaktu(String waktu) {
+    try {
+      const months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+        'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+      ];
+      // Format: "9 Mei 2026, 15:17"
+      final parts = waktu.split(', ');
+      final dateParts = parts[0].split(' ');
+      final timeParts = parts[1].split(':');
+      final day = int.parse(dateParts[0]);
+      final month = months.indexOf(dateParts[1]) + 1;
+      final year = int.parse(dateParts[2]);
+      final hour = int.parse(timeParts[0]);
+      final minute = int.parse(timeParts[1]);
+      return DateTime(year, month, day, hour, minute);
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   void dispose() {
@@ -205,8 +251,7 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
   // FULLSCREEN MAP
   // =====================================================================
   Future<void> _openFullscreenMap() async {
-    final result = await Navigator.push<LatLng>(
-      context,
+    final result = await Navigator.of(context, rootNavigator: true).push<LatLng>(
       MaterialPageRoute(
         builder: (context) => FullscreenMapPage(initialLatLng: _selectedLatLng),
       ),
@@ -248,16 +293,18 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
                 ),
               ),
               const SizedBox(height: 16),
-              _buildAttachOption(
-                icon: Icons.camera_alt_outlined,
-                label: 'Kamera',
-                subtitle: 'Ambil foto atau video langsung',
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _openCameraAwesome();
-                },
-              ),
-              const SizedBox(height: 12),
+              if (!kIsWeb) ...[
+                _buildAttachOption(
+                  icon: Icons.camera_alt_outlined,
+                  label: 'Kamera',
+                  subtitle: 'Ambil foto atau video langsung',
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _openCameraAwesome();
+                  },
+                ),
+                const SizedBox(height: 12),
+              ],
               _buildAttachOption(
                 icon: Icons.photo_library_outlined,
                 label: 'Galeri',
@@ -327,12 +374,11 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
   }
 
   Future<void> _openCameraAwesome() async {
-    await Navigator.push(
-      context,
+    await Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         builder: (context) => CameraAwesomePage(
           onFileReady: (file) {
-            setState(() => _attachments.add(File(file.path)));
+            setState(() => _attachments.add(file));
           },
         ),
       ),
@@ -344,7 +390,7 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
     if (picked.isNotEmpty) {
       setState(() {
         for (final xfile in picked) {
-          _attachments.add(File(xfile.path));
+          _attachments.add(xfile);
         }
       });
     }
@@ -368,8 +414,16 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
         );
         return;
       }
-      // Navigasi ke Step 3 (sesuaikan path nanti)
-      context.push('/activity/laporan/step3');
+      context.push('/activity/laporan/step3', extra: {
+        // Data dari step 1
+        ...widget.prevData,
+        // Data step 2
+        'waktu': _formatDateTime(_selectedDateTime!),
+        'lokasi': _lokasiController.text,
+        'jenis': _jenisController.text,
+        'deskripsi': _deskripsiController.text,
+        'lampiran': _attachments.map((f) => f.path).toList(),
+      });
     }
   }
 
@@ -800,9 +854,28 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
                     height: 80,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
-                      image: DecorationImage(
-                        image: FileImage(_attachments[i]),
-                        fit: BoxFit.cover,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: FutureBuilder<Uint8List>(
+                        future: _attachments[i].readAsBytes(),
+                        builder: (ctx, snap) {
+                          if (snap.hasData) {
+                            return Image.memory(
+                              snap.data!,
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                            );
+                          }
+                          return const SizedBox(
+                            width: 80,
+                            height: 80,
+                            child: Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -1322,13 +1395,28 @@ class CameraAwesomePage extends StatelessWidget {
             return SingleCaptureRequest(path, sensors.first);
           },
         ),
-        // Callback saat foto berhasil diambil
+        // Callback saat foto berhasil diambil — buka preview dulu
         onMediaTap: (media) {
           media.captureRequest.when(
             single: (single) {
               if (single.file != null) {
-                onFileReady(XFile(single.file!.path));
-                Navigator.pop(context);
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(
+                    builder: (_) => PhotoPreviewPage(
+                      filePath: single.file!.path,
+                      onConfirm: () {
+                        onFileReady(XFile(single.file!.path));
+                        // Tutup preview + kamera sekaligus
+                        Navigator.of(context, rootNavigator: true)
+                          ..pop() // preview
+                          ..pop(); // kamera
+                      },
+                      onRetake: () {
+                        Navigator.of(context, rootNavigator: true).pop();
+                      },
+                    ),
+                  ),
+                );
               }
             },
           );
@@ -1362,3 +1450,107 @@ class CameraAwesomePage extends StatelessWidget {
     );
   }
 } // Pastikan hanya ada satu penutup di sini
+
+// =====================================================================
+// HALAMAN PREVIEW FOTO
+// =====================================================================
+class PhotoPreviewPage extends StatelessWidget {
+  final String filePath;
+  final VoidCallback onConfirm;
+  final VoidCallback onRetake;
+
+  const PhotoPreviewPage({
+    super.key,
+    required this.filePath,
+    required this.onConfirm,
+    required this.onRetake,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.file(File(filePath), fit: BoxFit.contain),
+
+          // Tombol Ambil Ulang (kiri atas)
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: GestureDetector(
+                  onTap: onRetake,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.refresh_rounded,
+                            color: Colors.white, size: 18),
+                        SizedBox(width: 6),
+                        Text('Ambil Ulang',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Tombol Gunakan Foto (bawah)
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: 48,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1A6B8A), Color(0xFF2AAFCF)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF1A6B8A).withOpacity(0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ElevatedButton.icon(
+                onPressed: onConfirm,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                icon: const Icon(Icons.check_circle_outline,
+                    color: Colors.white, size: 20),
+                label: const Text('Gunakan Foto Ini',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
