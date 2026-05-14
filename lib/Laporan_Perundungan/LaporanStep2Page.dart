@@ -25,8 +25,18 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
 
   DateTime? _selectedDateTime;
   final TextEditingController _lokasiController = TextEditingController();
-  final TextEditingController _jenisController = TextEditingController();
+  String? _selectedJenis;
   final TextEditingController _deskripsiController = TextEditingController();
+
+  // Jenis perundungan yang butuh map (terjadi secara fisik/tatap muka)
+  static const _jenisOptions = [
+    'Verbal',
+    'Fisik',
+    'Emosional',
+    'Cyberbullying',
+    'Pelecehan Seksual',
+  ];
+  bool get _showMap => _selectedJenis != null && _selectedJenis != 'Cyberbullying';
 
   // Map
   final MapController _mapController = MapController();
@@ -43,7 +53,7 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
     final d = widget.prevData;
     // Pre-fill field dari data sebelumnya (saat edit dari Step4)
     _lokasiController.text = d['lokasi'] ?? '';
-    _jenisController.text = d['jenis'] ?? '';
+    _selectedJenis = d['jenis'] as String?;
     _deskripsiController.text = d['deskripsi'] ?? '';
     // Restore lampiran path jika ada
     final lampiranPaths = d['lampiran'];
@@ -83,7 +93,6 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
   @override
   void dispose() {
     _lokasiController.dispose();
-    _jenisController.dispose();
     _deskripsiController.dispose();
     super.dispose();
   }
@@ -377,8 +386,8 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
     await Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         builder: (context) => CameraAwesomePage(
-          onFileReady: (file) {
-            setState(() => _attachments.add(file));
+          onFilesReady: (files) {
+            setState(() => _attachments.addAll(files));
           },
         ),
       ),
@@ -420,7 +429,7 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
         // Data step 2
         'waktu': _formatDateTime(_selectedDateTime!),
         'lokasi': _lokasiController.text,
-        'jenis': _jenisController.text,
+        'jenis': _selectedJenis ?? '',
         'deskripsi': _deskripsiController.text,
         'lampiran': _attachments.map((f) => f.path).toList(),
       });
@@ -449,10 +458,12 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
                 const SizedBox(height: 24),
                 _buildWaktuKejadian(),
                 const SizedBox(height: 20),
-                _buildLokasiKampus(),
-                const SizedBox(height: 20),
                 _buildJenisPerundungan(),
                 const SizedBox(height: 20),
+                if (_showMap) ...[
+                  _buildLokasiKampus(),
+                  const SizedBox(height: 20),
+                ],
                 _buildDeskripsiKejadian(),
                 const SizedBox(height: 20),
                 _buildLampiranBukti(),
@@ -796,17 +807,63 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
       children: [
         _buildLabel('JENIS PERUNDUNGAN'),
         const SizedBox(height: 10),
-        TextFormField(
-          controller: _jenisController,
-          validator: (val) => val == null || val.isEmpty
-              ? 'Jenis perundungan wajib diisi'
-              : null,
+        DropdownButtonFormField<String>(
+          value: _selectedJenis,
+          hint: Text(
+            'Pilih jenis perundungan',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              color: Colors.grey[400],
+            ),
+          ),
+          icon: const Icon(Icons.keyboard_arrow_down,
+              color: Color(0xFF1A6B8A)),
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
             color: const Color(0xFF1A2D3D),
           ),
-          decoration: _inputDecoration('Masukkan Jenis Perundungan'),
+          decoration: _inputDecoration(''),
+          validator: (val) =>
+              val == null ? 'Jenis perundungan wajib dipilih' : null,
+          onChanged: (val) => setState(() {
+            _selectedJenis = val;
+            // Clear lokasi jika ganti ke cyberbullying
+            if (val == 'Cyberbullying') {
+              _lokasiController.clear();
+              _selectedLatLng = const LatLng(-7.9666, 112.6326);
+            }
+          }),
+          items: _jenisOptions.map((jenis) {
+            return DropdownMenuItem(value: jenis, child: Text(jenis));
+          }).toList(),
         ),
+        if (_selectedJenis == 'Cyberbullying') ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3E0),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFFFB74D)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline,
+                    color: Color(0xFFE65100), size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Cyberbullying terjadi secara online, sehingga lokasi kejadian tidak diperlukan.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: const Color(0xFFE65100),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -1376,80 +1433,236 @@ class _FullscreenMapPageState extends State<FullscreenMapPage> {
 }
 
 // =====================================================================
-// HALAMAN KAMERA (CameraAwesome)
+// HALAMAN KAMERA (CameraAwesome) — multi-capture dengan seleksi
 // =====================================================================
-class CameraAwesomePage extends StatelessWidget {
-  final Function(XFile file) onFileReady;
+class CameraAwesomePage extends StatefulWidget {
+  final Function(List<XFile> files) onFilesReady;
 
-  const CameraAwesomePage({super.key, required this.onFileReady});
+  const CameraAwesomePage({super.key, required this.onFilesReady});
+
+  @override
+  State<CameraAwesomePage> createState() => _CameraAwesomePageState();
+}
+
+class _CameraAwesomePageState extends State<CameraAwesomePage> {
+  final List<String> _capturedPaths = [];
+
+  void _onMediaTap(MediaCapture media) {
+    media.captureRequest.when(
+      single: (single) {
+        if (single.file != null) {
+          setState(() => _capturedPaths.add(single.file!.path));
+        }
+      },
+    );
+  }
+
+  void _openSelection() async {
+    if (_capturedPaths.isEmpty) return;
+    final selected = await Navigator.of(context, rootNavigator: true).push<List<String>>(
+      MaterialPageRoute(
+        builder: (_) => PhotoSelectionPage(paths: _capturedPaths),
+      ),
+    );
+    if (selected != null && selected.isNotEmpty && mounted) {
+      widget.onFilesReady(selected.map((p) => XFile(p)).toList());
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CameraAwesomeBuilder.awesome(
-        saveConfig: SaveConfig.photo(
-          pathBuilder: (sensors) async {
-            final dir = Directory.systemTemp;
-            final path =
-                '${dir.path}/bukti_${DateTime.now().millisecondsSinceEpoch}.jpg';
-            return SingleCaptureRequest(path, sensors.first);
-          },
-        ),
-        // Callback saat foto berhasil diambil — buka preview dulu
-        onMediaTap: (media) {
-          media.captureRequest.when(
-            single: (single) {
-              if (single.file != null) {
-                Navigator.of(context, rootNavigator: true).push(
-                  MaterialPageRoute(
-                    builder: (_) => PhotoPreviewPage(
-                      filePath: single.file!.path,
-                      onConfirm: () {
-                        onFileReady(XFile(single.file!.path));
-                        // Tutup preview + kamera sekaligus
-                        Navigator.of(context, rootNavigator: true)
-                          ..pop() // preview
-                          ..pop(); // kamera
-                      },
-                      onRetake: () {
-                        Navigator.of(context, rootNavigator: true).pop();
-                      },
+      body: Stack(
+        children: [
+          CameraAwesomeBuilder.awesome(
+            saveConfig: SaveConfig.photo(
+              pathBuilder: (sensors) async {
+                final dir = Directory.systemTemp;
+                final path =
+                    '${dir.path}/bukti_${DateTime.now().millisecondsSinceEpoch}.jpg';
+                return SingleCaptureRequest(path, sensors.first);
+              },
+            ),
+            onMediaTap: _onMediaTap,
+            topActionsBuilder: (state) {
+              return Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.arrow_back,
+                            color: Colors.white, size: 22),
+                      ),
                     ),
-                  ),
-                );
-              }
+                  ],
+                ),
+              );
             },
-          );
-        },
-        // Menambahkan tombol kembali secara manual di atas kamera
-        topActionsBuilder: (state) {
-          return Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      shape: BoxShape.circle,
+          ),
+
+          // Tombol "Pilih Foto" muncul saat ada foto tersimpan
+          if (_capturedPaths.isNotEmpty)
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: 48,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1A6B8A), Color(0xFF2AAFCF)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF1A6B8A).withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 22,
-                    ),
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: _openSelection,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  icon: const Icon(Icons.photo_library_outlined,
+                      color: Colors.white, size: 20),
+                  label: Text(
+                    'Pilih Foto (${_capturedPaths.length})',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600),
                   ),
                 ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+} // Pastikan hanya ada satu penutup di sini
+
+// =====================================================================
+// HALAMAN SELEKSI FOTO
+// =====================================================================
+class PhotoSelectionPage extends StatefulWidget {
+  final List<String> paths;
+  const PhotoSelectionPage({super.key, required this.paths});
+
+  @override
+  State<PhotoSelectionPage> createState() => _PhotoSelectionPageState();
+}
+
+class _PhotoSelectionPageState extends State<PhotoSelectionPage> {
+  late List<String> _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = List.from(widget.paths); // default semua terpilih
+  }
+
+  void _toggle(String path) {
+    setState(() {
+      _selected.contains(path) ? _selected.remove(path) : _selected.add(path);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          '${_selected.length} foto dipilih',
+          style: GoogleFonts.plusJakartaSans(color: Colors.white),
+        ),
+      ),
+      body: GridView.builder(
+        padding: const EdgeInsets.all(8),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 4,
+          mainAxisSpacing: 4,
+        ),
+        itemCount: widget.paths.length,
+        itemBuilder: (_, i) {
+          final path = widget.paths[i];
+          final isSelected = _selected.contains(path);
+          return GestureDetector(
+            onTap: () => _toggle(path),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.file(File(path), fit: BoxFit.cover),
+                if (isSelected)
+                  Container(
+                    color: const Color(0xFF1A6B8A).withOpacity(0.4),
+                    alignment: Alignment.topRight,
+                    padding: const EdgeInsets.all(6),
+                    child: const Icon(Icons.check_circle,
+                        color: Colors.white, size: 22),
+                  ),
               ],
             ),
           );
         },
       ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1A6B8A), Color(0xFF2AAFCF)],
+              ),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: ElevatedButton(
+              onPressed: _selected.isEmpty
+                  ? null
+                  : () => Navigator.pop(context, _selected),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: Text(
+                'Gunakan ${_selected.length} Foto',
+                style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
-} // Pastikan hanya ada satu penutup di sini
+}
 
 // =====================================================================
 // HALAMAN PREVIEW FOTO

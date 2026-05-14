@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 
-import '../router.dart';
-
 class LaporanStep4Page extends StatefulWidget {
   final Map<String, dynamic> data;
 
@@ -94,10 +92,8 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
                 ),
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context, rootNavigator: true).pop();
-                    activityNavigatorKey.currentState
-                        ?.popUntil((route) => route.isFirst);
-                    context.go('/home');
+                    Navigator.pop(context);
+                    context.go('/activity');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
@@ -133,30 +129,37 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: _buildAppBar(),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 16,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildStepIndicator(),
-              const SizedBox(height: 20),
-              _buildHeader(),
-              const SizedBox(height: 24),
-              _buildDetailKejadianCard(),
-              const SizedBox(height: 16),
-              _buildPihakTerlibatCard(),
-              const SizedBox(height: 16),
-              _buildLampiranCard(),
-              const SizedBox(height: 16),
-              _buildSecurityInfo(),
-              const SizedBox(height: 24),
-              _buildKirimButton(),
-              const SizedBox(height: 16),
-            ],
-          ),
+        child: Column(
+          children: [
+            // Konten scrollable
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildStepIndicator(),
+                    const SizedBox(height: 20),
+                    _buildHeader(),
+                    const SizedBox(height: 24),
+                    _buildDetailKejadianCard(),
+                    const SizedBox(height: 16),
+                    _buildPihakTerlibatCard(),
+                    const SizedBox(height: 16),
+                    _buildLampiranCard(),
+                    const SizedBox(height: 16),
+                    _buildSecurityInfo(),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            ),
+            // Tombol Kirim — sticky di atas navbar
+            _buildKirimButton(),
+          ],
         ),
       ),
     );
@@ -261,21 +264,25 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
   // =====================================================================
   Widget _buildDetailKejadianCard() {
     final waktu = _get('waktu', '12 Okt 2026, 10:00');
-    final lokasi = _get('lokasi', 'Kantin Utama');
+    final lokasi = _get('lokasi', '');
     final jenis = _get('jenis', 'Perundungan Verbal');
     final deskripsi = _get('deskripsi', '"Insiden terjadi saat jam istirahat..."');
+    final isCyber = jenis == 'Cyberbullying';
 
     return _buildCard(
       icon: Icons.calendar_today_rounded,
       iconBg: const Color(0xFFE8F4FD),
       iconColor: const Color(0xFF1A6B8A),
       title: 'Detail Kejadian',
-      // Push Step2 dengan full data agar form ter-prefill
       onEdit: () => context.push('/activity/laporan/step2', extra: widget.data),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow(label: 'WAKTU & TEMPAT', value: '$waktu - $lokasi'),
+          // Jika cyberbullying, hanya tampilkan waktu tanpa lokasi
+          _buildInfoRow(
+            label: isCyber ? 'WAKTU' : 'WAKTU & TEMPAT',
+            value: isCyber ? waktu : '$waktu - $lokasi',
+          ),
           const SizedBox(height: 14),
           _buildInfoRow(label: 'JENIS INSIDEN', value: jenis, isBold: true),
           const SizedBox(height: 14),
