@@ -98,7 +98,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    context.go('/activity');
+                    context.push('/activity/laporan');
                   },
                   icon: const Icon(
                     Icons.campaign,

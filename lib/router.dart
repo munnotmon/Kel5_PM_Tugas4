@@ -21,17 +21,15 @@ import 'Laporan_Perundungan/LaporanStep3Page.dart';
 import 'Laporan_Perundungan/LaporanStep4Page.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
-final GlobalKey<NavigatorState> activityNavigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> activityNavigatorKey =
+    GlobalKey<NavigatorState>();
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/login',
   routes: [
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => const LoginCare(),
-    ),
+    GoRoute(path: '/login', builder: (context, state) => const LoginCare()),
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegisterCare(),
@@ -53,6 +51,37 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/success_verification',
       builder: (context, state) => const SuccessVerificationCare(),
+    ),
+
+    // === FORM LAPORAN — di luar ShellRoute agar navbar hilang ===
+    GoRoute(
+      path: '/activity/laporan',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const LaporanPerundunganPage(),
+    ),
+    GoRoute(
+      path: '/activity/laporan/step2',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>? ?? {};
+        return LaporanStep2Page(prevData: extra);
+      },
+    ),
+    GoRoute(
+      path: '/activity/laporan/step3',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>? ?? {};
+        return LaporanStep3Page(prevData: extra);
+      },
+    ),
+    GoRoute(
+      path: '/activity/laporan/step4',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>? ?? {};
+        return LaporanStep4Page(data: extra);
+      },
     ),
 
     // === RUTE MENGGUNAKAN BOTTOM NAVBAR ===
@@ -78,7 +107,6 @@ final GoRouter appRouter = GoRouter(
               path: '/activity',
               builder: (context, state) => const ActivityScreen(),
               routes: [
-                // Detail Laporan — tetap menutupi navbar
                 GoRoute(
                   path: 'detail-laporan',
                   parentNavigatorKey: _rootNavigatorKey,
@@ -88,37 +116,6 @@ final GoRouter appRouter = GoRouter(
                   path: 'detail-laporan-baru',
                   parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) => const HalamanDetailLaporanBaru(),
-                ),
-                // Step 1, 2, 3, 4 — TANPA parentNavigatorKey agar navbar tampil
-                GoRoute(
-                  path: 'laporan',
-                  builder: (context, state) => const LaporanPerundunganPage(),
-                  routes: [
-                    GoRoute(
-                      path: 'step2',
-                      builder: (context, state) {
-                        final extra =
-                            state.extra as Map<String, dynamic>? ?? {};
-                        return LaporanStep2Page(prevData: extra);
-                      },
-                    ),
-                    GoRoute(
-                      path: 'step3',
-                      builder: (context, state) {
-                        final extra =
-                            state.extra as Map<String, dynamic>? ?? {};
-                        return LaporanStep3Page(prevData: extra);
-                      },
-                    ),
-                    GoRoute(
-                      path: 'step4',
-                      builder: (context, state) {
-                        final extra =
-                            state.extra as Map<String, dynamic>? ?? {};
-                        return LaporanStep4Page(data: extra);
-                      },
-                    ),
-                  ],
                 ),
               ],
             ),

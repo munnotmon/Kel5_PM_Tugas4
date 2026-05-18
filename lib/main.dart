@@ -28,6 +28,14 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// Route yang harus menyembunyikan navbar
+const _hideNavbarRoutes = [
+  '/activity/laporan',
+  '/activity/laporan/step2',
+  '/activity/laporan/step3',
+  '/activity/laporan/step4',
+];
+
 class MainScreen extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
@@ -35,6 +43,9 @@ class MainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final location = GoRouterState.of(context).matchedLocation;
+    final hideNavbar = _hideNavbarRoutes.any((r) => location.startsWith(r));
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -51,15 +62,17 @@ class MainScreen extends StatelessWidget {
         ),
         child: navigationShell,
       ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: navigationShell.currentIndex,
-        onTap: (index) {
-          navigationShell.goBranch(
-            index,
-            initialLocation: index == navigationShell.currentIndex,
-          );
-        },
-      ),
+      bottomNavigationBar: hideNavbar
+          ? null
+          : CustomBottomNavBar(
+              currentIndex: navigationShell.currentIndex,
+              onTap: (index) {
+                navigationShell.goBranch(
+                  index,
+                  initialLocation: index == navigationShell.currentIndex,
+                );
+              },
+            ),
     );
   }
 }

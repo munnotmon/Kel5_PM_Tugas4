@@ -21,8 +21,8 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
   // =====================================================================
   String _get(String key, [String fallback = '-']) =>
       (_data[key]?.toString().isNotEmpty == true)
-          ? _data[key].toString()
-          : fallback;
+      ? _data[key].toString()
+      : fallback;
 
   List<dynamic> _getList(String key) {
     final v = _data[key];
@@ -43,7 +43,7 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         contentPadding: const EdgeInsets.all(28),
         content: Column(
@@ -92,8 +92,8 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
                 ),
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context);
-                    context.go('/activity');
+                    Navigator.of(dialogContext).pop();
+                    context.go('/home');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
@@ -266,7 +266,10 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
     final waktu = _get('waktu', '12 Okt 2026, 10:00');
     final lokasi = _get('lokasi', '');
     final jenis = _get('jenis', 'Perundungan Verbal');
-    final deskripsi = _get('deskripsi', '"Insiden terjadi saat jam istirahat..."');
+    final deskripsi = _get(
+      'deskripsi',
+      '"Insiden terjadi saat jam istirahat..."',
+    );
     final isCyber = jenis == 'Cyberbullying';
 
     return _buildCard(
@@ -426,7 +429,8 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
         children: displayFiles.asMap().entries.map((entry) {
           final i = entry.key;
           final name = entry.value.split('/').last;
-          final isImage = name.endsWith('.jpg') ||
+          final isImage =
+              name.endsWith('.jpg') ||
               name.endsWith('.jpeg') ||
               name.endsWith('.png');
 
@@ -493,7 +497,11 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
               color: Color(0xFF1A6B8A),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.lock_rounded, color: Colors.white, size: 22),
+            child: const Icon(
+              Icons.lock_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
