@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+//"Halaman ini namanya Google Account Selection — 
+//tampilannya mirip popup pilih akun Google yang biasa kita lihat."
 
 class GoogleAccountSelection extends StatelessWidget {
   // Tambahkan variabel ini untuk mengecek apakah user sedang login atau register

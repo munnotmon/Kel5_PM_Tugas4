@@ -5,6 +5,7 @@ import 'main.dart';
 import 'Beranda/home.dart';
 import 'Beranda/activity.dart';
 import 'Beranda/inbox.dart';
+import 'inbox/inbox.dart';
 import 'Beranda/counseling.dart';
 import 'Beranda/profile.dart';
 import 'Laporan_Perundungan/detail_laporan.dart';
@@ -52,10 +53,7 @@ final GoRouter appRouter = GoRouter(
         return GoogleAccountSelection(isLogin: isFromLogin);
       },
     ),
-    GoRoute(
-      path: '/success_verification',
-      builder: (context, state) => const SuccessVerificationCare(),
-    ),
+    GoRoute(path: '/success_verification', builder: (context, state) => const SuccessVerificationCare()),
 
     // === FORM LAPORAN — di luar ShellRoute agar navbar hilang ===
     GoRoute(
@@ -131,10 +129,7 @@ final GoRouter appRouter = GoRouter(
         // Tab 0: Home
         StatefulShellBranch(
           routes: [
-            GoRoute(
-              path: '/home',
-              builder: (context, state) => const HomeScreen(),
-            ),
+            GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
           ],
         ),
         // Tab 1: Activity
@@ -162,10 +157,7 @@ final GoRouter appRouter = GoRouter(
         // Tab 2: Inbox
         StatefulShellBranch(
           routes: [
-            GoRoute(
-              path: '/inbox',
-              builder: (context, state) => const InboxScreen(),
-            ),
+            GoRoute(path: '/inbox', builder: (context, state) => const InboxPage()),
           ],
         ),
         // Tab 3: Counseling
@@ -173,17 +165,31 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/counseling',
-              builder: (context, state) => const CounselingScreen(),
+              builder: (context, state) => const Screen1DetailKonseling(),
+              routes: [
+                GoRoute(
+                  path: 'history',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) => const Screen2HistoryKonseling(),
+                ),
+                GoRoute(
+                  path: 'detail-history',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) => const Screen3DetailHistory(),
+                ),
+                GoRoute(
+                  path: 'reschedule',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) => const Screen4Reschedule(),
+                ),
+              ],
             ),
           ],
         ),
         // Tab 4: Profile
         StatefulShellBranch(
           routes: [
-            GoRoute(
-              path: '/profile',
-              builder: (context, state) => const ProfileScreen(),
-            ),
+            GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
           ],
         ),
       ],
