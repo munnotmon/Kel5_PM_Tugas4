@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
-import '../login_daftar_akun/login_care.dart';
+import 'package:go_router/go_router.dart'; // 1. Tambahkan import go_router
+
+// (Anda bisa menghapus import login_care.dart jika tidak dipakai lagi di file ini)
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -16,12 +18,11 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     // Berpindah ke halaman LoginCare setelah 3 detik
     Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginCare()),
-      );
+      if (mounted) {
+        context.go('/login');
+      }
     });
-  }
+  } // 2. <-- Tambahkan tutup kurung kurawal di sini untuk initState
 
   @override
   Widget build(BuildContext context) {

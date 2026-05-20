@@ -124,10 +124,13 @@ class _TabLaporan extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      // Padding bawah 100 agar tidak tertutup Bottom Navbar
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       children: [
+        // Memunculkan kembali tombol laporan baru khusus di halaman ini
         _BuatLaporanButton(),
         const SizedBox(height: 20),
+
         Text(
           'Riwayat Laporan',
           style: GoogleFonts.plusJakartaSans(
@@ -143,6 +146,7 @@ class _TabLaporan extends StatelessWidget {
   }
 }
 
+// Widget Tombol Buat Laporan Baru
 class _BuatLaporanButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -151,7 +155,7 @@ class _BuatLaporanButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFFC7E6F0), // Warna biru pastel yang senada
+          color: const Color(0xFFC7E6F0),
           borderRadius: BorderRadius.circular(40),
           boxShadow: [
             BoxShadow(
@@ -432,7 +436,8 @@ class _TabKonseling extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      // Padding bawah 100 agar riwayat paling bawah tidak tertutup navbar
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       children: [
         _AjukanKonselingButton(),
         const SizedBox(height: 20),
@@ -693,11 +698,8 @@ class ActivitySection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        // Preview laporan terbaru
+        // Preview laporan terbaru saja, tombol laporan baru dihapus
         if (latestLaporan != null) _buildLaporanPreview(context, latestLaporan),
-        const SizedBox(height: 10),
-        // Tombol laporan baru
-        _buildCardPreviewLapor(context, onSeeAll),
       ],
     );
   }
@@ -766,68 +768,4 @@ class ActivitySection extends StatelessWidget {
       ),
     );
   }
-}
-
-Widget _buildCardPreviewLapor(BuildContext context, VoidCallback onTap) {
-  return Material(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(20),
-    child: InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE0F2ED),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.campaign,
-                color: Color(0xFF1A6B8A),
-                size: 26,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Laporkan Perundungan",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1A2D3D),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "Buat laporan baru sekarang",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: Color(0xFF1A6B8A),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }
