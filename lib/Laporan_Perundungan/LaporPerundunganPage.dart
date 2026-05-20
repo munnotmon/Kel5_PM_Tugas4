@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 class LaporanPerundunganPage extends StatefulWidget {
-  const LaporanPerundunganPage({super.key});
+  final Map<String, dynamic>? prevData;
+
+  const LaporanPerundunganPage({super.key, this.prevData});
 
   @override
   State<LaporanPerundunganPage> createState() => _LaporanPerundunganPageState();
@@ -28,24 +31,33 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
   ];
 
   @override
-  void dispose() {
-    _namaController.dispose();
-    _nimController.dispose();
-    _teleponController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    final d = widget.prevData ?? {};
+    _namaController.text = d['nama'] ?? '';
+    _nimController.text = d['nim'] ?? '';
+    _teleponController.text = d['telepon'] ?? '';
+    _selectedProdi = d['prodi'] as String?;
   }
 
   void _handleNext() {
     if (_formKey.currentState!.validate()) {
-      context.push(
-        '/activity/laporan/step2',
-        extra: {
-          'nama': _namaController.text,
-          'nim': _nimController.text,
-          'telepon': _teleponController.text,
-          'prodi': _selectedProdi,
-        },
-      );
+      final safePrevData = widget.prevData ?? {};
+      final isEdit = safePrevData['isEdit'] == true;
+
+      final currentData = {
+        ...safePrevData,
+        'nama': _namaController.text,
+        'nim': _nimController.text,
+        'telepon': _teleponController.text,
+        'prodi': _selectedProdi,
+      };
+
+      if (isEdit) {
+        context.push('/activity/laporan/step4', extra: currentData);
+      } else {
+        context.push('/activity/laporan/step2', extra: currentData);
+      }
     }
   }
 
@@ -239,6 +251,7 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
           controller: _namaController,
           hint: 'Masukkan nama sesuai KTM',
           keyboardType: TextInputType.name,
+          inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'[0-9]'))],
           validator: (val) =>
               val == null || val.isEmpty ? 'Nama lengkap wajib diisi' : null,
         ),
@@ -249,6 +262,7 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
           controller: _nimController,
           hint: 'Contoh: 21090123',
           keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           validator: (val) =>
               val == null || val.isEmpty ? 'NIM wajib diisi' : null,
         ),
@@ -259,6 +273,7 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
           controller: _teleponController,
           hint: '0812-xxxx-xxxx',
           keyboardType: TextInputType.phone,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           validator: (val) =>
               val == null || val.isEmpty ? 'Nomor telepon wajib diisi' : null,
         ),
@@ -291,11 +306,13 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
     required TextEditingController controller,
     required String hint,
     TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       validator: validator,
       style: const TextStyle(fontSize: 14, color: Color(0xFF1A2D3D)),
       decoration: InputDecoration(
@@ -331,44 +348,166 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
     );
   }
 
+  void _showProdiPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD0D8E4),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Pilih Program Studi',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A2D3D),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ..._prodiList.map((prodi) {
+                final isSelected = prodi == _selectedProdi;
+                return InkWell(
+                  onTap: () {
+                    setState(() => _selectedProdi = prodi);
+                    Navigator.pop(context);
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFF1A6B8A).withOpacity(0.1)
+                          : const Color(0xFFF0F2F5),
+                      borderRadius: BorderRadius.circular(12),
+                      border: isSelected
+                          ? Border.all(
+                              color: const Color(0xFF1A6B8A),
+                              width: 1.5,
+                            )
+                          : null,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            prodi,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? const Color(0xFF1A6B8A)
+                                  : const Color(0xFF1A2D3D),
+                            ),
+                          ),
+                        ),
+                        if (isSelected)
+                          const Icon(
+                            Icons.check_circle,
+                            color: Color(0xFF1A6B8A),
+                            size: 20,
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildProdiDropdown() {
-    return DropdownButtonFormField<String>(
-      value: _selectedProdi,
-      hint: Text(
-        'Pilih Prodi',
-        style: TextStyle(color: Colors.grey[400], fontSize: 14),
-      ),
-      icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF1A6B8A)),
-      style: const TextStyle(fontSize: 14, color: Color(0xFF1A2D3D)),
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: const Color(0xFFF0F2F5),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF1A6B8A), width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red, width: 1.5),
-        ),
-      ),
-      validator: (val) => val == null ? 'Program studi wajib dipilih' : null,
-      onChanged: (val) => setState(() => _selectedProdi = val),
-      items: _prodiList.map((prodi) {
-        return DropdownMenuItem(value: prodi, child: Text(prodi));
-      }).toList(),
+    return FormField<String>(
+      validator: (val) =>
+          _selectedProdi == null ? 'Program studi wajib dipilih' : null,
+      builder: (state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: _showProdiPicker,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0F2F5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: state.hasError
+                      ? Border.all(color: Colors.red, width: 1.5)
+                      : _selectedProdi != null
+                      ? Border.all(color: const Color(0xFF1A6B8A), width: 1.5)
+                      : null,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _selectedProdi ?? 'Pilih Prodi',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: _selectedProdi != null
+                              ? const Color(0xFF1A2D3D)
+                              : Colors.grey[400],
+                        ),
+                      ),
+                    ),
+                    AnimatedRotation(
+                      turns: 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const Icon(
+                        Icons.keyboard_arrow_down,
+                        color: Color(0xFF1A6B8A),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (state.hasError)
+              Padding(
+                padding: const EdgeInsets.only(top: 6, left: 12),
+                child: Text(
+                  state.errorText!,
+                  style: const TextStyle(color: Colors.red, fontSize: 12),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 

@@ -149,58 +149,60 @@ class _BuatLaporanButton extends StatelessWidget {
     return GestureDetector(
       onTap: () => context.push('/activity/laporan'),
       child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1A4B6A), Color(0xFF2AAFCF)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
+          color: const Color(0xFFC7E6F0), // Warna biru pastel yang senada
+          borderRadius: BorderRadius.circular(40),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1A6B8A).withOpacity(0.3),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
+              color: const Color(0xFFC7E6F0).withOpacity(0.5),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withOpacity(0.5),
+                shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.campaign, color: Colors.white, size: 26),
+              child: const Icon(
+                Icons.campaign,
+                color: Color(0xFF1A6B8A),
+                size: 26,
+              ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 15),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Buat Laporan Baru',
+                    "Buat Laporan Baru",
                     style: GoogleFonts.plusJakartaSans(
-                      color: Colors.white,
+                      color: const Color(0xFF124C63),
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: 15,
                     ),
                   ),
-                  const SizedBox(height: 4),
                   Text(
-                    'Laporkan kejadian perundungan sekarang',
+                    "Laporkan kejadian perundungan sekarang",
                     style: GoogleFonts.plusJakartaSans(
-                      color: Colors.white.withOpacity(0.85),
-                      fontSize: 12,
+                      color: const Color(0xFF124C63).withOpacity(0.8),
+                      fontSize: 11,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Color(0xFF124C63),
+              size: 16,
+            ),
           ],
         ),
       ),
