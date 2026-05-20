@@ -22,6 +22,7 @@ class LaporanStep2Page extends StatefulWidget {
 
 class _LaporanStep2PageState extends State<LaporanStep2Page> {
   final _formKey = GlobalKey<FormState>();
+  final GlobalKey _lampiranKey = GlobalKey();
 
   DateTime? _selectedDateTime;
   final TextEditingController _lokasiController = TextEditingController();
@@ -36,7 +37,8 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
     'Cyberbullying',
     'Pelecehan Seksual',
   ];
-  bool get _showMap => _selectedJenis != null && _selectedJenis != 'Cyberbullying';
+  bool get _showMap =>
+      _selectedJenis != null && _selectedJenis != 'Cyberbullying';
 
   // Map
   final MapController _mapController = MapController();
@@ -67,13 +69,35 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
     if (waktuStr != null && waktuStr.isNotEmpty) {
       _selectedDateTime = _parseWaktu(waktuStr);
     }
+
+    if (d['scrollTo'] == 'lampiran') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_lampiranKey.currentContext != null) {
+          Scrollable.ensureVisible(
+            _lampiranKey.currentContext!,
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeInOut,
+          );
+        }
+      });
+    }
   }
 
   DateTime? _parseWaktu(String waktu) {
     try {
       const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-        'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Agu',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des',
       ];
       // Format: "9 Mei 2026, 15:17"
       final parts = waktu.split(', ');
@@ -260,11 +284,13 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
   // FULLSCREEN MAP
   // =====================================================================
   Future<void> _openFullscreenMap() async {
-    final result = await Navigator.of(context, rootNavigator: true).push<LatLng>(
-      MaterialPageRoute(
-        builder: (context) => FullscreenMapPage(initialLatLng: _selectedLatLng),
-      ),
-    );
+    final result = await Navigator.of(context, rootNavigator: true)
+        .push<LatLng>(
+          MaterialPageRoute(
+            builder: (context) =>
+                FullscreenMapPage(initialLatLng: _selectedLatLng),
+          ),
+        );
 
     if (result != null && mounted) {
       setState(() {
@@ -423,16 +449,25 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
         );
         return;
       }
-      context.push('/activity/laporan/step3', extra: {
-        // Data dari step 1
+      final isEdit = widget.prevData['isEdit'] == true;
+
+      // Siapkan data yang akan dibawa
+      final currentData = {
         ...widget.prevData,
-        // Data step 2
         'waktu': _formatDateTime(_selectedDateTime!),
         'lokasi': _lokasiController.text,
         'jenis': _selectedJenis ?? '',
         'deskripsi': _deskripsiController.text,
         'lampiran': _attachments.map((f) => f.path).toList(),
-      });
+      };
+
+      if (isEdit) {
+        // Jika dari Step 4, langsung kembalikan ke Step 4
+        context.push('/activity/laporan/step4', extra: currentData);
+      } else {
+        // Jika alur normal, lanjut ke Step 3
+        context.push('/activity/laporan/step3', extra: currentData);
+      }
     }
   }
 
@@ -801,41 +836,175 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
     );
   }
 
+  void _showJenisPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD0D8E4),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Pilih Jenis Perundungan',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1A2D3D),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ..._jenisOptions.map((jenis) {
+                final isSelected = jenis == _selectedJenis;
+                return InkWell(
+                  onTap: () {
+                    setState(() {
+                      _selectedJenis = jenis;
+                      if (jenis == 'Cyberbullying') {
+                        _lokasiController.clear();
+                        _selectedLatLng = const LatLng(-7.9666, 112.6326);
+                      }
+                    });
+                    Navigator.pop(context);
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFF1A6B8A).withOpacity(0.1)
+                          : const Color(0xFFF0F2F5),
+                      borderRadius: BorderRadius.circular(12),
+                      border: isSelected
+                          ? Border.all(
+                              color: const Color(0xFF1A6B8A),
+                              width: 1.5,
+                            )
+                          : null,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            jenis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? const Color(0xFF1A6B8A)
+                                  : const Color(0xFF1A2D3D),
+                            ),
+                          ),
+                        ),
+                        if (isSelected)
+                          const Icon(
+                            Icons.check_circle,
+                            color: Color(0xFF1A6B8A),
+                            size: 20,
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildJenisPerundungan() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLabel('JENIS PERUNDUNGAN'),
         const SizedBox(height: 10),
-        DropdownButtonFormField<String>(
-          value: _selectedJenis,
-          hint: Text(
-            'Pilih jenis perundungan',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14,
-              color: Colors.grey[400],
-            ),
-          ),
-          icon: const Icon(Icons.keyboard_arrow_down,
-              color: Color(0xFF1A6B8A)),
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 14,
-            color: const Color(0xFF1A2D3D),
-          ),
-          decoration: _inputDecoration(''),
+        FormField<String>(
           validator: (val) =>
-              val == null ? 'Jenis perundungan wajib dipilih' : null,
-          onChanged: (val) => setState(() {
-            _selectedJenis = val;
-            // Clear lokasi jika ganti ke cyberbullying
-            if (val == 'Cyberbullying') {
-              _lokasiController.clear();
-              _selectedLatLng = const LatLng(-7.9666, 112.6326);
-            }
-          }),
-          items: _jenisOptions.map((jenis) {
-            return DropdownMenuItem(value: jenis, child: Text(jenis));
-          }).toList(),
+              _selectedJenis == null ? 'Jenis perundungan wajib dipilih' : null,
+          builder: (state) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  onTap: _showJenisPicker,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0F2F5),
+                      borderRadius: BorderRadius.circular(12),
+                      border: state.hasError
+                          ? Border.all(color: Colors.red, width: 1.5)
+                          : _selectedJenis != null
+                          ? Border.all(
+                              color: const Color(0xFF1A6B8A),
+                              width: 1.5,
+                            )
+                          : null,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _selectedJenis ?? 'Pilih jenis perundungan',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              color: _selectedJenis != null
+                                  ? const Color(0xFF1A2D3D)
+                                  : Colors.grey[400],
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Color(0xFF1A6B8A),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (state.hasError)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6, left: 12),
+                    child: Text(
+                      state.errorText!,
+                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
         if (_selectedJenis == 'Cyberbullying') ...[
           const SizedBox(height: 8),
@@ -848,8 +1017,11 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline,
-                    color: Color(0xFFE65100), size: 18),
+                const Icon(
+                  Icons.info_outline,
+                  color: Color(0xFFE65100),
+                  size: 18,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -892,6 +1064,7 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
 
   Widget _buildLampiranBukti() {
     return Column(
+      key: _lampiranKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLabel('LAMPIRAN BUKTI'),
@@ -1447,23 +1620,15 @@ class CameraAwesomePage extends StatefulWidget {
 class _CameraAwesomePageState extends State<CameraAwesomePage> {
   final List<String> _capturedPaths = [];
 
-  void _onMediaTap(MediaCapture media) {
-    media.captureRequest.when(
-      single: (single) {
-        if (single.file != null) {
-          setState(() => _capturedPaths.add(single.file!.path));
-        }
-      },
-    );
-  }
-
   void _openSelection() async {
     if (_capturedPaths.isEmpty) return;
-    final selected = await Navigator.of(context, rootNavigator: true).push<List<String>>(
-      MaterialPageRoute(
-        builder: (_) => PhotoSelectionPage(paths: _capturedPaths),
-      ),
-    );
+    final allPaths = List<String>.from(_capturedPaths);
+    final selected = await Navigator.of(context, rootNavigator: true)
+        .push<List<String>>(
+          MaterialPageRoute(
+            builder: (_) => PhotoSelectionPage(paths: allPaths),
+          ),
+        );
     if (selected != null && selected.isNotEmpty && mounted) {
       widget.onFilesReady(selected.map((p) => XFile(p)).toList());
       Navigator.of(context, rootNavigator: true).pop();
@@ -1484,7 +1649,25 @@ class _CameraAwesomePageState extends State<CameraAwesomePage> {
                 return SingleCaptureRequest(path, sensors.first);
               },
             ),
-            onMediaTap: _onMediaTap,
+            onMediaCaptureEvent: (MediaCapture media) {
+              if (media.status == MediaCaptureStatus.success) {
+                media.captureRequest.when(
+                  single: (single) {
+                    if (single.file != null) {
+                      final path = single.file!.path;
+                      if (!_capturedPaths.contains(path)) {
+                        setState(() {
+                          _capturedPaths.add(path);
+                        });
+                      }
+                    }
+                  },
+                );
+              }
+            },
+            onMediaTap: (MediaCapture media) {
+              _openSelection();
+            },
             topActionsBuilder: (state) {
               return Padding(
                 padding: const EdgeInsets.all(12),
@@ -1498,8 +1681,11 @@ class _CameraAwesomePageState extends State<CameraAwesomePage> {
                           color: Colors.black.withOpacity(0.5),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.arrow_back,
-                            color: Colors.white, size: 22),
+                        child: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 22,
+                        ),
                       ),
                     ),
                   ],
@@ -1507,55 +1693,11 @@ class _CameraAwesomePageState extends State<CameraAwesomePage> {
               );
             },
           ),
-
-          // Tombol "Pilih Foto" muncul saat ada foto tersimpan
-          if (_capturedPaths.isNotEmpty)
-            Positioned(
-              left: 20,
-              right: 20,
-              bottom: 48,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1A6B8A), Color(0xFF2AAFCF)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF1A6B8A).withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: ElevatedButton.icon(
-                  onPressed: _openSelection,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  icon: const Icon(Icons.photo_library_outlined,
-                      color: Colors.white, size: 20),
-                  label: Text(
-                    'Pilih Foto (${_capturedPaths.length})',
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );
   }
-} // Pastikan hanya ada satu penutup di sini
+}
 
 // =====================================================================
 // HALAMAN SELEKSI FOTO
@@ -1620,8 +1762,11 @@ class _PhotoSelectionPageState extends State<PhotoSelectionPage> {
                     color: const Color(0xFF1A6B8A).withOpacity(0.4),
                     alignment: Alignment.topRight,
                     padding: const EdgeInsets.all(6),
-                    child: const Icon(Icons.check_circle,
-                        color: Colors.white, size: 22),
+                    child: const Icon(
+                      Icons.check_circle,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
               ],
             ),
@@ -1646,15 +1791,17 @@ class _PhotoSelectionPageState extends State<PhotoSelectionPage> {
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30)),
+                  borderRadius: BorderRadius.circular(30),
+                ),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
               child: Text(
                 'Gunakan ${_selected.length} Foto',
                 style: GoogleFonts.plusJakartaSans(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600),
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -1698,7 +1845,9 @@ class PhotoPreviewPage extends StatelessWidget {
                   onTap: onRetake,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.6),
                       borderRadius: BorderRadius.circular(30),
@@ -1706,14 +1855,20 @@ class PhotoPreviewPage extends StatelessWidget {
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.refresh_rounded,
-                            color: Colors.white, size: 18),
+                        Icon(
+                          Icons.refresh_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
                         SizedBox(width: 6),
-                        Text('Ambil Ulang',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600)),
+                        Text(
+                          'Ambil Ulang',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -1749,16 +1904,23 @@ class PhotoPreviewPage extends StatelessWidget {
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30)),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                icon: const Icon(Icons.check_circle_outline,
-                    color: Colors.white, size: 20),
-                label: const Text('Gunakan Foto Ini',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600)),
+                icon: const Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                label: const Text(
+                  'Gunakan Foto Ini',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
           ),

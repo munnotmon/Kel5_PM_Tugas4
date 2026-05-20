@@ -39,7 +39,6 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
     if (!mounted) return;
     setState(() => _isSending = false);
 
-    // TODO: ganti dengan navigasi ke halaman sukses
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -217,11 +216,10 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
           children: List.generate(4, (index) {
             return Container(
               margin: const EdgeInsets.only(left: 6),
-              // Langkah terakhir (index 3) lebih panjang sebagai penanda selesai
               width: index == 3 ? 28 : 10,
               height: 6,
               decoration: BoxDecoration(
-                color: const Color(0xFF1A6B8A), // Semua aktif
+                color: const Color(0xFF1A6B8A),
                 borderRadius: BorderRadius.circular(10),
               ),
             );
@@ -277,11 +275,17 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
       iconBg: const Color(0xFFE8F4FD),
       iconColor: const Color(0xFF1A6B8A),
       title: 'Detail Kejadian',
-      onEdit: () => context.push('/activity/laporan/step2', extra: widget.data),
+      onEdit: () => context.push(
+        '/activity/laporan/step2',
+        extra: {
+          ...widget.data,
+          'isEdit': true,
+          'scrollTo': null, // BACA INI: Tambahkan ini untuk mereset scroll!
+        },
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Jika cyberbullying, hanya tampilkan waktu tanpa lokasi
           _buildInfoRow(
             label: isCyber ? 'WAKTU' : 'WAKTU & TEMPAT',
             value: isCyber ? waktu : '$waktu - $lokasi',
@@ -310,11 +314,12 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
       iconBg: const Color(0xFFE0F7ED),
       iconColor: const Color(0xFF1A6B8A),
       title: 'Pihak Terlibat',
-      // Push Step3 dengan full data agar form ter-prefill
-      onEdit: () => context.push('/activity/laporan/step3', extra: widget.data),
+      onEdit: () => context.push(
+        '/activity/laporan/step3',
+        extra: {...widget.data, 'isEdit': true},
+      ),
       child: Column(
         children: [
-          // Korban
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -351,7 +356,6 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
           const SizedBox(height: 14),
           const Divider(height: 1, color: Color(0xFFF0F2F5)),
           const SizedBox(height: 14),
-          // Pelaku
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -378,7 +382,6 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
           const SizedBox(height: 14),
           const Divider(height: 1, color: Color(0xFFF0F2F5)),
           const SizedBox(height: 14),
-          // Saksi
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -413,7 +416,6 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
   Widget _buildLampiranCard() {
     final lampiran = _getList('lampiran');
 
-    // Fallback tampilan jika tidak ada data lampiran
     final displayFiles = lampiran.isNotEmpty
         ? lampiran.map((f) => f.toString()).toList()
         : <String>['foto_kejadian.jpg', 'screenshot_chat.png'];
@@ -423,8 +425,14 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
       iconBg: const Color(0xFFF3F0FB),
       iconColor: const Color(0xFF7B5EA7),
       title: 'Lampiran',
-      // Push Step2 dengan full data agar form ter-prefill
-      onEdit: () => context.push('/activity/laporan/step2', extra: widget.data),
+      onEdit: () => context.push(
+        '/activity/laporan/step2',
+        extra: {
+          ...widget.data,
+          'isEdit': true,
+          'scrollTo': 'lampiran', // Tambahkan penanda ini
+        },
+      ),
       child: Column(
         children: displayFiles.asMap().entries.map((entry) {
           final i = entry.key;
@@ -534,7 +542,7 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
   }
 
   // =====================================================================
-  // TOMBOL KIRIM — sticky di atas navbar
+  // TOMBOL KIRIM
   // =====================================================================
   Widget _buildKirimButton() {
     return Container(
@@ -629,7 +637,6 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header kartu
           Row(
             children: [
               Container(
@@ -651,7 +658,6 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
                   ),
                 ),
               ),
-              // Tombol Edit
               GestureDetector(
                 onTap: onEdit,
                 child: Row(
