@@ -22,8 +22,10 @@ class CounselingScreen extends StatelessWidget {
   }
 }
 
+// =====================================================================
+// SECTION UNTUK HOME SCREEN (CounselingSection)
+// =====================================================================
 class CounselingSection extends StatelessWidget {
-  // Callback untuk pindah tab dari Home ke fitur Counseling
   final VoidCallback? onNavigate;
 
   const CounselingSection({super.key, this.onNavigate});
@@ -33,7 +35,6 @@ class CounselingSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Judul Section & Tombol Riwayat
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -47,12 +48,7 @@ class CounselingSection extends StatelessWidget {
             Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HalamanRiwayat(),
-                  ),
-                ),
+                onTap: () => context.go('/activity'),
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -73,12 +69,10 @@ class CounselingSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-
-        // Card Banner: Butuh teman bicara?
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 219, 237, 219),
+            color: const Color(0xFFE0F2ED),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
@@ -92,21 +86,24 @@ class CounselingSection extends StatelessWidget {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1A2D3D),
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       "Jadwalkan sesi privat dengan konselor kami.",
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        color: Colors.grey[700],
+                      ),
                     ),
                   ],
                 ),
               ),
               ElevatedButton(
-                // Jika ditekan di Home, akan menjalankan onNavigate (pindah tab)
                 onPressed: onNavigate,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 43, 103, 47),
+                  backgroundColor: const Color(0xFF1068A3),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
@@ -118,15 +115,13 @@ class CounselingSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-
-        _buildJadwalCard(context),
+        _buildJadwalCardHome(context),
       ],
     );
   }
 }
 
-// Widget pembantu agar desain kartu jadwal konsisten
-Widget _buildJadwalCard(BuildContext context) {
+Widget _buildJadwalCardHome(BuildContext context) {
   return Material(
     color: Colors.transparent,
     child: InkWell(
@@ -151,16 +146,17 @@ Widget _buildJadwalCard(BuildContext context) {
                     "BESOK, 10:00",
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
-                      color: Colors.blue,
+                      color: const Color(0xFF1068A3),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    "Sesi dengan dr. WILDAN",
+                    "Sesi dengan dr. Anton Wijaya",
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
+                      color: const Color(0xFF1A2D3D),
                     ),
                   ),
                 ],
