@@ -5,6 +5,7 @@ import 'main.dart';
 import 'Beranda/home.dart';
 import 'Beranda/activity.dart';
 import 'Beranda/inbox.dart';
+import 'inbox/inbox.dart';
 import 'Beranda/counseling.dart';
 import 'Beranda/profile.dart';
 import 'Laporan_Perundungan/detail_laporan.dart';
@@ -23,6 +24,9 @@ import 'Konseling/cari_konselor.dart';
 import 'Konseling/profil_konselor.dart';
 import 'Konseling/konfirmasi_konseling.dart';
 import 'Konseling/sukses_konseling.dart';
+import 'Konseling/screen1_detail_konseling.dart';
+import 'Konseling/screen3_detail_history.dart';
+import 'Konseling/screen4_reschedule.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> activityNavigatorKey =
@@ -88,26 +92,40 @@ final GoRouter appRouter = GoRouter(
       },
     ),
 
+    // === RUTE HALAMAN KONSELING TAMBAHAN (Di luar ShellRoute agar navbar hilang) ===
+    GoRoute(
+      path: '/counseling/detail-sesi',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const Screen1DetailKonseling(),
+    ),
+    GoRoute(
+      path: '/counseling/detail-history',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const Screen3DetailHistory(),
+    ),
+    GoRoute(
+      path: '/counseling/reschedule',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const Screen4Reschedule(),
+    ),
     GoRoute(
       path: '/counseling/cari',
-      parentNavigatorKey: _rootNavigatorKey, // Menyembunyikan Bottom Navbar
+      parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const FindCounselorPage(),
     ),
     GoRoute(
       path: '/counseling/profil',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) {
-        // Tangkap data yang dikirim melalui extra
         final data = state.extra as Map<String, dynamic>?;
         return CounselorProfilePage(counselorData: data);
       },
     ),
     GoRoute(
       path: '/counseling/konfirmasi',
+      parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) {
-        // Ambil extra data. Biarkan null jika tidak ada (nanti ditangani di ConfirmAppointmentPage)
         final extra = state.extra as Map<String, dynamic>?;
-
         return ConfirmAppointmentPage(
           counselorData: extra?['counselor'],
           tanggal: extra?['tanggal'],
@@ -164,7 +182,7 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/inbox',
-              builder: (context, state) => const InboxScreen(),
+              builder: (context, state) => const InboxPage(),
             ),
           ],
         ),
@@ -173,6 +191,7 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/counseling',
+              // PERBAIKAN: Mengarah ke halaman utama konseling
               builder: (context, state) => const CounselingScreen(),
             ),
           ],

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../notification/detail_laporan_page.dart';
-import '../notification/detail_pesan_page.dart';
+import 'detail_laporan_page.dart';
+import 'detail_pesan_page.dart';
 
-class NotificationsPage extends StatelessWidget {
-  const NotificationsPage({super.key});
+class NotificationPage extends StatelessWidget {
+  const NotificationPage({super.key});
 
   final List<Map<String, dynamic>> _todayNotifs = const [
     {

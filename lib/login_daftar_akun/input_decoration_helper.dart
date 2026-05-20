@@ -1,6 +1,9 @@
 // Lokasi: lib/input_decoration_helper.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+// "File ini juga ngatur tampilan kalau user salah isi form. Kalau input salah, 
+//border kotaknya otomatis berubah jadi merah. Ini yang di activity diagram tadi disebut 
+//'Menampilkan Pesan Error'."
 
 class PolinemaCareInputDecoration {
   static InputDecoration get({
