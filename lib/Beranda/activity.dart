@@ -523,93 +523,96 @@ class _KonselingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ambil data status terpusat
     final statusInfo = getStatusInfoKonseling(item.status);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: const Color(0xFFE0F2ED),
-                child: Text(
-                  item.konselor.split(' ').take(2).map((w) => w[0]).join(),
-                  style: GoogleFonts.plusJakartaSans(
-                    color: const Color(0xFF1A6B8A),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
+    return GestureDetector(
+      // KETIKA KARTU RIWAYAT DIKLIK, BUKA SCREEN 3 DETAIL HISTORY
+      onTap: () => context.push('/counseling/detail-history'),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: const Color(0xFFE0F2ED),
+                  child: Text(
+                    item.konselor.split(' ').take(2).map((w) => w[0]).join(),
+                    style: GoogleFonts.plusJakartaSans(
+                      color: const Color(0xFF1A6B8A),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.konselor,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: const Color(0xFF1A2D3D),
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.calendar_today_outlined,
-                          size: 11,
-                          color: Colors.grey,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.konselor,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: const Color(0xFF1A2D3D),
                         ),
-                        const SizedBox(width: 3),
-                        Text(
-                          '${item.tanggal} · ${item.jam}',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.calendar_today_outlined,
+                            size: 11,
                             color: Colors.grey,
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          const SizedBox(width: 3),
+                          Text(
+                            '${item.tanggal} · ${item.jam}',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              // Memanggil Widget Status (Warnanya otomatis ngikut)
-              _StatusChip(
-                label: statusInfo['label']!,
-                color: statusInfo['color']! as Color,
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Divider(height: 1, color: Color(0xFFF0F2F5)),
-          const SizedBox(height: 10),
-          Text(
-            item.id,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11,
-              color: const Color(0xFF1A6B8A),
-              fontWeight: FontWeight.w600,
+                // Memanggil Widget Status (Warnanya otomatis ngikut)
+                _StatusChip(
+                  label: statusInfo['label']!,
+                  color: statusInfo['color']! as Color,
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            const Divider(height: 1, color: Color(0xFFF0F2F5)),
+            const SizedBox(height: 10),
+            Text(
+              item.id,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11,
+                color: const Color(0xFF1A6B8A),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

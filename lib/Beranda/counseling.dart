@@ -32,7 +32,7 @@ class CounselingScreen extends StatelessWidget {
           // --- SESI MENDATANG ---
           _sectionTitle("Sesi Mendatang", "1 Aktif"),
           const SizedBox(height: 12),
-          _buildSesiMendatangCard(),
+          _buildSesiMendatangCard(context),
 
           const SizedBox(height: 24),
 
@@ -117,84 +117,89 @@ class CounselingScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSesiMendatangCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF1A6B8A).withOpacity(0.1)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              const CircleAvatar(radius: 28, backgroundColor: Colors.grey),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "dr. Sarah Johnson",
-                      style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+  Widget _buildSesiMendatangCard(BuildContext context) {
+    return GestureDetector(
+      // KETIKA DIKLIK, BUKA SCREEN 1 DETAIL KONSELING
+      onTap: () => context.push('/counseling/detail-sesi'),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFF1A6B8A).withOpacity(0.1)),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                const CircleAvatar(radius: 28, backgroundColor: Colors.grey),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "dr. Sarah Johnson",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
-                    ),
-                    Text(
-                      "Konselor Psikologi Klinis",
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        color: Colors.grey,
+                      Text(
+                        "Konselor Psikologi Klinis",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
-          Row(
-            children: [
-              _timeInfo(Icons.calendar_today, "Besok, 12 Okt"),
-              const SizedBox(width: 10),
-              _timeInfo(Icons.access_time, "14:00 - 15:00"),
-            ],
-          ),
-          const SizedBox(height: 15),
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF2D81B4), Color(0xFF5AB6E5)],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ),
-              borderRadius: BorderRadius.circular(30),
+              ],
             ),
-            child: ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.videocam, color: Colors.white, size: 20),
-              label: Text(
-                "Gabung Sesi",
-                style: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+            const SizedBox(height: 15),
+            Row(
+              children: [
+                _timeInfo(Icons.calendar_today, "Besok, 12 Okt"),
+                const SizedBox(width: 10),
+                _timeInfo(Icons.access_time, "14:00 - 15:00"),
+              ],
+            ),
+            const SizedBox(height: 15),
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF2D81B4), Color(0xFF5AB6E5)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
                 ),
+                borderRadius: BorderRadius.circular(30),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+              child: ElevatedButton.icon(
+                onPressed: () =>
+                    context.push('/counseling/detail-sesi'), // Arahkan juga
+                icon: const Icon(Icons.videocam, color: Colors.white, size: 20),
+                label: Text(
+                  "Gabung Sesi",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
