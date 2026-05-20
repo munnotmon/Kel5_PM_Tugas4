@@ -19,6 +19,10 @@ import 'Laporan_Perundungan/LaporPerundunganPage.dart';
 import 'Laporan_Perundungan/LaporanStep2Page.dart';
 import 'Laporan_Perundungan/LaporanStep3Page.dart';
 import 'Laporan_Perundungan/LaporanStep4Page.dart';
+import 'Konseling/cari_konselor.dart';
+import 'Konseling/profil_konselor.dart';
+import 'Konseling/konfirmasi_konseling.dart';
+import 'Konseling/sukses_konseling.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> activityNavigatorKey =
@@ -82,6 +86,40 @@ final GoRouter appRouter = GoRouter(
         final extra = state.extra as Map<String, dynamic>? ?? {};
         return LaporanStep4Page(data: extra);
       },
+    ),
+
+    GoRoute(
+      path: '/counseling/cari',
+      parentNavigatorKey: _rootNavigatorKey, // Menyembunyikan Bottom Navbar
+      builder: (context, state) => const FindCounselorPage(),
+    ),
+    GoRoute(
+      path: '/counseling/profil',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        // Tangkap data yang dikirim melalui extra
+        final data = state.extra as Map<String, dynamic>?;
+        return CounselorProfilePage(counselorData: data);
+      },
+    ),
+    GoRoute(
+      path: '/counseling/konfirmasi',
+      builder: (context, state) {
+        // Ambil extra data. Biarkan null jika tidak ada (nanti ditangani di ConfirmAppointmentPage)
+        final extra = state.extra as Map<String, dynamic>?;
+
+        return ConfirmAppointmentPage(
+          counselorData: extra?['counselor'],
+          tanggal: extra?['tanggal'],
+          waktu: extra?['waktu'],
+          mode: extra?['mode'],
+        );
+      },
+    ),
+    GoRoute(
+      path: '/counseling/sukses',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const SuccessAppointmentPage(),
     ),
 
     // === RUTE MENGGUNAKAN BOTTOM NAVBAR ===

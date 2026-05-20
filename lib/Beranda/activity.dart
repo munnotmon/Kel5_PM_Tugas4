@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 
-import '../Laporan_Perundungan/LaporPerundunganPage.dart';
+import '../Konseling/data_riwayat_konseling.dart'; // Import data riwayat konseling terpusat
 
 // =====================================================================
-// MODEL
+// MODEL & DATA LAPORAN
 // =====================================================================
 enum StatusLaporan { menunggu, diproses, selesai, ditolak }
 
@@ -25,88 +25,28 @@ class LaporanItem {
   });
 }
 
-enum StatusKonseling { menunggu, dikonfirmasi, selesai, dibatalkan }
-
-class KonselingItem {
-  final String id;
-  final String konselor;
-  final String tanggal;
-  final String jam;
-  final StatusKonseling status;
-
-  const KonselingItem({
-    required this.id,
-    required this.konselor,
-    required this.tanggal,
-    required this.jam,
-    required this.status,
-  });
-}
-
-// =====================================================================
-// DUMMY DATA
-// =====================================================================
 final List<LaporanItem> dummyLaporan = [
   LaporanItem(
     id: 'RPT-001',
     judul: 'Perundungan Verbal di Kelas',
-    tanggal: '12 Mei 2025',
+    tanggal: '12 Mei 2026',
     status: StatusLaporan.diproses,
     deskripsi: 'Laporan mengenai tindakan verbal oleh senior kepada junior.',
   ),
   LaporanItem(
     id: 'RPT-002',
     judul: 'Intimidasi di Kantin',
-    tanggal: '8 Mei 2025',
+    tanggal: '8 Mei 2026',
     status: StatusLaporan.selesai,
     deskripsi: 'Laporan intimidasi yang terjadi di area kantin kampus.',
   ),
   LaporanItem(
     id: 'RPT-003',
     judul: 'Cyberbullying Media Sosial',
-    tanggal: '1 Mei 2025',
+    tanggal: '1 Mei 2026',
     status: StatusLaporan.menunggu,
     deskripsi: 'Penyebaran konten negatif di grup WhatsApp.',
   ),
-];
-
-final List<KonselingItem> dummyKonseling = [
-  KonselingItem(
-    id: 'KSL-001',
-    konselor: 'Dr. Sari Wulandari, M.Psi',
-    tanggal: '20 Mei 2025',
-    jam: '09:00 - 10:00',
-    status: StatusKonseling.dikonfirmasi,
-  ),
-  KonselingItem(
-    id: 'KSL-002',
-    konselor: 'Bpk. Ahmad Fauzi, M.Psi',
-    tanggal: '15 Mei 2025',
-    jam: '13:00 - 14:00',
-    status: StatusKonseling.selesai,
-  ),
-];
-
-// Slot konselor dummy
-final List<Map<String, dynamic>> dummyKonselor = [
-  {
-    'nama': 'Dr. Sari Wulandari, M.Psi',
-    'spesialis': 'Trauma & Kekerasan',
-    'avatar': 'SW',
-    'slots': ['08:00', '09:00', '10:00', '13:00', '14:00'],
-  },
-  {
-    'nama': 'Bpk. Ahmad Fauzi, M.Psi',
-    'spesialis': 'Konseling Remaja',
-    'avatar': 'AF',
-    'slots': ['09:00', '11:00', '14:00', '15:00'],
-  },
-  {
-    'nama': 'Ibu Rina Kusuma, M.Psi',
-    'spesialis': 'Psikologi Pendidikan',
-    'avatar': 'RK',
-    'slots': ['08:00', '10:00', '13:00', '16:00'],
-  },
 ];
 
 // =====================================================================
@@ -186,7 +126,6 @@ class _TabLaporan extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        // Tombol buat laporan baru
         _BuatLaporanButton(),
         const SizedBox(height: 20),
         Text(
@@ -351,7 +290,6 @@ class _LaporanCard extends StatelessWidget {
               ),
             ],
           ),
-          // Progress tracker
           const SizedBox(height: 14),
           _StatusProgress(status: item.status),
         ],
@@ -494,7 +432,6 @@ class _TabKonseling extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        // Tombol ajukan konseling
         _AjukanKonselingButton(),
         const SizedBox(height: 20),
         Text(
@@ -506,7 +443,8 @@ class _TabKonseling extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        ...dummyKonseling.map((k) => _KonselingCard(item: k)),
+        // Memanggil List Global dari data_riwayat_konseling.dart
+        ...riwayatKonselingList.map((k) => _KonselingCard(item: k)),
       ],
     );
   }
@@ -516,69 +454,62 @@ class _AjukanKonselingButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => const _BookingKonselingSheet(),
-      ),
+      onTap: () => context.push('/counseling/cari'),
       child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1A4B3A), Color(0xFF2A9D6A)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
+          color: const Color(0xFF9FF5C0),
+          borderRadius: BorderRadius.circular(40),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF2A9D6A).withOpacity(0.3),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
+              color: const Color(0xFF9FF5C0).withOpacity(0.5),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withOpacity(0.5),
+                shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.psychology,
-                color: Colors.white,
+                color: Color(0xFF2A9D6A),
                 size: 26,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 15),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Ajukan Sesi Konseling',
+                    "Jadwalkan Sesi Baru",
                     style: GoogleFonts.plusJakartaSans(
-                      color: Colors.white,
+                      color: const Color(0xFF165C3B),
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: 15,
                     ),
                   ),
-                  const SizedBox(height: 4),
                   Text(
-                    'Pilih konselor dan slot waktu tersedia',
+                    "Temukan waktu yang tepat untukmu",
                     style: GoogleFonts.plusJakartaSans(
-                      color: Colors.white.withOpacity(0.85),
-                      fontSize: 12,
+                      color: const Color(0xFF165C3B).withOpacity(0.8),
+                      fontSize: 11,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Color(0xFF165C3B),
+              size: 16,
+            ),
           ],
         ),
       ),
@@ -592,7 +523,8 @@ class _KonselingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusInfo = _statusInfo(item.status);
+    // Ambil data status terpusat
+    final statusInfo = getStatusInfoKonseling(item.status);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -659,6 +591,7 @@ class _KonselingCard extends StatelessWidget {
                   ],
                 ),
               ),
+              // Memanggil Widget Status (Warnanya otomatis ngikut)
               _StatusChip(
                 label: statusInfo['label']!,
                 color: statusInfo['color']! as Color,
@@ -678,390 +611,6 @@ class _KonselingCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Map<String, dynamic> _statusInfo(StatusKonseling status) {
-    switch (status) {
-      case StatusKonseling.menunggu:
-        return {'label': 'Menunggu', 'color': const Color(0xFFF59E0B)};
-      case StatusKonseling.dikonfirmasi:
-        return {'label': 'Dikonfirmasi', 'color': const Color(0xFF10B981)};
-      case StatusKonseling.selesai:
-        return {'label': 'Selesai', 'color': const Color(0xFF6366F1)};
-      case StatusKonseling.dibatalkan:
-        return {'label': 'Dibatalkan', 'color': const Color(0xFFEF4444)};
-    }
-  }
-}
-
-// =====================================================================
-// BOTTOM SHEET — BOOKING KONSELING
-// =====================================================================
-class _BookingKonselingSheet extends StatefulWidget {
-  const _BookingKonselingSheet();
-
-  @override
-  State<_BookingKonselingSheet> createState() => _BookingKonselingSheetState();
-}
-
-class _BookingKonselingSheetState extends State<_BookingKonselingSheet> {
-  int _selectedKonselor = -1;
-  String? _selectedSlot;
-  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
-  bool _isSending = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.9,
-      minChildSize: 0.5,
-      maxChildSize: 0.95,
-      builder: (_, controller) => Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFFF5F7FA),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            // Handle
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Text(
-                'Ajukan Sesi Konseling',
-                style: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: const Color(0xFF1A2D3D),
-                ),
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                controller: controller,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  // Pilih konselor
-                  _sectionTitle('Pilih Konselor'),
-                  const SizedBox(height: 10),
-                  ...List.generate(dummyKonselor.length, (i) {
-                    final k = dummyKonselor[i];
-                    final selected = _selectedKonselor == i;
-                    return GestureDetector(
-                      onTap: () => setState(() {
-                        _selectedKonselor = i;
-                        _selectedSlot = null;
-                      }),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: selected
-                                ? const Color(0xFF1A6B8A)
-                                : Colors.transparent,
-                            width: 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 8,
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 22,
-                              backgroundColor: selected
-                                  ? const Color(0xFFE0F2ED)
-                                  : Colors.grey[100],
-                              child: Text(
-                                k['avatar'],
-                                style: GoogleFonts.plusJakartaSans(
-                                  color: selected
-                                      ? const Color(0xFF1A6B8A)
-                                      : Colors.grey,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    k['nama'],
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                      color: const Color(0xFF1A2D3D),
-                                    ),
-                                  ),
-                                  Text(
-                                    k['spesialis'],
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (selected)
-                              const Icon(
-                                Icons.check_circle,
-                                color: Color(0xFF1A6B8A),
-                                size: 22,
-                              ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 8),
-
-                  // Pilih tanggal
-                  _sectionTitle('Pilih Tanggal'),
-                  const SizedBox(height: 10),
-                  _DatePicker(
-                    selected: _selectedDate,
-                    onChanged: (d) => setState(() {
-                      _selectedDate = d;
-                      _selectedSlot = null;
-                    }),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Pilih jam
-                  if (_selectedKonselor >= 0) ...[
-                    _sectionTitle('Pilih Jam'),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children:
-                          (dummyKonselor[_selectedKonselor]['slots']
-                                  as List<String>)
-                              .map((slot) {
-                                final selected = _selectedSlot == slot;
-                                return GestureDetector(
-                                  onTap: () =>
-                                      setState(() => _selectedSlot = slot),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 10,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: selected
-                                          ? const Color(0xFF1A6B8A)
-                                          : Colors.white,
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(
-                                        color: selected
-                                            ? const Color(0xFF1A6B8A)
-                                            : Colors.grey[300]!,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      slot,
-                                      style: GoogleFonts.plusJakartaSans(
-                                        color: selected
-                                            ? Colors.white
-                                            : Colors.grey[700],
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              })
-                              .toList(),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                  const SizedBox(height: 80),
-                ],
-              ),
-            ),
-            // Tombol submit
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-              child: SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: (_selectedKonselor >= 0 && _selectedSlot != null)
-                        ? const LinearGradient(
-                            colors: [Color(0xFF1A4B3A), Color(0xFF2A9D6A)],
-                          )
-                        : const LinearGradient(
-                            colors: [Color(0xFFCCCCCC), Color(0xFFCCCCCC)],
-                          ),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: ElevatedButton(
-                    onPressed:
-                        (_selectedKonselor >= 0 &&
-                            _selectedSlot != null &&
-                            !_isSending)
-                        ? () async {
-                            setState(() => _isSending = true);
-                            await Future.delayed(const Duration(seconds: 1));
-                            if (!mounted) return;
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Pengajuan konseling berhasil dikirim!',
-                                  style: GoogleFonts.plusJakartaSans(),
-                                ),
-                                backgroundColor: const Color(0xFF2A9D6A),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            );
-                          }
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: _isSending
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Text(
-                            'Kirim Pengajuan',
-                            style: GoogleFonts.plusJakartaSans(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _sectionTitle(String text) => Text(
-    text,
-    style: GoogleFonts.plusJakartaSans(
-      fontWeight: FontWeight.bold,
-      fontSize: 15,
-      color: const Color(0xFF1A2D3D),
-    ),
-  );
-}
-
-// =====================================================================
-// DATE PICKER SEDERHANA (7 hari ke depan)
-// =====================================================================
-class _DatePicker extends StatelessWidget {
-  final DateTime selected;
-  final ValueChanged<DateTime> onChanged;
-  const _DatePicker({required this.selected, required this.onChanged});
-
-  static const _days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-  static const _months = [
-    '',
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'Mei',
-    'Jun',
-    'Jul',
-    'Ags',
-    'Sep',
-    'Okt',
-    'Nov',
-    'Des',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final today = DateTime.now();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(7, (i) {
-        final date = today.add(Duration(days: i + 1));
-        final isSelected =
-            selected.day == date.day &&
-            selected.month == date.month &&
-            selected.year == date.year;
-        return GestureDetector(
-          onTap: () => onChanged(date),
-          child: Container(
-            width: 42,
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF1A6B8A) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isSelected ? const Color(0xFF1A6B8A) : Colors.grey[200]!,
-              ),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  _days[date.weekday - 1],
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10,
-                    color: isSelected ? Colors.white70 : Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${date.day}',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: isSelected ? Colors.white : const Color(0xFF1A2D3D),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  _months[date.month],
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9,
-                    color: isSelected ? Colors.white70 : Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }),
     );
   }
 }
@@ -1084,11 +633,11 @@ class _StatusChip extends StatelessWidget {
         border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Text(
-        label,
+        label.toUpperCase(),
         style: GoogleFonts.plusJakartaSans(
-          fontSize: 11,
+          fontSize: 10,
           color: color,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );
