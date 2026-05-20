@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../halaman_pendukung/riwayat.dart';
-import '../halaman_pendukung/jadwal.dart';
-import '../halaman_pendukung/detail_sesi.dart';
 
 class CounselingScreen extends StatelessWidget {
   const CounselingScreen({super.key});

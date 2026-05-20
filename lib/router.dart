@@ -24,6 +24,10 @@ import 'Konseling/cari_konselor.dart';
 import 'Konseling/profil_konselor.dart';
 import 'Konseling/konfirmasi_konseling.dart';
 import 'Konseling/sukses_konseling.dart';
+import 'Konseling/screens/screen1_detail_konseling.dart';
+import 'Konseling/screens/screen2_history_konseling.dart';
+import 'Konseling/screens/screen3_detail_history.dart';
+import 'Konseling/screens/screen4_reschedule.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> activityNavigatorKey =
@@ -53,7 +57,10 @@ final GoRouter appRouter = GoRouter(
         return GoogleAccountSelection(isLogin: isFromLogin);
       },
     ),
-    GoRoute(path: '/success_verification', builder: (context, state) => const SuccessVerificationCare()),
+    GoRoute(
+      path: '/success_verification',
+      builder: (context, state) => const SuccessVerificationCare(),
+    ),
 
     // === FORM LAPORAN — di luar ShellRoute agar navbar hilang ===
     GoRoute(
@@ -129,7 +136,10 @@ final GoRouter appRouter = GoRouter(
         // Tab 0: Home
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+            GoRoute(
+              path: '/home',
+              builder: (context, state) => const HomeScreen(),
+            ),
           ],
         ),
         // Tab 1: Activity
@@ -157,7 +167,10 @@ final GoRouter appRouter = GoRouter(
         // Tab 2: Inbox
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/inbox', builder: (context, state) => const InboxPage()),
+            GoRoute(
+              path: '/inbox',
+              builder: (context, state) => const InboxPage(),
+            ),
           ],
         ),
         // Tab 3: Counseling
@@ -189,7 +202,10 @@ final GoRouter appRouter = GoRouter(
         // Tab 4: Profile
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
+            GoRoute(
+              path: '/profile',
+              builder: (context, state) => const ProfileScreen(),
+            ),
           ],
         ),
       ],
