@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-// Import semua halaman yang dibutuhkan
 import 'main.dart';
 import 'Beranda/home.dart';
 import 'Beranda/activity.dart';
 import 'Beranda/inbox.dart';
+import 'inbox/inbox.dart';
 import 'Beranda/counseling.dart';
 import 'Beranda/profile.dart';
 import 'halaman_pendukung/detail_laporan.dart';
@@ -16,24 +16,20 @@ import 'login_daftar_akun/register_care.dart';
 import 'login_daftar_akun/verification_care.dart';
 import 'login_daftar_akun/success_verification.dart';
 import 'login_daftar_akun/google_account.dart';
+import 'konseling/screens/screen1_detail_konseling.dart';
+import 'konseling/screens/screen2_history_konseling.dart';
+import 'konseling/screens/screen3_detail_history.dart';
+import 'konseling/screens/screen4_reschedule.dart';
 
-// Kunci navigasi global (penting agar halaman detail bisa menutupi navbar)
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/login', // Halaman pertama kali dibuka
+  initialLocation: '/login',
   routes: [
-    // --- PASTIKAN KEDUA RUTE INI ADA DI SINI ---
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
-    GoRoute(
-      path: '/login', // <--- INI ADALAH RUTE YANG DICARI OLEH SISTEM
-      builder: (context, state) => const LoginCare(),
-    ),
-    GoRoute(
-      path: '/register',
-      builder: (context, state) => const RegisterCare(),
-    ),
+    GoRoute(path: '/login', builder: (context, state) => const LoginCare()),
+    GoRoute(path: '/register', builder: (context, state) => const RegisterCare()),
     GoRoute(
       path: '/verification',
       builder: (context, state) {
@@ -41,21 +37,15 @@ final GoRouter appRouter = GoRouter(
         return VerificationCare(email: email);
       },
     ),
-
     GoRoute(
       path: '/google_account',
       builder: (context, state) {
         final bool isFromLogin = state.extra as bool? ?? true;
-
         return GoogleAccountSelection(isLogin: isFromLogin);
       },
     ),
-    GoRoute(
-      path: '/success_verification',
-      builder: (context, state) => const SuccessVerificationCare(),
-    ),
+    GoRoute(path: '/success_verification', builder: (context, state) => const SuccessVerificationCare()),
 
-    // === RUTE MENGGUNAKAN BOTTOM NAVBAR ===
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return MainScreen(navigationShell: navigationShell);
@@ -64,10 +54,7 @@ final GoRouter appRouter = GoRouter(
         // Tab 0: Home
         StatefulShellBranch(
           routes: [
-            GoRoute(
-              path: '/home',
-              builder: (context, state) => const HomeScreen(),
-            ),
+            GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
           ],
         ),
         // Tab 1: Activity
@@ -77,13 +64,11 @@ final GoRouter appRouter = GoRouter(
               path: '/activity',
               builder: (context, state) => const ActivityScreen(),
               routes: [
-                // Sub-rute: Detail Laporan Lama
                 GoRoute(
                   path: 'detail-laporan',
                   parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) => const HalamanDetailLaporan(),
                 ),
-                // Sub-rute: Detail Laporan Baru
                 GoRoute(
                   path: 'detail-laporan-baru',
                   parentNavigatorKey: _rootNavigatorKey,
@@ -96,10 +81,7 @@ final GoRouter appRouter = GoRouter(
         // Tab 2: Inbox
         StatefulShellBranch(
           routes: [
-            GoRoute(
-              path: '/inbox',
-              builder: (context, state) => const InboxScreen(),
-            ),
+            GoRoute(path: '/inbox', builder: (context, state) => const InboxPage()),
           ],
         ),
         // Tab 3: Counseling
@@ -107,17 +89,31 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/counseling',
-              builder: (context, state) => const CounselingScreen(),
+              builder: (context, state) => const Screen1DetailKonseling(),
+              routes: [
+                GoRoute(
+                  path: 'history',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) => const Screen2HistoryKonseling(),
+                ),
+                GoRoute(
+                  path: 'detail-history',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) => const Screen3DetailHistory(),
+                ),
+                GoRoute(
+                  path: 'reschedule',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) => const Screen4Reschedule(),
+                ),
+              ],
             ),
           ],
         ),
         // Tab 4: Profile
         StatefulShellBranch(
           routes: [
-            GoRoute(
-              path: '/profile',
-              builder: (context, state) => const ProfileScreen(),
-            ),
+            GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
           ],
         ),
       ],

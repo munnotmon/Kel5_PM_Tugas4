@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'input_decoration_helper.dart';
+//  ini adalah halaman Login dari aplikasi Polinema Care+. 
+//Di sinilah user memasukkan email dan password untuk masuk ke aplikasi."
 
 class LoginCare extends StatefulWidget {
   const LoginCare({super.key});

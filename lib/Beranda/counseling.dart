@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:go_router/go_router.dart';
 import '../halaman_pendukung/riwayat.dart';
 import '../halaman_pendukung/jadwal.dart';
 import '../halaman_pendukung/detail_sesi.dart';
@@ -12,15 +12,10 @@ class CounselingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: _buildJadwalCard(context),
-            ),
-          ],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: CounselingSection(), // <-- pakai CounselingSection yang sudah lengkap
         ),
       ),
     );
@@ -135,10 +130,7 @@ Widget _buildJadwalCard(BuildContext context) {
   return Material(
     color: Colors.transparent,
     child: InkWell(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const DetailSesi()),
-      ),
+   onTap: () => context.push('/counseling/detail'),
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(12),
