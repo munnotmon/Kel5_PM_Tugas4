@@ -14,14 +14,21 @@ class PhoneStatusBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('19:02',
-              style: TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w700, color: kTextPrimary)),
-          Row(children: [
-            Icon(Icons.wifi, size: 14, color: kTextPrimary),
-            const SizedBox(width: 4),
-            Icon(Icons.signal_cellular_alt, size: 14, color: kTextPrimary),
-          ]),
+          const Text(
+            '19:02',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: kTextPrimary,
+            ),
+          ),
+          Row(
+            children: [
+              Icon(Icons.wifi, size: 14, color: kTextPrimary),
+              const SizedBox(width: 4),
+              Icon(Icons.signal_cellular_alt, size: 14, color: kTextPrimary),
+            ],
+          ),
         ],
       ),
     );
@@ -46,12 +53,21 @@ class PhoneNavTop extends StatelessWidget {
             width: 28,
             height: 28,
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
-            child: const Icon(Icons.chevron_left, size: 22, color: kTextPrimary),
+            child: const Icon(
+              Icons.chevron_left,
+              size: 22,
+              color: kTextPrimary,
+            ),
           ),
           const SizedBox(width: 8),
-          Text(title,
-              style: const TextStyle(
-                  fontSize: 14, fontWeight: FontWeight.w600, color: kTextPrimary)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: kTextPrimary,
+            ),
+          ),
           const Spacer(),
           if (trailing != null) trailing!,
         ],
@@ -98,25 +114,36 @@ class BottomNav extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                      color: kTeal.withOpacity(0.35),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4))
+                    color: kTeal.withOpacity(0.35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
               ),
-              child: const Icon(Icons.chat_bubble_outline,
-                  color: Colors.white, size: 22),
+              child: const Icon(
+                Icons.chat_bubble_outline,
+                color: Colors.white,
+                size: 22,
+              ),
             );
           }
 
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(items[i]['icon'] as IconData,
-                  size: 20, color: isActive ? kTeal : kTextMuted),
+              Icon(
+                items[i]['icon'] as IconData,
+                size: 20,
+                color: isActive ? kTeal : kTextMuted,
+              ),
               const SizedBox(height: 2),
-              Text(items[i]['label'] as String,
-                  style: TextStyle(
-                      fontSize: 9, color: isActive ? kTeal : kTextMuted)),
+              Text(
+                items[i]['label'] as String,
+                style: TextStyle(
+                  fontSize: 9,
+                  color: isActive ? kTeal : kTextMuted,
+                ),
+              ),
             ],
           );
         }),
@@ -156,24 +183,33 @@ class KonselorCard extends StatelessWidget {
           CircleAvatar(
             radius: 22,
             backgroundColor: avatarColor,
-            child: Text(initials,
-                style: const TextStyle(
-                    fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
+            child: Text(
+              initials,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name,
-                    style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: kTextPrimary)),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: kTextPrimary,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text(specialist,
-                    style:
-                        const TextStyle(fontSize: 11, color: kTextSecondary)),
+                Text(
+                  specialist,
+                  style: const TextStyle(fontSize: 11, color: kTextSecondary),
+                ),
               ],
             ),
           ),
@@ -190,11 +226,12 @@ class InfoRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const InfoRow(
-      {super.key,
-      required this.icon,
-      required this.label,
-      required this.value});
+  const InfoRow({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -205,13 +242,18 @@ class InfoRow extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label,
-                style: const TextStyle(fontSize: 10, color: kTextMuted)),
-            Text(value,
-                style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: kTextPrimary)),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 10, color: kTextMuted),
+            ),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: kTextPrimary,
+              ),
+            ),
           ],
         ),
       ],
@@ -234,11 +276,14 @@ class SectionTitle extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: kTeal),
           const SizedBox(width: 6),
-          Text(title,
-              style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: kTextSecondary)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: kTextSecondary,
+            ),
+          ),
         ],
       ),
     );
@@ -272,8 +317,10 @@ class CheckItem extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(text,
-              style: const TextStyle(fontSize: 11, color: Color(0xFF475569))),
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 11, color: Color(0xFF475569)),
+          ),
         ),
       ],
     );
@@ -306,11 +353,14 @@ class TealButton extends StatelessWidget {
               Icon(icon, color: Colors.white, size: 14),
               const SizedBox(width: 6),
             ],
-            Text(label,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600)),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
@@ -353,22 +403,14 @@ class OutlineButton extends StatelessWidget {
               Icon(icon, color: color, size: 14),
               const SizedBox(width: 6),
             ],
-            Text(label,
-                style: TextStyle(
-                    color: color,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600)),
-          OutlineButton(
-  label: 'Ubah Jadwal',
-  icon: Icons.calendar_today_outlined,
-  onTap: () => context.push('/counseling/reschedule'), // tambah ini
-),
-const SizedBox(height: 8),
-OutlineButton(
-  label: 'Batalkan Sesi',
-  color: const Color(0xFFEF4444),
-  onTap: () => context.push('/counseling/history'), // tambah ini
-),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
