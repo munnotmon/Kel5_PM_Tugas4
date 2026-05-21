@@ -1,31 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+// --- MAIN & NAVIGATION ---
 import 'main.dart';
-import 'Beranda/home.dart';
-import 'Beranda/activity.dart';
-import 'Beranda/inbox.dart';
-import 'Beranda/counseling.dart';
-import 'Profile/profile.dart';
-import 'Profile/notification_settings.dart';
-import 'Profile/account_security.dart';
-import 'Profile/change_password.dart';
-import 'Profile/password_updated.dart';
-import 'Profile/pusat_bantuan.dart';
-import 'Profile/syarat_ketentuan.dart';
-import 'Profile/tentang_aplikasi.dart';
-import 'Laporan_Perundungan/detail_laporan.dart';
-import 'Laporan_Perundungan/detail_laporan_baru.dart';
-import 'splash_screen/splash_care.dart';
-import 'login_daftar_akun/login_care.dart';
-import 'login_daftar_akun/register_care.dart';
-import 'login_daftar_akun/verification_care.dart';
-import 'login_daftar_akun/success_verification.dart';
-import 'login_daftar_akun/google_account.dart';
-import 'Laporan_Perundungan/LaporPerundunganPage.dart';
-import 'Laporan_Perundungan/LaporanStep2Page.dart';
-import 'Laporan_Perundungan/LaporanStep3Page.dart';
-import 'Laporan_Perundungan/LaporanStep4Page.dart';
+
+// --- VIEWS (Beranda) ---
+import 'views/Beranda/home.dart';
+import 'views/Beranda/activity.dart';
+import 'views/Beranda/inbox.dart'; // class: InboxPage
+import 'views/Beranda/counseling.dart';
+import 'views/Beranda/profile.dart';
+
+// --- VIEWS (Laporan & Auth) ---
+import 'views/Laporan_Perundungan/detail_laporan.dart';
+import 'views/Laporan_Perundungan/detail_laporan_baru.dart';
+import 'views/Laporan_Perundungan/lapor_perundungan_page.dart';
+import 'views/Laporan_Perundungan/laporan_step2_page.dart';
+import 'views/Laporan_Perundungan/laporan_step3_page.dart';
+import 'views/Laporan_Perundungan/laporan_step4_page.dart';
+import 'views/login_daftar_akun/login_care.dart';
+import 'views/login_daftar_akun/register_care.dart';
+import 'views/login_daftar_akun/verification_care.dart';
+import 'views/login_daftar_akun/success_verification.dart';
+import 'views/login_daftar_akun/google_account.dart';
+import 'views/splash_screen/splash_care.dart';
+
+// --- OTHER ---
 import 'tes.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -34,7 +34,7 @@ final GlobalKey<NavigatorState> activityNavigatorKey =
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/login',
+  initialLocation: '/splash',
   routes: [
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginCare()),
@@ -61,7 +61,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const SuccessVerificationCare(),
     ),
 
-    // === FORM LAPORAN — di luar ShellRoute agar navbar hilang ===
+    // === FORM LAPORAN ===
     GoRoute(
       path: '/activity/laporan',
       parentNavigatorKey: _rootNavigatorKey,
@@ -103,7 +103,6 @@ final GoRouter appRouter = GoRouter(
         return MainScreen(navigationShell: navigationShell);
       },
       branches: [
-        // Tab 0: Home
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -112,7 +111,6 @@ final GoRouter appRouter = GoRouter(
             ),
           ],
         ),
-        // Tab 1: Activity
         StatefulShellBranch(
           navigatorKey: activityNavigatorKey,
           routes: [
@@ -134,16 +132,16 @@ final GoRouter appRouter = GoRouter(
             ),
           ],
         ),
-        // Tab 2: Inbox
+        // ... (bagian atas router.dart Anda tetap sama)
+        // ✅ Diperbaiki: InboxScreen → InboxPage
         StatefulShellBranch(
           routes: [
             GoRoute(
               path: '/inbox',
-              builder: (context, state) => const InboxScreen(),
+              builder: (context, state) => const InboxPage(),
             ),
           ],
         ),
-        // Tab 3: Counseling
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -152,50 +150,12 @@ final GoRouter appRouter = GoRouter(
             ),
           ],
         ),
-        // Tab 4: Profile
         StatefulShellBranch(
           routes: [
             GoRoute(
               path: '/profile',
               builder: (context, state) => const ProfileScreen(),
-              routes: [
-                GoRoute(
-                  path: 'notification-settings',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) =>
-                      const NotificationSettingsScreen(),
-                ),
-                GoRoute(
-                  path: 'account-security',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) => const AccountSecurityScreen(),
-                ),
-                GoRoute(
-                  path: 'change-password',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) => const ChangePasswordScreen(),
-                ),
-                GoRoute(
-                  path: 'password-updated',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) => const PasswordUpdatedScreen(),
-                ),
-                GoRoute(
-                  path: 'pusat-bantuan',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) => const PusatBantuanScreen(),
-                ),
-                GoRoute(
-                  path: 'syarat-ketentuan',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) => const SyaratKetentuanScreen(),
-                ),
-                GoRoute(
-                  path: 'tentang-aplikasi',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) => const TentangAplikasiScreen(),
-                ),
-              ],
+              routes: [],
             ),
           ],
         ),
