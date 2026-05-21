@@ -265,8 +265,7 @@ class _PusatBantuanScreenState extends State<PusatBantuanScreen> {
                   topLeft: i == 0 ? const Radius.circular(20) : Radius.zero,
                   topRight: i == 0 ? const Radius.circular(20) : Radius.zero,
                   bottomLeft: isLast ? const Radius.circular(20) : Radius.zero,
-                  bottomRight:
-                      isLast ? const Radius.circular(20) : Radius.zero,
+                  bottomRight: isLast ? const Radius.circular(20) : Radius.zero,
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(

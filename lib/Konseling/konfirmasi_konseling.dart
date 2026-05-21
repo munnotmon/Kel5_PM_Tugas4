@@ -108,8 +108,19 @@ class ConfirmAppointmentPage extends StatelessWidget {
                     ),
                     borderRadius: BorderRadius.circular(30),
                   ),
+                  // PERBAIKAN: ElevatedButton ditempatkan dengan benar di dalam child
                   child: ElevatedButton(
-                    onPressed: () => context.push('/counseling/sukses'),
+                    onPressed: () {
+                      context.push(
+                        '/counseling/sukses',
+                        extra: {
+                          'counselor': counselorData, // Bawa data konselor
+                          'tanggal': tanggal, // Bawa tanggal
+                          'waktu': waktu, // Bawa waktu
+                          'mode': mode, // Bawa mode (Online/Offline)
+                        },
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
@@ -134,6 +145,8 @@ class ConfirmAppointmentPage extends StatelessWidget {
       ),
     );
   }
+
+  // --- SEMUA WIDGET HELPER SEKARANG ADA DI DALAM CLASS ---
 
   Widget _buildCounselorCard(Map<String, dynamic> data, String mode) {
     return Container(

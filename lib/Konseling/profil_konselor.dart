@@ -14,15 +14,128 @@ class CounselorProfilePage extends StatefulWidget {
 
 class _CounselorProfilePageState extends State<CounselorProfilePage> {
   int selectedDate = 0;
-  String selectedTime = "10:30 WIB";
-  String selectedMode = "Lokal"; // Variabel untuk mode konseling
+  String selectedTime = "";
+  String selectedMode = "Offline";
 
   late final Map<String, dynamic> data;
+  List<DateTime> _availableDates = [];
+  List<String> _availableTimes = [];
 
   @override
   void initState() {
     super.initState();
     data = widget.counselorData ?? daftarKonselor[0];
+
+    // Ambil data array jam kerja spesifik dari konselor
+    _availableTimes = List<String>.from(
+      data['available_times'] ?? ["09:00 WIB", "10:30 WIB"],
+    );
+    if (_availableTimes.isNotEmpty) {
+      selectedTime = _availableTimes[0];
+    }
+
+    // Ambil data hari praktek (1-7), jika kosong default ke Senin, Rabu, Jumat [1, 3, 5]
+    List<int> practiceDays = List<int>.from(data['practice_days'] ?? [1, 3, 5]);
+    _generateCalendarDates(practiceDays);
+  }
+
+  // LOGIKA MENCARI TANGGAL RIIL DI KALENDER BERDASARKAN HARI PRAKTEK
+  void _generateCalendarDates(List<int> practiceDays) {
+    List<DateTime> dates = [];
+    DateTime today = DateTime.now();
+
+    // Loop mencari kecocokan hari kalender hingga 30 hari ke depan
+    for (int i = 0; i < 30; i++) {
+      DateTime candidate = today.add(Duration(days: i));
+      if (practiceDays.contains(candidate.weekday)) {
+        dates.add(candidate);
+      }
+      if (dates.length >= 3) break; // Ambil 3 tanggal praktek terdekat
+    }
+    _availableDates = dates;
+  }
+
+  // HELPER FORMAT NAMA HARI INDONESIA UNTUK CHIP CARD
+  String _getIndonesianDayName(int weekday) {
+    switch (weekday) {
+      case 1:
+        return "SEN";
+      case 2:
+        return "SEL";
+      case 3:
+        return "RAB";
+      case 4:
+        return "KAM";
+      case 5:
+        return "JUM";
+      case 6:
+        return "SAB";
+      case 7:
+        return "MING";
+      default:
+        return "";
+    }
+  }
+
+  // HELPER FORMAT BULAN INDONESIA
+  String _getIndonesianMonthName(int month) {
+    switch (month) {
+      case 1:
+        return "Jan";
+      case 2:
+        return "Feb";
+      case 3:
+        return "Mar";
+      case 4:
+        return "Apr";
+      case 5:
+        return "Mei";
+      case 6:
+        return "Jun";
+      case 7:
+        return "Jul";
+      case 8:
+        return "Agu";
+      case 9:
+        return "Sep";
+      case 10:
+        return "Okt";
+      case 11:
+        return "Nov";
+      case 12:
+        return "Des";
+      default:
+        return "";
+    }
+  }
+
+  // HELPER UNTUK MENGHASILKAN STRING TANGGAL UTUH ("Senin, 25 Mei")
+  String _formatFullDate(DateTime dt) {
+    String dayName = "";
+    switch (dt.weekday) {
+      case 1:
+        dayName = "Senin";
+        break;
+      case 2:
+        dayName = "Selasa";
+        break;
+      case 3:
+        dayName = "Rabu";
+        break;
+      case 4:
+        dayName = "Kamis";
+        break;
+      case 5:
+        dayName = "Jumat";
+        break;
+      case 6:
+        dayName = "Sabtu";
+        break;
+      case 7:
+        dayName = "Minggu";
+        break;
+    }
+    return "$dayName, ${dt.day} ${_getIndonesianMonthName(dt.month)}";
   }
 
   @override
@@ -132,7 +245,7 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildModeSelector(), // Widget Selector Mode
+                _buildModeSelector(),
 
                 const SizedBox(height: 24),
                 Text(
@@ -143,15 +256,15 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _buildDatePicker(),
+                _buildDatePicker(), // Panggil Date Picker Dinamis Kalender
                 const SizedBox(height: 16),
-                _buildTimeGrid(),
+                _buildTimeGrid(), // Panggil Time Grid Dinamis Sesuai Dokter
                 const SizedBox(height: 100),
               ],
             ),
           ),
 
-          // Tombol Jadwalkan
+          // Tombol Jalankan Submit Navigasi Berantai
           Positioned(
             bottom: 24,
             left: 24,
@@ -166,22 +279,26 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
               ),
               child: ElevatedButton.icon(
                 onPressed: () {
-                  // Validasi sederhana: pastikan data ada
-                  if (data == null) {
+                  if (_availableDates.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text("Data konselor tidak ditemukan!"),
+                        content: Text("Jadwal praktek tidak tersedia!"),
                       ),
                     );
                     return;
                   }
 
-                  // Navigasi dengan data yang sudah pasti
+                  // Hitung string tanggal riil pilihan sebelum dikirim
+                  String finalSelectedDate = _formatFullDate(
+                    _availableDates[selectedDate],
+                  );
+
                   context.push(
                     '/counseling/konfirmasi',
                     extra: {
                       'counselor': data,
-                      'tanggal': "Senin, 12 Okt", // Sesuai pilihanmu
+                      'tanggal':
+                          finalSelectedDate, // Tanggal Kalender Riil terkirim dinamis
                       'waktu': selectedTime,
                       'mode': selectedMode,
                     },
@@ -227,8 +344,10 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               color: Colors.blueGrey[200],
-              image: const DecorationImage(
-                image: NetworkImage("https://i.pravatar.cc/150?img=11"),
+              image: DecorationImage(
+                image: NetworkImage(
+                  "https://i.pravatar.cc/150?u=${data['name']}",
+                ),
                 fit: BoxFit.cover,
               ),
             ),
@@ -382,15 +501,15 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
     );
   }
 
+  // BUILDER DATE PICKER KALENDER DINAMIS
   Widget _buildDatePicker() {
-    List<Map<String, String>> dates = [
-      {"day": "SEN", "date": "12"},
-      {"day": "SEL", "date": "13"},
-      {"day": "RAB", "date": "14"},
-    ];
+    if (_availableDates.isEmpty) return const SizedBox();
+
     return Row(
-      children: List.generate(dates.length, (index) {
+      children: List.generate(_availableDates.length, (index) {
         bool active = selectedDate == index;
+        DateTime dt = _availableDates[index]; // Tanggal riil objek DateTime
+
         return GestureDetector(
           onTap: () => setState(() => selectedDate = index),
           child: Container(
@@ -407,15 +526,16 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
             child: Column(
               children: [
                 Text(
-                  dates[index]["day"]!,
+                  _getIndonesianDayName(dt.weekday), // Teks Hari (SEN/SEL/RAB)
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: active ? const Color(0xFF1068A3) : Colors.grey,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
-                  dates[index]["date"]!,
+                  dt.day.toString(), // Angka Tanggal Riil Kalender
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -432,12 +552,12 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
     );
   }
 
+  // BUILDER TIME GRID DINAMIS SESUAI LIST DOKTER
   Widget _buildTimeGrid() {
-    List<String> times = ["09:00 WIB", "10:30 WIB", "13:00 WIB", "15:30 WIB"];
     return Wrap(
       spacing: 12,
       runSpacing: 12,
-      children: times.map((t) {
+      children: _availableTimes.map((t) {
         bool active = selectedTime == t;
         return GestureDetector(
           onTap: () => setState(() => selectedTime = t),

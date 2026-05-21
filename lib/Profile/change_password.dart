@@ -19,8 +19,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   bool _showConfirm = false;
 
   bool get _hasMinLength => _newPasswordController.text.length >= 8;
-  bool get _hasNumber =>
-      RegExp(r'\d').hasMatch(_newPasswordController.text);
+  bool get _hasNumber => RegExp(r'\d').hasMatch(_newPasswordController.text);
   bool get _hasSpecial =>
       RegExp(r'[@#$%^&*!]_').hasMatch(_newPasswordController.text);
 
@@ -206,8 +205,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 ),
               ),
               const SizedBox(width: 4),
-              const Text('*',
-                  style: TextStyle(color: Colors.red, fontSize: 14)),
+              const Text(
+                '*',
+                style: TextStyle(color: Colors.red, fontSize: 14),
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -264,8 +265,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           const SizedBox(height: 8),
           _buildCheckItem('Mengandung setidaknya satu angka', _hasNumber),
           const SizedBox(height: 8),
-          _buildCheckItem(
-              r'Mengandung karakter khusus (@, #, $)', _hasSpecial),
+          _buildCheckItem(r'Mengandung karakter khusus (@, #, $)', _hasSpecial),
           const SizedBox(height: 20),
           const Divider(color: Color(0xFFF0F2F5), thickness: 1),
           const SizedBox(height: 16),
@@ -276,9 +276,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }
 
   Widget _buildConfirmInline() {
-    final isMatch = _confirmPasswordController.text.isNotEmpty &&
+    final isMatch =
+        _confirmPasswordController.text.isNotEmpty &&
         _confirmPasswordController.text == _newPasswordController.text;
-    final isMismatch = _confirmPasswordController.text.isNotEmpty &&
+    final isMismatch =
+        _confirmPasswordController.text.isNotEmpty &&
         _confirmPasswordController.text != _newPasswordController.text;
 
     return Column(
@@ -304,15 +306,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             color: isMatch
                 ? const Color(0xFFDDF5EC)
                 : isMismatch
-                    ? const Color(0xFFFFECEC)
-                    : const Color(0xFFF5F7FA),
+                ? const Color(0xFFFFECEC)
+                : const Color(0xFFF5F7FA),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isMatch
                   ? const Color(0xFF2A9B6E)
                   : isMismatch
-                      ? Colors.red.shade300
-                      : Colors.transparent,
+                  ? Colors.red.shade300
+                  : Colors.transparent,
               width: 1.2,
             ),
           ),
@@ -334,7 +336,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 16),
+                horizontal: 16,
+                vertical: 16,
+              ),
               suffixIcon: IconButton(
                 icon: Icon(
                   _showConfirm
@@ -343,8 +347,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   color: Colors.grey[400],
                   size: 22,
                 ),
-                onPressed: () =>
-                    setState(() => _showConfirm = !_showConfirm),
+                onPressed: () => setState(() => _showConfirm = !_showConfirm),
               ),
             ),
           ),
@@ -353,8 +356,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.check_circle_rounded,
-                  color: Color(0xFF2A9B6E), size: 16),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xFF2A9B6E),
+                size: 16,
+              ),
               const SizedBox(width: 6),
               Text(
                 'Kata sandi cocok',
@@ -391,25 +397,28 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     return Row(
       children: [
         checked
-            ? const Icon(Icons.check_circle_rounded,
-                color: Color(0xFF2A9B6E), size: 20)
-            : const Icon(Icons.radio_button_unchecked_rounded,
-                color: Color(0xFFB0BAC6), size: 20),
+            ? const Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xFF2A9B6E),
+                size: 20,
+              )
+            : const Icon(
+                Icons.radio_button_unchecked_rounded,
+                color: Color(0xFFB0BAC6),
+                size: 20,
+              ),
         const SizedBox(width: 10),
         Text(
           label,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 13,
             fontWeight: checked ? FontWeight.w600 : FontWeight.w400,
-            color: checked
-                ? const Color(0xFF2A9B6E)
-                : const Color(0xFF8A97A8),
+            color: checked ? const Color(0xFF2A9B6E) : const Color(0xFF8A97A8),
           ),
         ),
       ],
     );
   }
-
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -442,8 +451,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             letterSpacing: 0,
           ),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
           suffixIcon: showToggle
               ? IconButton(
                   icon: Icon(
@@ -552,11 +563,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.shield_outlined,
-            color: Color(0xFF2A9B6E),
-            size: 22,
-          ),
+          const Icon(Icons.shield_outlined, color: Color(0xFF2A9B6E), size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

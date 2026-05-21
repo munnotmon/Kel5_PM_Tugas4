@@ -22,6 +22,9 @@ final List<Map<String, dynamic>> daftarKonselor = [
         'subtitle': 'Pusat Rehabilitasi Mental Nasional • 2018 - Sekarang',
       },
     ],
+    // --- JADWAL DR. ANTON (Senin, Rabu, Jumat) ---
+    'practice_days': [1, 3, 5],
+    'available_times': ["09:00 WIB", "10:30 WIB", "13:00 WIB", "15:30 WIB"],
   },
   {
     'name': 'Siska, M.Psi',
@@ -44,6 +47,9 @@ final List<Map<String, dynamic>> daftarKonselor = [
         'subtitle': 'Klinik Sehati • 2019 - Sekarang',
       },
     ],
+    // --- JADWAL SISKA (Selasa, Kamis) ---
+    'practice_days': [2, 4],
+    'available_times': ["10:00 WIB", "11:30 WIB", "14:00 WIB", "16:30 WIB"],
   },
   {
     'name': 'Budi Hartono, S.Psi',
@@ -63,8 +69,10 @@ final List<Map<String, dynamic>> daftarKonselor = [
         'subtitle': 'Pusat Bimbingan Kampus • 2022 - Sekarang',
       },
     ],
+    // --- JADWAL BUDI (Senin, Selasa, Kamis) ---
+    'practice_days': [1, 2, 4],
+    'available_times': ["08:30 WIB", "10:00 WIB", "13:30 WIB", "15:00 WIB"],
   },
-  // --- DATA BARU: DR. SARAH JOHNSON ---
   {
     'name': 'dr. Sarah Johnson',
     'specialty': 'Konselor Psikologi Klinis',
@@ -90,5 +98,8 @@ final List<Map<String, dynamic>> daftarKonselor = [
         'subtitle': 'Yayasan Peduli Mental • 2015 - 2017',
       },
     ],
+    // --- JADWAL DR. SARAH (Rabu, Jumat) ---
+    'practice_days': [3, 5],
+    'available_times': ["09:30 WIB", "11:00 WIB", "14:30 WIB", "16:00 WIB"],
   },
 ];

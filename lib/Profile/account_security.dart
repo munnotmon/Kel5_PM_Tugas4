@@ -130,8 +130,11 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
           const SizedBox(height: 10),
           Row(
             children: [
-              Icon(Icons.access_time_rounded,
-                  size: 14, color: Colors.white.withOpacity(0.80)),
+              Icon(
+                Icons.access_time_rounded,
+                size: 14,
+                color: Colors.white.withOpacity(0.80),
+              ),
               const SizedBox(width: 6),
               Text(
                 'Terakhir diperbarui hari ini pukul 09:41 pagi.',
@@ -280,8 +283,9 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
                 activeTrackColor: const Color(0xFF1A6B8A),
                 inactiveThumbColor: Colors.white,
                 inactiveTrackColor: const Color(0xFFCDD5DE),
-                trackOutlineColor:
-                    const WidgetStatePropertyAll(Colors.transparent),
+                trackOutlineColor: const WidgetStatePropertyAll(
+                  Colors.transparent,
+                ),
               ),
             ),
           ],
@@ -365,8 +369,9 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
                 activeTrackColor: const Color(0xFF1A6B8A),
                 inactiveThumbColor: Colors.white,
                 inactiveTrackColor: const Color(0xFFCDD5DE),
-                trackOutlineColor:
-                    const WidgetStatePropertyAll(Colors.transparent),
+                trackOutlineColor: const WidgetStatePropertyAll(
+                  Colors.transparent,
+                ),
               ),
             ),
           ],

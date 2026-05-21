@@ -208,7 +208,8 @@ class TentangAplikasiScreen extends StatelessWidget {
         iconColor: const Color(0xFF1A6B8A),
         iconBg: const Color(0xFFDEEFF8),
         title: '100% Kerahasiaan',
-        subtitle: 'Data dan identitas Anda tersimpan dengan enkripsi tingkat tinggi.',
+        subtitle:
+            'Data dan identitas Anda tersimpan dengan enkripsi tingkat tinggi.',
       ),
       _KomitmenItem(
         icon: Icons.medical_services_outlined,
@@ -272,7 +273,11 @@ class TentangAplikasiScreen extends StatelessWidget {
                             color: item.iconBg,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(item.icon, color: item.iconColor, size: 20),
+                          child: Icon(
+                            item.icon,
+                            color: item.iconColor,
+                            size: 20,
+                          ),
                         ),
                         const SizedBox(width: 14),
                         Expanded(

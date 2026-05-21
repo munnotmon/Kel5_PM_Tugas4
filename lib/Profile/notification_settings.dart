@@ -296,8 +296,9 @@ class _NotificationSettingsScreenState
                         activeTrackColor: const Color(0xFF1A6B8A),
                         inactiveThumbColor: Colors.white,
                         inactiveTrackColor: const Color(0xFFCDD5DE),
-                        trackOutlineColor:
-                            const WidgetStatePropertyAll(Colors.transparent),
+                        trackOutlineColor: const WidgetStatePropertyAll(
+                          Colors.transparent,
+                        ),
                       ),
                     ),
                   ],

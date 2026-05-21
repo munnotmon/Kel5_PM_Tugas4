@@ -81,8 +81,7 @@ class ProfileScreen extends StatelessWidget {
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Color(0xFF1A6B8A)),
-        onPressed: () =>
-            context.canPop() ? context.pop() : context.go('/home'),
+        onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
       ),
       title: Text(
         'Profil Saya',
@@ -92,7 +91,6 @@ class ProfileScreen extends StatelessWidget {
           fontSize: 18,
         ),
       ),
-
     );
   }
 
@@ -312,11 +310,7 @@ class ProfileScreen extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.logout_rounded,
-                color: Colors.red,
-                size: 20,
-              ),
+              const Icon(Icons.logout_rounded, color: Colors.red, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Keluar',

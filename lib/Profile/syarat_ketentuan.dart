@@ -10,7 +10,6 @@ class SyaratKetentuanScreen extends StatefulWidget {
 }
 
 class _SyaratKetentuanScreenState extends State<SyaratKetentuanScreen> {
-
   final List<_SectionItem> _sections = const [
     _SectionItem(
       number: '1',
@@ -89,10 +88,7 @@ class _SyaratKetentuanScreenState extends State<SyaratKetentuanScreen> {
 
             // Last updated badge
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 5,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: const Color(0xFFDEEFF8),
                 borderRadius: BorderRadius.circular(8),
