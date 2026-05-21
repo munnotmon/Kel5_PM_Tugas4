@@ -7,7 +7,7 @@ import 'Beranda/activity.dart';
 import 'Beranda/inbox.dart';
 import 'inbox/inbox.dart';
 import 'Beranda/counseling.dart';
-import 'Beranda/profile.dart';
+import 'Profile/profile.dart';
 import 'Laporan_Perundungan/detail_laporan.dart';
 import 'Laporan_Perundungan/detail_laporan_baru.dart';
 import 'splash_screen/splash_care.dart';
