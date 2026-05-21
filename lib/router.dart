@@ -5,9 +5,15 @@ import 'main.dart';
 import 'Beranda/home.dart';
 import 'Beranda/activity.dart';
 import 'Beranda/inbox.dart';
-import 'inbox/inbox.dart';
 import 'Beranda/counseling.dart';
-import 'Beranda/profile.dart';
+import 'Profile/profile.dart';
+import 'Profile/notification_settings.dart';
+import 'Profile/account_security.dart';
+import 'Profile/change_password.dart';
+import 'Profile/password_updated.dart';
+import 'Profile/pusat_bantuan.dart';
+import 'Profile/syarat_ketentuan.dart';
+import 'Profile/tentang_aplikasi.dart';
 import 'Laporan_Perundungan/detail_laporan.dart';
 import 'Laporan_Perundungan/detail_laporan_baru.dart';
 import 'splash_screen/splash_care.dart';
@@ -20,13 +26,6 @@ import 'Laporan_Perundungan/LaporPerundunganPage.dart';
 import 'Laporan_Perundungan/LaporanStep2Page.dart';
 import 'Laporan_Perundungan/LaporanStep3Page.dart';
 import 'Laporan_Perundungan/LaporanStep4Page.dart';
-import 'Konseling/cari_konselor.dart';
-import 'Konseling/profil_konselor.dart';
-import 'Konseling/konfirmasi_konseling.dart';
-import 'Konseling/sukses_konseling.dart';
-import 'Konseling/screen1_detail_konseling.dart';
-import 'Konseling/screen3_detail_history.dart';
-import 'Konseling/screen4_reschedule.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> activityNavigatorKey =
@@ -34,7 +33,7 @@ final GlobalKey<NavigatorState> activityNavigatorKey =
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/splash',
+  initialLocation: '/login',
   routes: [
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginCare()),
@@ -92,54 +91,6 @@ final GoRouter appRouter = GoRouter(
       },
     ),
 
-    // === RUTE HALAMAN KONSELING TAMBAHAN (Di luar ShellRoute agar navbar hilang) ===
-    GoRoute(
-      path: '/counseling/detail-sesi',
-      parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const Screen1DetailKonseling(),
-    ),
-    GoRoute(
-      path: '/counseling/detail-history',
-      parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const Screen3DetailHistory(),
-    ),
-    GoRoute(
-      path: '/counseling/reschedule',
-      parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const Screen4Reschedule(),
-    ),
-    GoRoute(
-      path: '/counseling/cari',
-      parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const FindCounselorPage(),
-    ),
-    GoRoute(
-      path: '/counseling/profil',
-      parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) {
-        final data = state.extra as Map<String, dynamic>?;
-        return CounselorProfilePage(counselorData: data);
-      },
-    ),
-    GoRoute(
-      path: '/counseling/konfirmasi',
-      parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) {
-        final extra = state.extra as Map<String, dynamic>?;
-        return ConfirmAppointmentPage(
-          counselorData: extra?['counselor'],
-          tanggal: extra?['tanggal'],
-          waktu: extra?['waktu'],
-          mode: extra?['mode'],
-        );
-      },
-    ),
-    GoRoute(
-      path: '/counseling/sukses',
-      parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const SuccessAppointmentPage(),
-    ),
-
     // === RUTE MENGGUNAKAN BOTTOM NAVBAR ===
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
@@ -182,7 +133,7 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/inbox',
-              builder: (context, state) => const InboxPage(),
+              builder: (context, state) => const InboxScreen(),
             ),
           ],
         ),
@@ -191,7 +142,6 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/counseling',
-              // PERBAIKAN: Mengarah ke halaman utama konseling
               builder: (context, state) => const CounselingScreen(),
             ),
           ],
@@ -202,6 +152,50 @@ final GoRouter appRouter = GoRouter(
             GoRoute(
               path: '/profile',
               builder: (context, state) => const ProfileScreen(),
+              routes: [
+                GoRoute(
+                  path: 'notification-settings',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) =>
+                      const NotificationSettingsScreen(),
+                ),
+                GoRoute(
+                  path: 'account-security',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) =>
+                      const AccountSecurityScreen(),
+                ),
+                GoRoute(
+                  path: 'change-password',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) =>
+                      const ChangePasswordScreen(),
+                ),
+                GoRoute(
+                  path: 'password-updated',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) =>
+                      const PasswordUpdatedScreen(),
+                ),
+                GoRoute(
+                  path: 'pusat-bantuan',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) =>
+                      const PusatBantuanScreen(),
+                ),
+                GoRoute(
+                  path: 'syarat-ketentuan',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) =>
+                      const SyaratKetentuanScreen(),
+                ),
+                GoRoute(
+                  path: 'tentang-aplikasi',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) =>
+                      const TentangAplikasiScreen(),
+                ),
+              ],
             ),
           ],
         ),
