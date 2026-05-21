@@ -26,6 +26,7 @@ import 'Laporan_Perundungan/LaporPerundunganPage.dart';
 import 'Laporan_Perundungan/LaporanStep2Page.dart';
 import 'Laporan_Perundungan/LaporanStep3Page.dart';
 import 'Laporan_Perundungan/LaporanStep4Page.dart';
+import 'tes.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> activityNavigatorKey =
@@ -89,6 +90,11 @@ final GoRouter appRouter = GoRouter(
         final extra = state.extra as Map<String, dynamic>? ?? {};
         return LaporanStep4Page(data: extra);
       },
+    ),
+    GoRoute(
+      path: '/tes-api',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const DataListScreen(),
     ),
 
     // === RUTE MENGGUNAKAN BOTTOM NAVBAR ===
@@ -162,38 +168,32 @@ final GoRouter appRouter = GoRouter(
                 GoRoute(
                   path: 'account-security',
                   parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) =>
-                      const AccountSecurityScreen(),
+                  builder: (context, state) => const AccountSecurityScreen(),
                 ),
                 GoRoute(
                   path: 'change-password',
                   parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) =>
-                      const ChangePasswordScreen(),
+                  builder: (context, state) => const ChangePasswordScreen(),
                 ),
                 GoRoute(
                   path: 'password-updated',
                   parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) =>
-                      const PasswordUpdatedScreen(),
+                  builder: (context, state) => const PasswordUpdatedScreen(),
                 ),
                 GoRoute(
                   path: 'pusat-bantuan',
                   parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) =>
-                      const PusatBantuanScreen(),
+                  builder: (context, state) => const PusatBantuanScreen(),
                 ),
                 GoRoute(
                   path: 'syarat-ketentuan',
                   parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) =>
-                      const SyaratKetentuanScreen(),
+                  builder: (context, state) => const SyaratKetentuanScreen(),
                 ),
                 GoRoute(
                   path: 'tentang-aplikasi',
                   parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) =>
-                      const TentangAplikasiScreen(),
+                  builder: (context, state) => const TentangAplikasiScreen(),
                 ),
               ],
             ),

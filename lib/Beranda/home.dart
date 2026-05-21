@@ -136,6 +136,34 @@ class HomeScreen extends StatelessWidget {
                     context.go('/inbox'), // Navigasi ke halaman Inbox
               ),
 
+              const SizedBox(height: 32),
+
+              // --- BUTTON TES API ---
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    context.push('/tes-api');
+                  },
+                  icon: const Icon(Icons.api, color: Colors.white),
+                  label: Text(
+                    'Buka Halaman Tes API',
+                    style: GoogleFonts.plusJakartaSans(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1068A3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ),
+
               const SizedBox(
                 height: 100,
               ), // Memberi jarak agar tidak tertutup Bottom Navigation Bar
