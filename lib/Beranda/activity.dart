@@ -53,7 +53,9 @@ final List<LaporanItem> dummyLaporan = [
 // 1. HALAMAN UTUH — ActivityScreen
 // =====================================================================
 class ActivityScreen extends StatefulWidget {
-  const ActivityScreen({super.key});
+  final dynamic initialTab; // DITAMBAHKAN: Untuk menangkap parameter pindah tab
+
+  const ActivityScreen({super.key, this.initialTab});
 
   @override
   State<ActivityScreen> createState() => _ActivityScreenState();
@@ -67,6 +69,11 @@ class _ActivityScreenState extends State<ActivityScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+
+    // DITAMBAHKAN: Logika otomatis pindah ke Tab Konseling jika initialTab bernilai 1
+    if (widget.initialTab == 1 || widget.initialTab == 'konseling') {
+      _tabController.index = 1;
+    }
   }
 
   @override
@@ -222,83 +229,98 @@ class _LaporanCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusInfo = _statusInfo(item.status);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  item.judul,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: const Color(0xFF1A2D3D),
+    return GestureDetector(
+      onTap: () {
+        context.push(
+          '/activity/detail-laporan',
+          extra: {
+            'id': item.id,
+            'judul': item.judul,
+            'tanggal': item.tanggal,
+            'deskripsi': item.deskripsi,
+            'statusLabel': statusInfo['label'],
+            'statusColor': statusInfo['color'],
+          },
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    item.judul,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: const Color(0xFF1A2D3D),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              _StatusChip(
-                label: statusInfo['label']!,
-                color: statusInfo['color']! as Color,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            item.deskripsi,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              color: Colors.grey[600],
-              height: 1.4,
+                const SizedBox(width: 8),
+                _StatusChip(
+                  label: statusInfo['label']!,
+                  color: statusInfo['color']! as Color,
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 12),
-          const Divider(height: 1, color: Color(0xFFF0F2F5)),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_today_outlined,
-                size: 12,
-                color: Colors.grey,
+            const SizedBox(height: 8),
+            Text(
+              item.deskripsi,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                color: Colors.grey[600],
+                height: 1.4,
               ),
-              const SizedBox(width: 4),
-              Text(
-                item.tanggal,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
+            ),
+            const SizedBox(height: 12),
+            const Divider(height: 1, color: Color(0xFFF0F2F5)),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 12,
                   color: Colors.grey,
                 ),
-              ),
-              const Spacer(),
-              Text(
-                item.id,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
-                  color: const Color(0xFF1A6B8A),
-                  fontWeight: FontWeight.w600,
+                const SizedBox(width: 4),
+                Text(
+                  item.tanggal,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: Colors.grey,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          _StatusProgress(status: item.status),
-        ],
+                const Spacer(),
+                Text(
+                  item.id,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: const Color(0xFF1A6B8A),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            _StatusProgress(status: item.status),
+          ],
+        ),
       ),
     );
   }
@@ -720,51 +742,66 @@ class ActivitySection extends StatelessWidget {
     final color = statusColors[item.status]!;
     final label = statusLabels[item.status]!;
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
+    return GestureDetector(
+      onTap: () {
+        context.push(
+          '/activity/detail-laporan',
+          extra: {
+            'id': item.id,
+            'judul': item.judul,
+            'tanggal': item.tanggal,
+            'deskripsi': item.deskripsi,
+            'statusLabel': label,
+            'statusColor': color,
+          },
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.withOpacity(0.1)),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(Icons.description_outlined, color: color, size: 22),
             ),
-            child: Icon(Icons.description_outlined, color: color, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.judul,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1A2D3D),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.judul,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF1A2D3D),
+                    ),
                   ),
-                ),
-                Text(
-                  item.tanggal,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    color: Colors.grey,
+                  Text(
+                    item.tanggal,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: Colors.grey,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          _StatusChip(label: label, color: color),
-        ],
+            _StatusChip(label: label, color: color),
+          ],
+        ),
       ),
     );
   }

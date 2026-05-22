@@ -466,8 +466,9 @@ class _KonselorGridCard extends StatelessWidget {
 // =====================================================================
 class CounselingSection extends StatelessWidget {
   final VoidCallback? onNavigate;
+  final VoidCallback? onSeeHistory; // Tambahkan ini
 
-  const CounselingSection({super.key, this.onNavigate});
+  const CounselingSection({super.key, this.onNavigate, this.onSeeHistory});
 
   @override
   Widget build(BuildContext context) {
@@ -487,7 +488,7 @@ class CounselingSection extends StatelessWidget {
             Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () => context.go('/activity'),
+                onTap: onSeeHistory, // Hubungkan ke fungsi baru
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -564,7 +565,8 @@ Widget _buildJadwalCardHome(BuildContext context) {
   return Material(
     color: Colors.transparent,
     child: InkWell(
-      onTap: () {},
+      // PERBAIKAN: Arahkan ke Detail Sesi yang baru kita buat
+      onTap: () => context.push('/counseling/detail-sesi'),
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -575,14 +577,25 @@ Widget _buildJadwalCardHome(BuildContext context) {
         ),
         child: Row(
           children: [
-            const CircleAvatar(radius: 22, backgroundColor: Colors.blueGrey),
+            // Avatar disesuaikan dengan dr. Sarah Johnson
+            const CircleAvatar(
+              radius: 22,
+              backgroundColor: Color(0xFF1068A3),
+              child: Text(
+                'SJ',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "BESOK, 10:00",
+                    "12 OKT 2026, 14:00 WIB", // Waktu sinkron dengan riwayat KSL-001
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
                       color: const Color(0xFF1068A3),
@@ -591,7 +604,7 @@ Widget _buildJadwalCardHome(BuildContext context) {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    "Sesi dengan dr. Anton Wijaya",
+                    "Sesi dengan dr. Sarah Johnson", // Nama dokter sinkron
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,

@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+// --- IMPORT SEMUA FILE ---
 import 'main.dart';
+import 'splash_screen/splash_care.dart';
 import 'Beranda/home.dart';
 import 'Beranda/activity.dart';
 import 'Beranda/inbox.dart';
-import 'inbox/inbox.dart';
 import 'Beranda/counseling.dart';
 import 'Profile/profile.dart';
 import 'Laporan_Perundungan/detail_laporan.dart';
-import 'Laporan_Perundungan/detail_laporan_baru.dart';
-import 'splash_screen/splash_care.dart';
 import 'login_daftar_akun/login_care.dart';
 import 'login_daftar_akun/register_care.dart';
 import 'login_daftar_akun/verification_care.dart';
@@ -35,6 +34,10 @@ import 'Profile/password_updated.dart';
 import 'Profile/pusat_bantuan.dart';
 import 'Profile/syarat_ketentuan.dart';
 import 'Profile/tentang_aplikasi.dart';
+import 'inbox/room_chat.dart';
+import 'notification/notification_page.dart';
+import 'notification/detail_laporan_page.dart';
+import 'notification/detail_pesan_page.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> activityNavigatorKey =
@@ -44,6 +47,7 @@ final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/login',
   routes: [
+    // === AUTH & SPLASH ===
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginCare()),
     GoRoute(
@@ -52,24 +56,20 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/verification',
-      builder: (context, state) {
-        final email = state.extra as String? ?? '';
-        return VerificationCare(email: email);
-      },
+      builder: (context, state) =>
+          VerificationCare(email: state.extra as String? ?? ''),
     ),
     GoRoute(
       path: '/google_account',
-      builder: (context, state) {
-        final bool isFromLogin = state.extra as bool? ?? true;
-        return GoogleAccountSelection(isLogin: isFromLogin);
-      },
+      builder: (context, state) =>
+          GoogleAccountSelection(isLogin: state.extra as bool? ?? true),
     ),
     GoRoute(
       path: '/success_verification',
       builder: (context, state) => const SuccessVerificationCare(),
     ),
 
-    // === FORM LAPORAN — di luar ShellRoute agar navbar hilang ===
+    // === LAPORAN (Tanpa Navbar) ===
     GoRoute(
       path: '/activity/laporan',
       parentNavigatorKey: _rootNavigatorKey,
@@ -78,33 +78,35 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/activity/laporan/step2',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) {
-        final extra = state.extra as Map<String, dynamic>? ?? {};
-        return LaporanStep2Page(prevData: extra);
-      },
+      builder: (context, state) => LaporanStep2Page(
+        prevData: state.extra as Map<String, dynamic>? ?? {},
+      ),
     ),
     GoRoute(
       path: '/activity/laporan/step3',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) {
-        final extra = state.extra as Map<String, dynamic>? ?? {};
-        return LaporanStep3Page(prevData: extra);
-      },
+      builder: (context, state) => LaporanStep3Page(
+        prevData: state.extra as Map<String, dynamic>? ?? {},
+      ),
     ),
     GoRoute(
       path: '/activity/laporan/step4',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) {
-        final extra = state.extra as Map<String, dynamic>? ?? {};
-        return LaporanStep4Page(data: extra);
-      },
+      builder: (context, state) =>
+          LaporanStep4Page(data: state.extra as Map<String, dynamic>? ?? {}),
     ),
 
-    // === RUTE HALAMAN KONSELING TAMBAHAN (Di luar ShellRoute agar navbar hilang) ===
+    // === KONSELING & INBOX (Tanpa Navbar) ===
     GoRoute(
       path: '/counseling/detail-sesi',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const Screen1DetailKonseling(),
+    ),
+    GoRoute(
+      path: '/counseling/detail-sesi-aktif',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) =>
+          DetailSesiScreen(sessionData: state.extra as Map<String, dynamic>?),
     ),
     GoRoute(
       path: '/counseling/detail-history',
@@ -124,52 +126,63 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/counseling/profil',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) {
-        final data = state.extra as Map<String, dynamic>?;
-        return CounselorProfilePage(counselorData: data);
-      },
+      builder: (context, state) => CounselorProfilePage(
+        counselorData: state.extra as Map<String, dynamic>?,
+      ),
     ),
     GoRoute(
       path: '/counseling/konfirmasi',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) {
-        final extra = state.extra as Map<String, dynamic>?;
+        final e = state.extra as Map<String, dynamic>?;
         return ConfirmAppointmentPage(
-          counselorData: extra?['counselor'],
-          tanggal: extra?['tanggal'],
-          waktu: extra?['waktu'],
-          mode: extra?['mode'],
+          counselorData: e?['counselor'],
+          tanggal: e?['tanggal'],
+          waktu: e?['waktu'],
+          mode: e?['mode'],
         );
       },
     ),
-
-    // --- RUTE SUKSES DIPERBARUI AGAR MENANGKAP DATA ---
     GoRoute(
       path: '/counseling/sukses',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) {
-        final data = state.extra as Map<String, dynamic>?;
-        return SuccessAppointmentPage(sessionData: data);
-      },
+      builder: (context, state) => SuccessAppointmentPage(
+        sessionData: state.extra as Map<String, dynamic>?,
+      ),
+    ),
+    GoRoute(
+      path: '/inbox/room-chat',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) =>
+          RoomChatPage(counselorData: state.extra as Map<String, dynamic>),
     ),
 
-    // --- RUTE DETAIL SESI AKTIF BARU DITAMBAHKAN ---
+    // === NOTIFIKASI ===
     GoRoute(
-      path: '/counseling/detail-sesi-aktif',
+      path: '/notifications',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const NotificationPage(),
+    ),
+    GoRoute(
+      path: '/notifications/detail-laporan',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const DetailLaporanPage(),
+    ),
+    GoRoute(
+      path: '/notifications/detail-pesan',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) {
+        // Tangkap data notifikasi yang dikirim
         final data = state.extra as Map<String, dynamic>?;
-        return DetailSesiScreen(sessionData: data);
+        return DetailPesanPage(notifData: data);
       },
     ),
 
-    // === RUTE MENGGUNAKAN BOTTOM NAVBAR ===
+    // === BOTTOM NAVBAR ===
     StatefulShellRoute.indexedStack(
-      builder: (context, state, navigationShell) {
-        return MainScreen(navigationShell: navigationShell);
-      },
+      builder: (context, state, navigationShell) =>
+          MainScreen(navigationShell: navigationShell),
       branches: [
-        // Tab 0: Home
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -178,29 +191,27 @@ final GoRouter appRouter = GoRouter(
             ),
           ],
         ),
-        // Tab 1: Activity
         StatefulShellBranch(
           navigatorKey: activityNavigatorKey,
           routes: [
             GoRoute(
               path: '/activity',
-              builder: (context, state) => const ActivityScreen(),
+              builder: (context, state) =>
+                  ActivityScreen(initialTab: state.extra),
               routes: [
                 GoRoute(
                   path: 'detail-laporan',
                   parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) => const HalamanDetailLaporan(),
-                ),
-                GoRoute(
-                  path: 'detail-laporan-baru',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) => const HalamanDetailLaporanBaru(),
+                  builder: (context, state) {
+                    // Menerima data yang dilempar
+                    final data = state.extra as Map<String, dynamic>?;
+                    return HalamanDetailLaporan(laporanData: data);
+                  },
                 ),
               ],
-            ),
+            ), // <-- PERBAIKAN: Kurung tutup ini yang sebelumnya hilang
           ],
-        ),
-        // Tab 2: Inbox
+        ), // <-- PERBAIKAN: Kurung tutup ini juga hilang
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -209,17 +220,14 @@ final GoRouter appRouter = GoRouter(
             ),
           ],
         ),
-        // Tab 3: Counseling
         StatefulShellBranch(
           routes: [
             GoRoute(
               path: '/counseling',
-              // PERBAIKAN: Mengarah ke halaman utama konseling
               builder: (context, state) => const CounselingScreen(),
             ),
           ],
         ),
-        // Tab 4: Profile
         StatefulShellBranch(
           routes: [
             GoRoute(
