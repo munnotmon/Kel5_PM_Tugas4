@@ -1,6 +1,9 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 class RoomChatPage extends StatefulWidget {
   final Map<String, dynamic> counselorData;
@@ -14,29 +17,28 @@ class RoomChatPage extends StatefulWidget {
 class _RoomChatPageState extends State<RoomChatPage> {
   final TextEditingController _msgController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final ImagePicker _picker = ImagePicker();
 
-  void _sendMessage() {
-    if (_msgController.text.trim().isEmpty) return;
+  // ✅ PERBAIKAN: Mengunci tipe data agar menjadi List Map yang stabil
+  late List<Map<String, dynamic>> _messages;
 
-    // Format jam riil saat ini (Misal: 14:30)
-    final now = DateTime.now();
-    final timeStr =
-        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+  @override
+  void initState() {
+    super.initState();
+    _messages = List<Map<String, dynamic>>.from(
+      widget.counselorData['messages'] ??
+          [
+            {
+              'text':
+                  'Halo Kelompok 5, ada yang bisa saya bantu diskusikan hari ini?',
+              'isMe': false,
+              'time': '10:43',
+            },
+          ],
+    );
+  }
 
-    setState(() {
-      // Menambahkan pesan ke dalam array list sumber aslinya
-      final messages =
-          widget.counselorData['messages'] as List<Map<String, dynamic>>;
-      messages.add({
-        'text': _msgController.text.trim(),
-        'isMe': true,
-        'time': timeStr,
-      });
-    });
-
-    _msgController.clear();
-
-    // Auto-scroll halus ke bawah setiap kali pesan terkirim
+  void _scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -46,6 +48,129 @@ class _RoomChatPageState extends State<RoomChatPage> {
         );
       }
     });
+  }
+
+  void _sendMessage() {
+    if (_msgController.text.trim().isEmpty) return;
+
+    final now = DateTime.now();
+    final timeStr =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+
+    setState(() {
+      _messages.add({
+        'text': _msgController.text.trim(),
+        'isMe': true,
+        'time': timeStr,
+      });
+      // Menulis kembali ke data referensi utama secara sinkron
+      widget.counselorData['messages'] = _messages;
+    });
+
+    _msgController.clear();
+    _scrollToBottom();
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        imageQuality: 70,
+      );
+
+      if (image != null) {
+        final now = DateTime.now();
+        final timeStr =
+            '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+
+        setState(() {
+          _messages.add({
+            'text': 'Lampiran Gambar',
+            'isMe': true,
+            'time': timeStr,
+            'imagePath': image.path,
+          });
+          widget.counselorData['messages'] = _messages;
+        });
+
+        _scrollToBottom();
+      }
+    } catch (e) {
+      debugPrint("Gagal mengambil gambar: $e");
+    }
+  }
+
+  void _showAttachmentOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Wrap(
+              children: [
+                ListTile(
+                  // ✅ FIX: Kata 'const' di depan Container telah dibersihkan agar tidak error
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE0F2F8),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      color: Color(0xFF1068A3),
+                      size: 22,
+                    ),
+                  ),
+                  title: Text(
+                    'Ambil Foto (Kamera)',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.camera);
+                  },
+                ),
+                ListTile(
+                  // ✅ FIX: Kata 'const' di depan Container telah dibersihkan agar tidak error
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE0F2F8),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.photo_library,
+                      color: Color(0xFF1068A3),
+                      size: 22,
+                    ),
+                  ),
+                  title: Text(
+                    'Pilih dari Galeri',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.gallery);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -59,9 +184,6 @@ class _RoomChatPageState extends State<RoomChatPage> {
   Widget build(BuildContext context) {
     final cns = widget.counselorData;
     final isSystem = cns['isSystem'] == true;
-
-    // Ambil list messages secara dinamis
-    final List<Map<String, dynamic>> messages = cns['messages'];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -115,7 +237,7 @@ class _RoomChatPageState extends State<RoomChatPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    cns['name'],
+                    cns['name'] ?? 'Konselor',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -139,15 +261,15 @@ class _RoomChatPageState extends State<RoomChatPage> {
       ),
       body: Column(
         children: [
-          // --- PANEL BALON CHAT ---
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.all(20),
-              itemCount: messages.length,
+              itemCount: _messages.length,
               itemBuilder: (context, index) {
-                final msg = messages[index];
+                final msg = _messages[index];
                 final isMe = msg['isMe'] == true;
+                final hasImage = msg['imagePath'] != null;
 
                 return Align(
                   alignment: isMe
@@ -174,6 +296,24 @@ class _RoomChatPageState extends State<RoomChatPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
+                        if (hasImage)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: kIsWeb
+                                  ? Image.network(
+                                      msg['imagePath'],
+                                      width: 220,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Image.file(
+                                      File(msg['imagePath']),
+                                      width: 220,
+                                      fit: BoxFit.cover,
+                                    ),
+                            ),
+                          ),
                         Text(
                           msg['text'],
                           style: GoogleFonts.plusJakartaSans(
@@ -199,8 +339,6 @@ class _RoomChatPageState extends State<RoomChatPage> {
               },
             ),
           ),
-
-          // --- BAR INPUT PESAN BAWAH ---
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             color: Colors.white,
@@ -210,7 +348,7 @@ class _RoomChatPageState extends State<RoomChatPage> {
                   backgroundColor: const Color(0xFFF5F7FA),
                   child: IconButton(
                     icon: const Icon(Icons.add, color: Color(0xFF1068A3)),
-                    onPressed: () {},
+                    onPressed: _showAttachmentOptions,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -229,8 +367,7 @@ class _RoomChatPageState extends State<RoomChatPage> {
                         hintStyle: TextStyle(color: Colors.grey[400]),
                         border: InputBorder.none,
                       ),
-                      onSubmitted: (_) =>
-                          _sendMessage(), // Kirim via enter keyboard
+                      onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
                 ),

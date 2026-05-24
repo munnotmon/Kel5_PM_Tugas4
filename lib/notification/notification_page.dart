@@ -8,12 +8,13 @@ class NotificationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sinkronisasi data dengan pesan terakhir di Inbox
-    final chatAnton = {
+    // ✅ SINKRONISASI TIPE DATA DENGAN INBOX & ROOM CHAT (ANTI-CRASH TYPE)
+    final Map<String, dynamic> chatAnton = {
       'name': daftarKonselor[0]['name'],
       'specialty': daftarKonselor[0]['specialty'],
       'color': const Color(0xFF1068A3),
-      'messages': [
+      'isSystem': false,
+      'messages': <Map<String, dynamic>>[
         {
           'text':
               'Halo Kelompok 5, ada yang bisa saya bantu diskusikan hari ini?',
@@ -34,11 +35,12 @@ class NotificationPage extends StatelessWidget {
       ],
     };
 
-    final chatSarah = {
+    final Map<String, dynamic> chatSarah = {
       'name': daftarKonselor[3]['name'],
       'specialty': daftarKonselor[3]['specialty'],
       'color': Colors.teal,
-      'messages': [
+      'isSystem': false,
+      'messages': <Map<String, dynamic>>[
         {
           'text':
               'Halo Kelompok 5, link meet untuk sesi kita besok sudah siap.',
@@ -79,7 +81,7 @@ class NotificationPage extends StatelessWidget {
             time: '10:45',
             icon: Icons.chat_bubble_outline_rounded,
             color: const Color(0xFF1068A3),
-            extraData: chatAnton, // Lempar data chat Anton
+            extraData: chatAnton,
           ),
           _buildNotifItem(
             context,
@@ -103,7 +105,7 @@ class NotificationPage extends StatelessWidget {
             time: '12 Jan',
             icon: Icons.chat_bubble_outline_rounded,
             color: Colors.teal,
-            extraData: chatSarah, // Lempar data chat Sarah
+            extraData: chatSarah,
           ),
           _buildNotifItem(
             context,

@@ -3,8 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 
 class DetailPesanPage extends StatelessWidget {
-  final Map<String, dynamic>?
-  notifData; // Menangkap data dinamis dari list notifikasi
+  final Map<String, dynamic>? notifData;
 
   const DetailPesanPage({super.key, this.notifData});
 
@@ -13,10 +12,18 @@ class DetailPesanPage extends StatelessWidget {
     // Fallback data aman jika extra kosong
     final String senderName = notifData?['name'] ?? "Konselor Polinema Care+";
     final String specialty = notifData?['specialty'] ?? "Spesialis Klinis";
-    final List messages = notifData?['messages'] ?? [];
-    final String lastMsgText = messages.isNotEmpty
-        ? messages.last['text']
-        : "Halo, mari diskusikan jadwal konsultismu.";
+
+    // PERBAIKAN LOGIKA: Mengunci sebagai List<dynamic> agar terhindar dari TypeError
+    final List<dynamic> messages = notifData?['messages'] ?? [];
+
+    // Penarikan teks secara aman untuk mencegah null/error
+    String lastMsgText = "Halo, mari diskusikan jadwal konsultasimu.";
+    if (messages.isNotEmpty) {
+      final lastMessage = messages.last;
+      if (lastMessage is Map && lastMessage.containsKey('text')) {
+        lastMsgText = lastMessage['text'];
+      }
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -160,7 +167,6 @@ class DetailPesanPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // BAGIAN YANG DIPERBAIKI (Hapus navigatorKey yang nyasar)
                         Text(
                           senderName,
                           style: GoogleFonts.plusJakartaSans(

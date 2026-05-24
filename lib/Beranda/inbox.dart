@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import '../Konseling/data_konselor.dart'; // Sesuaikan path jika berbeda
+import '../Konseling/data_konselor.dart';
 
 class InboxPage extends StatefulWidget {
   const InboxPage({super.key});
@@ -14,7 +14,6 @@ class _InboxPageState extends State<InboxPage> {
   int _selectedTab = 0;
   String _searchQuery = "";
 
-  // List utama yang menyimpan seluruh data chat dan riwayat obrolannya
   late List<Map<String, dynamic>> _allChats;
 
   @override
@@ -108,7 +107,7 @@ class _InboxPageState extends State<InboxPage> {
         'unread': 1,
         'messages': [
           {
-            'text': 'Laporan Anda #HGN-20261012 telah diterima.',
+            'text': 'Laporan Anda #RPT-001 telah diterima.',
             'isMe': false,
             'time': 'Kemarin',
           },
@@ -155,14 +154,12 @@ class _InboxPageState extends State<InboxPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Logika Filter Tab
     List<Map<String, dynamic>> displayedChats = _allChats.where((chat) {
       if (_selectedTab == 1) return chat['isSystem'] == false;
       if (_selectedTab == 2) return chat['isSystem'] == true;
-      return true; // Tab 'Semua'
+      return true;
     }).toList();
 
-    // Logika Pencarian
     if (_searchQuery.isNotEmpty) {
       displayedChats = displayedChats
           .where(
@@ -213,6 +210,19 @@ class _InboxPageState extends State<InboxPage> {
               fontSize: 24,
               fontWeight: FontWeight.w800,
               color: const Color(0xFF1A2D3D),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: const Icon(
+              Icons.notifications_none,
+              size: 22,
+              color: Color(0xFF1068A3),
             ),
           ),
         ],
@@ -290,8 +300,8 @@ class _InboxPageState extends State<InboxPage> {
     final isSystem = chat['isSystem'] == true;
     final color = chat['color'] as Color;
 
-    // Ambil pesan terakhir untuk preview
-    final List<Map<String, dynamic>> messages = chat['messages'];
+    // ✅ PERBAIKAN: Menggunakan List<dynamic> agar fleksibel menangkap modifikasi dari room_chat
+    final List<dynamic> messages = chat['messages'] ?? [];
     final lastMessage = messages.isNotEmpty ? messages.last : null;
     final previewText = lastMessage != null
         ? lastMessage['text']
@@ -300,11 +310,9 @@ class _InboxPageState extends State<InboxPage> {
 
     return GestureDetector(
       onTap: () {
-        setState(() => chat['unread'] = 0); // Hilangkan badge merah saat diklik
-
-        // Lempar data ke ruang chat dan tunggu user kembali
+        setState(() => chat['unread'] = 0);
         context.push('/inbox/room-chat', extra: chat).then((_) {
-          // Refresh list inbox agar preview memuat pesan terakhir yang baru dikirim
+          // Memicu refresh halaman saat kembali agar chat terbaru langsung terlihat di preview
           setState(() {});
         });
       },

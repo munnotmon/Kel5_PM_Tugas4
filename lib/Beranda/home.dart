@@ -119,7 +119,8 @@ class HomeScreen extends StatelessWidget {
 
                 // --- SECTION AKTIVITAS ---
                 ActivitySection(
-                  onSeeAll: () => context.go('/activity', extra: 0), // ← fix: push → go
+                  onSeeAll: () =>
+                      context.go('/activity', extra: 0), // ← fix: push → go
                 ),
 
                 const SizedBox(height: 32),
@@ -127,7 +128,8 @@ class HomeScreen extends StatelessWidget {
                 // --- SECTION KONSELING ---
                 CounselingSection(
                   onNavigate: () => context.push('/counseling/cari'),
-                  onSeeHistory: () => context.go('/activity', extra: 1), // ← fix: push → go
+                  onSeeHistory: () =>
+                      context.go('/activity', extra: 1), // ← fix: push → go
                 ),
 
                 const SizedBox(height: 32),

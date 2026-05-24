@@ -69,10 +69,30 @@ class _ActivityScreenState extends State<ActivityScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
 
+    // Tentukan posisi tab saat halaman pertama kali di-build
+    int initialIndex = 0;
     if (widget.initialTab == 1 || widget.initialTab == 'konseling') {
-      _tabController.index = 1;
+      initialIndex = 1;
+    }
+
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: initialIndex,
+    );
+  }
+
+  // ✅ Mendeteksi data `extra` baru saat halaman sudah aktif di memori
+  @override
+  void didUpdateWidget(covariant ActivityScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialTab != oldWidget.initialTab) {
+      if (widget.initialTab == 1 || widget.initialTab == 'konseling') {
+        _tabController.animateTo(1); // Geser otomatis ke tab Konseling
+      } else if (widget.initialTab == 0 || widget.initialTab == 'laporan') {
+        _tabController.animateTo(0); // Geser otomatis ke tab Laporan
+      }
     }
   }
 
@@ -176,7 +196,11 @@ class _BuatLaporanButton extends StatelessWidget {
                 color: Colors.white.withOpacity(0.5),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.campaign, color: Color(0xFF1A6B8A), size: 26),
+              child: const Icon(
+                Icons.campaign,
+                color: Color(0xFF1A6B8A),
+                size: 26,
+              ),
             ),
             const SizedBox(width: 15),
             Expanded(
@@ -201,7 +225,11 @@ class _BuatLaporanButton extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Color(0xFF124C63), size: 16),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Color(0xFF124C63),
+              size: 16,
+            ),
           ],
         ),
       ),
@@ -281,11 +309,18 @@ class _LaporanCard extends StatelessWidget {
             const SizedBox(height: 10),
             Row(
               children: [
-                const Icon(Icons.calendar_today_outlined, size: 12, color: Colors.grey),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 12,
+                  color: Colors.grey,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   item.tanggal,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: Colors.grey),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: Colors.grey,
+                  ),
                 ),
                 const Spacer(),
                 Text(
@@ -352,7 +387,11 @@ class _StatusProgress extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.cancel_outlined, size: 14, color: Color(0xFFEF4444)),
+            const Icon(
+              Icons.cancel_outlined,
+              size: 14,
+              color: Color(0xFFEF4444),
+            ),
             const SizedBox(width: 6),
             Text(
               'Laporan ditolak oleh admin',
@@ -381,9 +420,13 @@ class _StatusProgress extends StatelessWidget {
                     height: 20,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isDone ? const Color(0xFF1A6B8A) : Colors.grey[200],
+                      color: isDone
+                          ? const Color(0xFF1A6B8A)
+                          : Colors.grey[200],
                       border: Border.all(
-                        color: isDone ? const Color(0xFF1A6B8A) : Colors.grey[300]!,
+                        color: isDone
+                            ? const Color(0xFF1A6B8A)
+                            : Colors.grey[300]!,
                         width: 2,
                       ),
                     ),
@@ -396,7 +439,9 @@ class _StatusProgress extends StatelessWidget {
                     steps[i],
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 9,
-                      color: isDone ? const Color(0xFF1A6B8A) : Colors.grey[400],
+                      color: isDone
+                          ? const Color(0xFF1A6B8A)
+                          : Colors.grey[400],
                       fontWeight: isDone ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
@@ -407,7 +452,9 @@ class _StatusProgress extends StatelessWidget {
                   child: Container(
                     height: 2,
                     margin: const EdgeInsets.only(bottom: 14),
-                    color: i < activeIndex ? const Color(0xFF1A6B8A) : Colors.grey[200],
+                    color: i < activeIndex
+                        ? const Color(0xFF1A6B8A)
+                        : Colors.grey[200],
                   ),
                 ),
             ],
@@ -450,7 +497,8 @@ class _TabKonselingState extends State<_TabKonseling> {
   String _getSpecialty(String namaKonselor) {
     try {
       final found = daftarKonselor.firstWhere(
-        (k) => (k['name'] as String).toLowerCase() == namaKonselor.toLowerCase(),
+        (k) =>
+            (k['name'] as String).toLowerCase() == namaKonselor.toLowerCase(),
         orElse: () => {},
       );
       return found['specialty'] as String? ?? '';
@@ -462,45 +510,13 @@ class _TabKonselingState extends State<_TabKonseling> {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       children: [
-        // --- HEADER ---
-        RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: 'Riwayat Sesi\n',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1A2D3D),
-                  height: 1.2,
-                ),
-              ),
-              TextSpan(
-                text: 'Counseling Kamu.',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1068A3),
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          'Kelola dan tinjau kembali percakapan berharga dengan konselor profesional kami.',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13,
-            color: Colors.grey[500],
-            height: 1.5,
-          ),
-        ),
-        const SizedBox(height: 20),
+        // --- BANNER ---
+        _buildBottomBanner(context),
+        const SizedBox(height: 24),
 
-        // --- FILTER CHIPS ---
+        // --- FILTER CHIPS DIPINDAH KE BAWAH BANNER ---
         Row(
           children: List.generate(_filters.length, (i) {
             final isActive = _selectedFilter == i;
@@ -510,12 +526,17 @@ class _TabKonselingState extends State<_TabKonseling> {
                 onTap: () => setState(() => _selectedFilter = i),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 9,
+                  ),
                   decoration: BoxDecoration(
                     color: isActive ? const Color(0xFF4CAF50) : Colors.white,
                     borderRadius: BorderRadius.circular(30),
                     border: Border.all(
-                      color: isActive ? const Color(0xFF4CAF50) : Colors.grey.shade300,
+                      color: isActive
+                          ? const Color(0xFF4CAF50)
+                          : Colors.grey.shade300,
                     ),
                   ),
                   child: Text(
@@ -533,15 +554,13 @@ class _TabKonselingState extends State<_TabKonseling> {
         ),
         const SizedBox(height: 24),
 
-        // --- BANNER ---
-        _buildBottomBanner(context),
-        const SizedBox(height: 24),
-
         // --- LIST CARD ---
-        ..._filteredList.map((item) => _KonselingCard(
-              item: item,
-              specialty: _getSpecialty(item.konselor),
-            )),
+        ..._filteredList.map(
+          (item) => _KonselingCard(
+            item: item,
+            specialty: _getSpecialty(item.konselor),
+          ),
+        ),
       ],
     );
   }
@@ -585,7 +604,10 @@ class _TabKonselingState extends State<_TabKonseling> {
                       backgroundColor: const Color(0xFF1068A3),
                       elevation: 3,
                       shadowColor: const Color(0xFF1068A3).withOpacity(0.4),
-                      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 22,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -670,10 +692,14 @@ class _KonselingCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 26,
-                backgroundColor: isDibatalkan ? Colors.grey[300] : Colors.blueGrey[100],
+                backgroundColor: isDibatalkan
+                    ? Colors.grey[300]
+                    : Colors.blueGrey[100],
                 backgroundImage: isDibatalkan
                     ? null
-                    : NetworkImage('https://i.pravatar.cc/150?u=${item.konselor}'),
+                    : NetworkImage(
+                        'https://i.pravatar.cc/150?u=${item.konselor}',
+                      ),
                 child: isDibatalkan
                     ? Icon(Icons.person, color: Colors.grey[400], size: 26)
                     : null,
@@ -688,7 +714,9 @@ class _KonselingCard extends StatelessWidget {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: isDibatalkan ? Colors.grey[400] : const Color(0xFF1A2D3D),
+                        color: isDibatalkan
+                            ? Colors.grey[400]
+                            : const Color(0xFF1A2D3D),
                         height: 1.3,
                       ),
                     ),
@@ -698,7 +726,9 @@ class _KonselingCard extends StatelessWidget {
                         specialty,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          color: isDibatalkan ? Colors.grey[400] : Colors.grey[500],
+                          color: isDibatalkan
+                              ? Colors.grey[400]
+                              : Colors.grey[500],
                         ),
                       ),
                     ],
@@ -706,7 +736,10 @@ class _KonselingCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: statusColor.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(20),
@@ -738,14 +771,18 @@ class _KonselingCard extends StatelessWidget {
                     Icon(
                       Icons.calendar_today_outlined,
                       size: 14,
-                      color: isDibatalkan ? Colors.grey[400] : const Color(0xFF1068A3),
+                      color: isDibatalkan
+                          ? Colors.grey[400]
+                          : const Color(0xFF1068A3),
                     ),
                     const SizedBox(width: 10),
                     Text(
                       item.tanggal,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
-                        color: isDibatalkan ? Colors.grey[400] : const Color(0xFF1A2D3D),
+                        color: isDibatalkan
+                            ? Colors.grey[400]
+                            : const Color(0xFF1A2D3D),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -757,14 +794,18 @@ class _KonselingCard extends StatelessWidget {
                     Icon(
                       Icons.access_time_outlined,
                       size: 14,
-                      color: isDibatalkan ? Colors.grey[400] : const Color(0xFF1068A3),
+                      color: isDibatalkan
+                          ? Colors.grey[400]
+                          : const Color(0xFF1068A3),
                     ),
                     const SizedBox(width: 10),
                     Text(
                       item.jam,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
-                        color: isDibatalkan ? Colors.grey[400] : const Color(0xFF1A2D3D),
+                        color: isDibatalkan
+                            ? Colors.grey[400]
+                            : const Color(0xFF1A2D3D),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -781,7 +822,6 @@ class _KonselingCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    // DIUBAH: Mengirimkan map data secara dinamis dari item card yang diklik
                     onPressed: () {
                       context.push(
                         '/counseling/detail-history',
@@ -1005,7 +1045,10 @@ class ActivitySection extends StatelessWidget {
                   ),
                   Text(
                     item.tanggal,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: Colors.grey),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: Colors.grey,
+                    ),
                   ),
                 ],
               ),

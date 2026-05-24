@@ -509,7 +509,7 @@ class CounselingSection extends StatelessWidget {
             Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: onSeeHistory,
+                onTap: onSeeHistory, // Memicu perpindahan ke Tab 1 (Konseling)
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -562,7 +562,7 @@ class CounselingSection extends StatelessWidget {
                 ),
               ),
               ElevatedButton(
-                onPressed: onNavigate,
+                onPressed: onNavigate, // Memicu pindah ke halaman Cari Konselor
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1068A3),
                   foregroundColor: Colors.white,

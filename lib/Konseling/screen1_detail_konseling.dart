@@ -16,8 +16,7 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
 
   // Default: tampilkan mode Mendatang (Gambar 5)
   // Pass sessionData dengan 'status': 'aktif' untuk Gambar 1
-  bool get isMendatang =>
-      widget.sessionData?['status'] != 'aktif';
+  bool get isMendatang => widget.sessionData?['status'] != 'aktif';
 
   @override
   void dispose() {
@@ -77,7 +76,11 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
         const SizedBox(height: 8),
         Row(
           children: [
-            const Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey),
+            const Icon(
+              Icons.calendar_today_outlined,
+              size: 14,
+              color: Colors.grey,
+            ),
             const SizedBox(width: 6),
             Text(
               'Senin, 24 Juli 2024',
@@ -87,7 +90,11 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
               ),
             ),
             const SizedBox(width: 10),
-            const Icon(Icons.access_time_outlined, size: 14, color: Colors.grey),
+            const Icon(
+              Icons.access_time_outlined,
+              size: 14,
+              color: Colors.grey,
+            ),
             const SizedBox(width: 6),
             Text(
               '14:00 - 15:00 WIB',
@@ -343,7 +350,8 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
-            Icons.chat_bubble_outline, // Menggunakan icon solid agar lebih nyata
+              Icons
+                  .chat_bubble_outline, // Menggunakan icon solid agar lebih nyata
               color: Color(0xFF1068A3), // Warna icon hijau gelap
               size: 20,
             ),
@@ -662,7 +670,10 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFDCFCE7),
                     borderRadius: BorderRadius.circular(6),
@@ -967,7 +978,11 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
             ),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(ctx),
+            // PERBAIKAN: Setelah menutup dialog, arahkan kembali ke menu utama konseling
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.go('/counseling');
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.redAccent,
               elevation: 0,

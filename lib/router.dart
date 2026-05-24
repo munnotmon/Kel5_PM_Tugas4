@@ -26,6 +26,7 @@ import 'Konseling/sukses_konseling.dart';
 import 'Konseling/screen1_detail_konseling.dart';
 import 'Konseling/screen3_detail_history.dart';
 import 'Konseling/screen4_reschedule.dart';
+import 'Konseling/screen_detail_sesi.dart';
 import 'Profile/notification_settings.dart';
 import 'Profile/account_security.dart';
 import 'Profile/change_password.dart';
@@ -37,7 +38,6 @@ import 'inbox/room_chat.dart';
 import 'notification/notification_page.dart';
 import 'notification/detail_laporan_page.dart';
 import 'notification/detail_pesan_page.dart';
-import 'Konseling/screen_detail_sesi.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> activityNavigatorKey =
@@ -103,16 +103,16 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const Screen1DetailKonseling(),
     ),
     GoRoute(
-   path: '/counseling/detail-sesi-aktif', 
-  parentNavigatorKey: _rootNavigatorKey,
-  builder: (context, state) {
-    // Menangkap data map yang dikirim lewat context.push
-    final data = state.extra as Map<String, dynamic>?; 
-    
-    // Kembalikan ke ScreenDetailSesi dan oper datanya
-    return ScreenDetailSesi(sessionData: data); 
-  },
-),
+      path: '/counseling/detail-sesi-aktif',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        // Menangkap data map yang dikirim lewat context.push
+        final data = state.extra as Map<String, dynamic>?;
+
+        // Kembalikan ke ScreenDetailSesi dan oper datanya
+        return ScreenDetailSesi(sessionData: data);
+      },
+    ),
 
     // ✅ PERBAIKAN: state.extra diteruskan ke Screen3DetailHistory
     GoRoute(
