@@ -6,6 +6,15 @@ import 'package:go_router/go_router.dart';
 import '../Konseling/data_konselor.dart';
 import '../Konseling/data_riwayat_konseling.dart';
 
+// Helper: ambil specialty dari daftarKonselor berdasarkan nama
+String _getSpecialtyByName(String nama) {
+  final found = daftarKonselor.firstWhere(
+    (k) => k['name'] == nama,
+    orElse: () => {'specialty': 'Konselor Profesional'},
+  );
+  return found['specialty'] ?? 'Konselor Profesional';
+}
+
 class CounselingScreen extends StatelessWidget {
   const CounselingScreen({super.key});
 
@@ -53,10 +62,10 @@ class CounselingScreen extends StatelessWidget {
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                _KonselorGridCard(data: daftarKonselor[0]), // dr. Anton
-                _KonselorGridCard(data: daftarKonselor[1]), // Siska, M.Psi
-                _KonselorGridCard(data: daftarKonselor[2]), // Budi Hartono
-                _KonselorGridCard(data: daftarKonselor[3]), // dr. Sarah Johnson
+                _KonselorGridCard(data: daftarKonselor[0]),
+                _KonselorGridCard(data: daftarKonselor[1]),
+                _KonselorGridCard(data: daftarKonselor[2]),
+                _KonselorGridCard(data: daftarKonselor[3]),
               ],
             ),
           ),
@@ -67,11 +76,22 @@ class CounselingScreen extends StatelessWidget {
           _sectionTitle(
             "Riwayat Konseling",
             "Lihat Semua",
-            onTap: () => context.go('/activity'),
+            onTap: () {
+              // Navigasi ke riwayat pertama sebagai preview (opsional)
+              final item = riwayatKonselingList.first;
+              GoRouter.of(context).push(
+                '/counseling/detail-history',
+                extra: {
+                  'konselor': item.konselor,
+                  'specialty': _getSpecialtyByName(item.konselor),
+                  'tanggal': item.tanggal,
+                  'jam': item.jam,
+                },
+              );
+            },
           ),
           const SizedBox(height: 12),
 
-          // Looping otomatis membaca 2 data terakhir dari riwayatKonselingList
           ...riwayatKonselingList
               .take(2)
               .map(
@@ -81,10 +101,6 @@ class CounselingScreen extends StatelessWidget {
       ),
     );
   }
-
-  // =====================================================================
-  // WIDGET HELPERS
-  // =====================================================================
 
   Widget _sectionTitle(String title, String action, {VoidCallback? onTap}) {
     return Row(
@@ -121,7 +137,6 @@ class CounselingScreen extends StatelessWidget {
 
   Widget _buildSesiMendatangCard(BuildContext context) {
     return GestureDetector(
-      // KETIKA DIKLIK, BUKA SCREEN 1 DETAIL KONSELING
       onTap: () => context.push('/counseling/detail-sesi'),
       child: Container(
         padding: const EdgeInsets.all(20),
@@ -162,7 +177,7 @@ class CounselingScreen extends StatelessWidget {
             const SizedBox(height: 15),
             Row(
               children: [
-                _timeInfo(Icons.calendar_today, "Besok, 12 Okt"),
+                _timeInfo(Icons.calendar_today, "12 Okt 2026"),
                 const SizedBox(width: 10),
                 _timeInfo(Icons.access_time, "14:00 - 15:00"),
               ],
@@ -179,8 +194,7 @@ class CounselingScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(30),
               ),
               child: ElevatedButton.icon(
-                onPressed: () =>
-                    context.push('/counseling/detail-sesi'), // Arahkan juga
+                onPressed: () => context.push('/counseling/detail-sesi'),
                 icon: const Icon(Icons.videocam, color: Colors.white, size: 20),
                 label: Text(
                   "Gabung Sesi",
@@ -295,18 +309,25 @@ class CounselingScreen extends StatelessWidget {
     );
   }
 
-  // --- RIWAYAT CARD (Terhubung dengan database list) ---
   Widget _RiwayatKonselingCard({
     required BuildContext context,
     required KonselingItem item,
   }) {
-    // Ambil warna dan label otomatis dari fungsi helper di data_riwayat_konseling.dart
     final statusInfo = getStatusInfoKonseling(item.status);
     final Color statusColor = statusInfo['color'];
     final String statusLabel = statusInfo['label'];
 
     return GestureDetector(
-      onTap: () => context.push('/counseling/detail-history'),
+      // ✅ PERBAIKAN: kirim data item sebagai extra
+      onTap: () => GoRouter.of(context).push(
+        '/counseling/detail-history',
+        extra: {
+          'konselor': item.konselor,
+          'specialty': _getSpecialtyByName(item.konselor),
+          'tanggal': item.tanggal,
+          'jam': item.jam,
+        },
+      ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(18),
@@ -466,7 +487,7 @@ class _KonselorGridCard extends StatelessWidget {
 // =====================================================================
 class CounselingSection extends StatelessWidget {
   final VoidCallback? onNavigate;
-  final VoidCallback? onSeeHistory; // Tambahkan ini
+  final VoidCallback? onSeeHistory;
 
   const CounselingSection({super.key, this.onNavigate, this.onSeeHistory});
 
@@ -488,7 +509,7 @@ class CounselingSection extends StatelessWidget {
             Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: onSeeHistory, // Hubungkan ke fungsi baru
+                onTap: onSeeHistory,
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -565,7 +586,6 @@ Widget _buildJadwalCardHome(BuildContext context) {
   return Material(
     color: Colors.transparent,
     child: InkWell(
-      // PERBAIKAN: Arahkan ke Detail Sesi yang baru kita buat
       onTap: () => context.push('/counseling/detail-sesi'),
       borderRadius: BorderRadius.circular(20),
       child: Container(
@@ -577,7 +597,6 @@ Widget _buildJadwalCardHome(BuildContext context) {
         ),
         child: Row(
           children: [
-            // Avatar disesuaikan dengan dr. Sarah Johnson
             const CircleAvatar(
               radius: 22,
               backgroundColor: Color(0xFF1068A3),
@@ -595,7 +614,7 @@ Widget _buildJadwalCardHome(BuildContext context) {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "12 OKT 2026, 14:00 WIB", // Waktu sinkron dengan riwayat KSL-001
+                    "12 OKT 2026, 14:00 WIB",
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
                       color: const Color(0xFF1068A3),
@@ -604,7 +623,7 @@ Widget _buildJadwalCardHome(BuildContext context) {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    "Sesi dengan dr. Sarah Johnson", // Nama dokter sinkron
+                    "Sesi dengan dr. Sarah Johnson",
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,

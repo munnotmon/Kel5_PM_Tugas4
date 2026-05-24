@@ -61,7 +61,6 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 22),
 
-                // Nama pengguna disesuaikan menjadi Kelompok 5
                 Text(
                   'Halo, Kelompok 5',
                   style: GoogleFonts.plusJakartaSans(
@@ -120,10 +119,7 @@ class HomeScreen extends StatelessWidget {
 
                 // --- SECTION AKTIVITAS ---
                 ActivitySection(
-                  onSeeAll: () => context.push(
-                    '/activity',
-                    extra: 0,
-                  ), // Membuka Tab 0 (Laporan)
+                  onSeeAll: () => context.go('/activity', extra: 0), // ← fix: push → go
                 ),
 
                 const SizedBox(height: 32),
@@ -131,19 +127,15 @@ class HomeScreen extends StatelessWidget {
                 // --- SECTION KONSELING ---
                 CounselingSection(
                   onNavigate: () => context.push('/counseling/cari'),
-                  onSeeHistory: () =>
-                      context.push('/activity', extra: 1), // Sesuai permintaan
+                  onSeeHistory: () => context.go('/activity', extra: 1), // ← fix: push → go
                 ),
 
-                // Membuka Tab 1 (Konseling)
                 const SizedBox(height: 32),
 
                 // --- SECTION INBOX ---
                 InboxSection(onNavigate: () => context.go('/inbox')),
 
-                const SizedBox(
-                  height: 100,
-                ), // Jarak aman dari Bottom Navigation Bar
+                const SizedBox(height: 100),
               ],
             ),
           ),
@@ -192,9 +184,7 @@ class ActivitySection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         GestureDetector(
-          onTap: () => context.push(
-            '/activity/detail-laporan',
-          ), // Berpindah ke rute berkas detail laporan baru
+          onTap: () => context.push('/activity/detail-laporan'),
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 
-import '../Konseling/data_riwayat_konseling.dart'; // Import data riwayat konseling terpusat
+import '../Konseling/data_riwayat_konseling.dart';
+import '../Konseling/data_konselor.dart';
 
 // =====================================================================
 // MODEL & DATA LAPORAN
@@ -53,7 +54,7 @@ final List<LaporanItem> dummyLaporan = [
 // 1. HALAMAN UTUH — ActivityScreen
 // =====================================================================
 class ActivityScreen extends StatefulWidget {
-  final dynamic initialTab; // DITAMBAHKAN: Untuk menangkap parameter pindah tab
+  final dynamic initialTab;
 
   const ActivityScreen({super.key, this.initialTab});
 
@@ -70,7 +71,6 @@ class _ActivityScreenState extends State<ActivityScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
 
-    // DITAMBAHKAN: Logika otomatis pindah ke Tab Konseling jika initialTab bernilai 1
     if (widget.initialTab == 1 || widget.initialTab == 'konseling') {
       _tabController.index = 1;
     }
@@ -131,13 +131,10 @@ class _TabLaporan extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      // Padding bawah 100 agar tidak tertutup Bottom Navbar
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       children: [
-        // Memunculkan kembali tombol laporan baru khusus di halaman ini
         _BuatLaporanButton(),
         const SizedBox(height: 20),
-
         Text(
           'Riwayat Laporan',
           style: GoogleFonts.plusJakartaSans(
@@ -153,7 +150,6 @@ class _TabLaporan extends StatelessWidget {
   }
 }
 
-// Widget Tombol Buat Laporan Baru
 class _BuatLaporanButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -180,11 +176,7 @@ class _BuatLaporanButton extends StatelessWidget {
                 color: Colors.white.withOpacity(0.5),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.campaign,
-                color: Color(0xFF1A6B8A),
-                size: 26,
-              ),
+              child: const Icon(Icons.campaign, color: Color(0xFF1A6B8A), size: 26),
             ),
             const SizedBox(width: 15),
             Expanded(
@@ -209,11 +201,7 @@ class _BuatLaporanButton extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              color: Color(0xFF124C63),
-              size: 16,
-            ),
+            const Icon(Icons.arrow_forward_ios, color: Color(0xFF124C63), size: 16),
           ],
         ),
       ),
@@ -293,18 +281,11 @@ class _LaporanCard extends StatelessWidget {
             const SizedBox(height: 10),
             Row(
               children: [
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 12,
-                  color: Colors.grey,
-                ),
+                const Icon(Icons.calendar_today_outlined, size: 12, color: Colors.grey),
                 const SizedBox(width: 4),
                 Text(
                   item.tanggal,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    color: Colors.grey,
-                  ),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: Colors.grey),
                 ),
                 const Spacer(),
                 Text(
@@ -371,11 +352,7 @@ class _StatusProgress extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(
-              Icons.cancel_outlined,
-              size: 14,
-              color: Color(0xFFEF4444),
-            ),
+            const Icon(Icons.cancel_outlined, size: 14, color: Color(0xFFEF4444)),
             const SizedBox(width: 6),
             Text(
               'Laporan ditolak oleh admin',
@@ -404,13 +381,9 @@ class _StatusProgress extends StatelessWidget {
                     height: 20,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isDone
-                          ? const Color(0xFF1A6B8A)
-                          : Colors.grey[200],
+                      color: isDone ? const Color(0xFF1A6B8A) : Colors.grey[200],
                       border: Border.all(
-                        color: isDone
-                            ? const Color(0xFF1A6B8A)
-                            : Colors.grey[300]!,
+                        color: isDone ? const Color(0xFF1A6B8A) : Colors.grey[300]!,
                         width: 2,
                       ),
                     ),
@@ -423,9 +396,7 @@ class _StatusProgress extends StatelessWidget {
                     steps[i],
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 9,
-                      color: isDone
-                          ? const Color(0xFF1A6B8A)
-                          : Colors.grey[400],
+                      color: isDone ? const Color(0xFF1A6B8A) : Colors.grey[400],
                       fontWeight: isDone ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
@@ -436,9 +407,7 @@ class _StatusProgress extends StatelessWidget {
                   child: Container(
                     height: 2,
                     margin: const EdgeInsets.only(bottom: 14),
-                    color: i < activeIndex
-                        ? const Color(0xFF1A6B8A)
-                        : Colors.grey[200],
+                    color: i < activeIndex ? const Color(0xFF1A6B8A) : Colors.grey[200],
                   ),
                 ),
             ],
@@ -452,92 +421,207 @@ class _StatusProgress extends StatelessWidget {
 // =====================================================================
 // TAB 2 — KONSELING
 // =====================================================================
-class _TabKonseling extends StatelessWidget {
+class _TabKonseling extends StatefulWidget {
   const _TabKonseling();
+
+  @override
+  State<_TabKonseling> createState() => _TabKonselingState();
+}
+
+class _TabKonselingState extends State<_TabKonseling> {
+  int _selectedFilter = 0;
+  final List<String> _filters = ['Semua', 'Bulan Ini', 'Selesai'];
+
+  List<KonselingItem> get _filteredList {
+    switch (_selectedFilter) {
+      case 1:
+        return riwayatKonselingList
+            .where((item) => item.tanggal.contains('Okt'))
+            .toList();
+      case 2:
+        return riwayatKonselingList
+            .where((item) => item.status == StatusKonseling.selesai)
+            .toList();
+      default:
+        return riwayatKonselingList;
+    }
+  }
+
+  String _getSpecialty(String namaKonselor) {
+    try {
+      final found = daftarKonselor.firstWhere(
+        (k) => (k['name'] as String).toLowerCase() == namaKonselor.toLowerCase(),
+        orElse: () => {},
+      );
+      return found['specialty'] as String? ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return ListView(
-      // Padding bawah 100 agar riwayat paling bawah tidak tertutup navbar
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
       children: [
-        _AjukanKonselingButton(),
-        const SizedBox(height: 20),
-        Text(
-          'Riwayat Konseling',
-          style: GoogleFonts.plusJakartaSans(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            color: const Color(0xFF1A2D3D),
+        // --- HEADER ---
+        RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'Riwayat Sesi\n',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF1A2D3D),
+                  height: 1.2,
+                ),
+              ),
+              TextSpan(
+                text: 'Counseling Kamu.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF1068A3),
+                  height: 1.5,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 12),
-        // Memanggil List Global dari data_riwayat_konseling.dart
-        ...riwayatKonselingList.map((k) => _KonselingCard(item: k)),
+        const SizedBox(height: 10),
+        Text(
+          'Kelola dan tinjau kembali percakapan berharga dengan konselor profesional kami.',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            color: Colors.grey[500],
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // --- FILTER CHIPS ---
+        Row(
+          children: List.generate(_filters.length, (i) {
+            final isActive = _selectedFilter == i;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: GestureDetector(
+                onTap: () => setState(() => _selectedFilter = i),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: isActive ? const Color(0xFF4CAF50) : Colors.white,
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(
+                      color: isActive ? const Color(0xFF4CAF50) : Colors.grey.shade300,
+                    ),
+                  ),
+                  child: Text(
+                    _filters[i],
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isActive ? Colors.white : Colors.grey[600],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+        const SizedBox(height: 24),
+
+        // --- BANNER ---
+        _buildBottomBanner(context),
+        const SizedBox(height: 24),
+
+        // --- LIST CARD ---
+        ..._filteredList.map((item) => _KonselingCard(
+              item: item,
+              specialty: _getSpecialty(item.konselor),
+            )),
       ],
     );
   }
-}
 
-class _AjukanKonselingButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.push('/counseling/cari'),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-        decoration: BoxDecoration(
-          color: const Color(0xFF9FF5C0),
-          borderRadius: BorderRadius.circular(40),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF9FF5C0).withOpacity(0.5),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
+  Widget _buildBottomBanner(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F4FD),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Stack(
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.5),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.psychology,
-                color: Color(0xFF2A9D6A),
-                size: 26,
-              ),
-            ),
-            const SizedBox(width: 15),
-            Expanded(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 120, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Jadwalkan Sesi Baru",
+                    'Butuh Teman Cerita Lagi?',
                     style: GoogleFonts.plusJakartaSans(
-                      color: const Color(0xFF165C3B),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF1A2D3D),
                     ),
                   ),
+                  const SizedBox(height: 6),
                   Text(
-                    "Temukan waktu yang tepat untukmu",
+                    'Konselor kami selalu siap\nmendengarkan tanpa menghakimi.',
                     style: GoogleFonts.plusJakartaSans(
-                      color: const Color(0xFF165C3B).withOpacity(0.8),
-                      fontSize: 11,
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => context.push('/counseling/cari'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1068A3),
+                      elevation: 3,
+                      shadowColor: const Color(0xFF1068A3).withOpacity(0.4),
+                      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: Text(
+                      'Buat Jadwal Baru',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              color: Color(0xFF165C3B),
-              size: 16,
+            Positioned(
+              right: -15,
+              bottom: -20,
+              child: Container(
+                width: 105,
+                height: 105,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.grey.shade300.withOpacity(0.7),
+                    width: 7,
+                  ),
+                ),
+                child: Icon(
+                  Icons.psychology_outlined,
+                  color: Colors.grey.shade400,
+                  size: 56,
+                ),
+              ),
             ),
           ],
         ),
@@ -546,102 +630,233 @@ class _AjukanKonselingButton extends StatelessWidget {
   }
 }
 
+// =====================================================================
+// WIDGET CARD KONSELING
+// =====================================================================
 class _KonselingCard extends StatelessWidget {
   final KonselingItem item;
-  const _KonselingCard({required this.item});
+  final String specialty;
+
+  const _KonselingCard({required this.item, required this.specialty});
 
   @override
   Widget build(BuildContext context) {
     final statusInfo = getStatusInfoKonseling(item.status);
+    final Color statusColor = statusInfo['color'] as Color;
+    final String statusLabel = (statusInfo['label'] as String).toUpperCase();
+    final bool isSelesai = item.status == StatusKonseling.selesai;
+    final bool isDikonfirmasi = item.status == StatusKonseling.dikonfirmasi;
+    final bool isDibatalkan = item.status == StatusKonseling.dibatalkan;
 
-    return GestureDetector(
-      // KETIKA KARTU RIWAYAT DIKLIK, BUKA SCREEN 3 DETAIL HISTORY
-      onTap: () => context.push('/counseling/detail-history'),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 26,
+                backgroundColor: isDibatalkan ? Colors.grey[300] : Colors.blueGrey[100],
+                backgroundImage: isDibatalkan
+                    ? null
+                    : NetworkImage('https://i.pravatar.cc/150?u=${item.konselor}'),
+                child: isDibatalkan
+                    ? Icon(Icons.person, color: Colors.grey[400], size: 26)
+                    : null,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.konselor,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: isDibatalkan ? Colors.grey[400] : const Color(0xFF1A2D3D),
+                        height: 1.3,
+                      ),
+                    ),
+                    if (specialty.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        specialty,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: isDibatalkan ? Colors.grey[400] : Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  statusLabel,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F7FA),
+              borderRadius: BorderRadius.circular(14),
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today_outlined,
+                      size: 14,
+                      color: isDibatalkan ? Colors.grey[400] : const Color(0xFF1068A3),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      item.tanggal,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        color: isDibatalkan ? Colors.grey[400] : const Color(0xFF1A2D3D),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.access_time_outlined,
+                      size: 14,
+                      color: isDibatalkan ? Colors.grey[400] : const Color(0xFF1068A3),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      item.jam,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        color: isDibatalkan ? Colors.grey[400] : const Color(0xFF1A2D3D),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          if (isSelesai || isDikonfirmasi)
             Row(
               children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor: const Color(0xFFE0F2ED),
-                  child: Text(
-                    item.konselor.split(' ').take(2).map((w) => w[0]).join(),
-                    style: GoogleFonts.plusJakartaSans(
-                      color: const Color(0xFF1A6B8A),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                Expanded(
+                  child: ElevatedButton(
+                    // DIUBAH: Mengirimkan map data secara dinamis dari item card yang diklik
+                    onPressed: () {
+                      context.push(
+                        '/counseling/detail-history',
+                        extra: {
+                          'konselor': item.konselor,
+                          'specialty': specialty,
+                          'tanggal': item.tanggal,
+                          'jam': item.jam,
+                        },
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1068A3),
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: Text(
+                      'Lihat Detail',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.konselor,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: const Color(0xFF1A2D3D),
-                        ),
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.grey.shade300, width: 1.5),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
                       ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.calendar_today_outlined,
-                            size: 11,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            '${item.tanggal} · ${item.jam}',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
+                    ),
+                    child: Text(
+                      'Catatan Sesi',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: const Color(0xFF1A2D3D),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
                       ),
-                    ],
+                    ),
                   ),
                 ),
-                // Memanggil Widget Status (Warnanya otomatis ngikut)
-                _StatusChip(
-                  label: statusInfo['label']!,
-                  color: statusInfo['color']! as Color,
-                ),
               ],
-            ),
-            const SizedBox(height: 10),
-            const Divider(height: 1, color: Color(0xFFF0F2F5)),
-            const SizedBox(height: 10),
-            Text(
-              item.id,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 11,
-                color: const Color(0xFF1A6B8A),
-                fontWeight: FontWeight.w600,
+            )
+          else if (isDibatalkan)
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => context.push('/counseling/reschedule'),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: Colors.grey.shade300, width: 1.5),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                child: Text(
+                  'Reschedule Tersedia',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: const Color(0xFF1A2D3D),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -720,7 +935,6 @@ class ActivitySection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        // Preview laporan terbaru saja, tombol laporan baru dihapus
         if (latestLaporan != null) _buildLaporanPreview(context, latestLaporan),
       ],
     );
@@ -791,10 +1005,7 @@ class ActivitySection extends StatelessWidget {
                   ),
                   Text(
                     item.tanggal,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      color: Colors.grey,
-                    ),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: Colors.grey),
                   ),
                 ],
               ),

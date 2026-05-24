@@ -23,16 +23,23 @@ List<KonselingItem> riwayatKonselingList = [
   KonselingItem(
     id: 'KSL-001',
     konselor: 'dr. Sarah Johnson',
-    tanggal: '12 Okt 2026',
+    tanggal: 'Senin, 12 Okt 2026',
     jam: '14:00 - 15:00',
-    status: StatusKonseling.dikonfirmasi,
+    status: StatusKonseling.selesai,
   ),
   KonselingItem(
     id: 'KSL-002',
     konselor: 'dr. Anton Wijaya',
-    tanggal: '28 Sep 2026',
+    tanggal: 'Kamis, 28 Sep 2026',
     jam: '13:00 - 14:00',
     status: StatusKonseling.selesai,
+  ),
+   KonselingItem(
+    id: 'KSL-003',
+    konselor: 'dr. Budi Santoso',
+    tanggal: 'Selasa, 26 Sep 2023',
+    jam: '09:00 - 10:00 WIB',
+    status: StatusKonseling.dibatalkan,
   ),
 ];
 

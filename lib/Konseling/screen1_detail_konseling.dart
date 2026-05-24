@@ -1,9 +1,29 @@
+// Lokasi: lib/Konseling/screen1_detail_konseling.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 
-class Screen1DetailKonseling extends StatelessWidget {
-  const Screen1DetailKonseling({super.key});
+class Screen1DetailKonseling extends StatefulWidget {
+  final Map<String, dynamic>? sessionData;
+  const Screen1DetailKonseling({super.key, this.sessionData});
+
+  @override
+  State<Screen1DetailKonseling> createState() => _Screen1DetailKonselingState();
+}
+
+class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
+  final TextEditingController _catatanController = TextEditingController();
+
+  // Default: tampilkan mode Mendatang (Gambar 5)
+  // Pass sessionData dengan 'status': 'aktif' untuk Gambar 1
+  bool get isMendatang =>
+      widget.sessionData?['status'] != 'aktif';
+
+  @override
+  void dispose() {
+    _catatanController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +32,6 @@ class Screen1DetailKonseling extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1068A3)),
           onPressed: () => context.pop(),
@@ -20,364 +39,951 @@ class Screen1DetailKonseling extends StatelessWidget {
         title: Text(
           'Detail Sesi',
           style: GoogleFonts.plusJakartaSans(
-            color: const Color(0xFF1A2D3D),
+            color: const Color(0xFF1068A3),
             fontWeight: FontWeight.bold,
-            fontSize: 16,
+            fontSize: 18,
           ),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // Status Card
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Status Sesi',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        color: Colors.grey[500],
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Terjadwal',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1A2D3D),
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD1FAE5),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '● Aktif',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF065F46),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
+      body: isMendatang
+          ? _buildMendatangBody(context)
+          : _buildAktifBody(context),
+    );
+  }
 
-          // Konselor Card
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'KONSELOR',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1068A3),
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: const Color(0xFF1068A3),
-                      child: Text(
-                        'AW',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'dr. Anton Wijaya',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1A2D3D),
-                          ),
-                        ),
-                        Text(
-                          'Spesialis Psikologi Klinis & Remaja',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
+  // =====================================================================
+  // BODY MODE MENDATANG (Gambar 5)
+  // =====================================================================
+  Widget _buildMendatangBody(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      children: [
+        // Badge Mendatang
+        Align(
+          alignment: Alignment.centerLeft,
+          child: _buildStatusBadge('Mendatang'),
+        ),
+        const SizedBox(height: 20),
 
-          // Waktu & Tanggal
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Column(
-              children: [
-                _buildInfoRow(
-                  Icons.calendar_today_outlined,
-                  'Hari & Tanggal',
-                  'Senin, 12 Okt 2026',
-                ),
-                const Divider(height: 24, color: Color(0xFFF1F5F9)),
-                _buildInfoRow(Icons.access_time_outlined, 'Waktu', '10:30 WIB'),
-              ],
-            ),
+        // Judul
+        Text(
+          'Sesi Konseling',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF1A2D3D),
           ),
-          const SizedBox(height: 12),
-
-          // Tautan Virtual
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF1068A3), Color(0xFF1A4B6A)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey),
+            const SizedBox(width: 6),
+            Text(
+              'Senin, 24 Juli 2024',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                color: Colors.grey[500],
               ),
-              borderRadius: BorderRadius.circular(16),
             ),
+            const SizedBox(width: 10),
+            const Icon(Icons.access_time_outlined, size: 14, color: Colors.grey),
+            const SizedBox(width: 6),
+            Text(
+              '14:00 - 15:00 WIB',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        // Konselor Card
+        _buildKonselorCardMendatang(),
+        const SizedBox(height: 20),
+
+        // Persiapan Sesi
+        _buildPersiapanSesiCard(),
+        const SizedBox(height: 20),
+
+        // Gabung Sesi
+        _buildGabungSesiCard(),
+        const SizedBox(height: 28),
+
+        // Atur Jadwal
+        _buildAturJadwalMendatang(context),
+        const SizedBox(height: 40),
+      ],
+    );
+  }
+
+  // =====================================================================
+  // BODY MODE AKTIF/TERJADWAL (Gambar 1)
+  // =====================================================================
+  Widget _buildAktifBody(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      children: [
+        // Status Sesi Row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Status Sesi',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Terjadwal',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF1A2D3D),
+                  ),
+                ),
+              ],
+            ),
+            _buildStatusBadge('Aktif'),
+          ],
+        ),
+        const SizedBox(height: 20),
+
+        // Konselor Card Aktif
+        _buildKonselorCardAktif(),
+        const SizedBox(height: 14),
+
+        // Info Tiles
+        _buildInfoTile(
+          icon: Icons.calendar_today_outlined,
+          label: 'Hari & Tanggal',
+          value: 'Senin, 12 Okt',
+        ),
+        const SizedBox(height: 10),
+        _buildInfoTile(
+          icon: Icons.access_time_outlined,
+          label: 'Waktu',
+          value: '10:30 WIB',
+        ),
+        const SizedBox(height: 20),
+
+        // Google Meet Card
+        _buildGoogleMeetCard(),
+        const SizedBox(height: 28),
+
+        // Persiapan Sesi (list style)
+        _buildPersiapanSesiList(),
+        const SizedBox(height: 28),
+
+        // Catatan Saya
+        _buildCatatanSaya(),
+        const SizedBox(height: 28),
+
+        // Ubah Jadwal + Batalkan
+        _buildAturJadwalAktif(context),
+        const SizedBox(height: 40),
+      ],
+    );
+  }
+
+  // =====================================================================
+  // SHARED WIDGETS
+  // =====================================================================
+
+  Widget _buildStatusBadge(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFDCFCE7),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: const BoxDecoration(
+              color: Color(0xFF16A34A),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF16A34A),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoTile({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F4F8),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.grey[500], size: 20),
+          const SizedBox(width: 14),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  color: Colors.grey[500],
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1A2D3D),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =====================================================================
+  // MENDATANG WIDGETS
+  // =====================================================================
+
+  Widget _buildKonselorCardMendatang() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          // PENINGKATAN SHADOW
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: Colors.grey[200],
+            backgroundImage: const NetworkImage(
+              'https://i.pravatar.cc/150?u=dr.Anton',
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Tautan Virtual',
+                  'Dr. Sarah Johnson',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    color: Colors.white70,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1A2D3D),
                   ),
                 ),
                 const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF16A34A),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Spesialisasi Psikologi Pendidikan',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // BUBBLE HIJAU
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFDCFCE7), // Warna background hijau muda
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+            Icons.chat_bubble_outline, // Menggunakan icon solid agar lebih nyata
+              color: Color(0xFF1068A3), // Warna icon hijau gelap
+              size: 20,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPersiapanSesiCard() {
+    final tips = [
+      'Cari tempat tenang dan privat untuk berbicara.',
+      'Pastikan koneksi internet stabil selama 60 menit.',
+      'Siapkan catatan jika ada poin yang ingin didiskusikan.',
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F4F8),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          // PENINGKATAN SHADOW
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFDCFCE7),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.lightbulb_outline,
+                  color: Color(0xFF16A34A),
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Persiapan Sesi',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1A2D3D),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...tips.map(
+            (tip) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.check_circle_outline,
+                    color: Color(0xFF1068A3),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      tip,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        color: Colors.grey[700],
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGabungSesiCard() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1068A3), Color(0xFF5AB6E5)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          // PENINGKATAN SHADOW
+          BoxShadow(
+            color: const Color(0xFF1068A3).withOpacity(0.5),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.videocam_outlined,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  '🎥 Google Meet',
+                  'Gabung Sesi',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.videocam_outlined,
-                    color: Color(0xFF1068A3),
-                    size: 16,
-                  ),
-                  label: Text(
-                    'Join Meet',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1068A3),
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                Text(
+                  'Google Meet (Link Aktif 5 Menit Sebelum)',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: Colors.white70,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 20),
-
-          // Persiapan Sesi
-          _buildSectionTitle(Icons.check_box_outlined, 'Persiapan Sesi'),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
+          ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: const Color(0xFF1068A3),
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: Column(
-              children: [
-                _buildCheckItem('Cari tempat tenang dan minim gangguan', true),
-                const SizedBox(height: 8),
-                _buildCheckItem('Siapkan air minum di dekat Anda', true),
-                const SizedBox(height: 8),
-                _buildCheckItem('Pastikan koneksi internet stabil', false),
-              ],
+            child: Text(
+              'Buka',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-
-          // Tombol Bawah
-          _buildOutlineButton(
-            context,
-            'Ubah Jadwal',
-            Icons.calendar_today_outlined,
-            '/counseling/reschedule',
-          ),
-          const SizedBox(height: 10),
-          _buildOutlineButton(
-            context,
-            'Lihat Riwayat',
-            Icons.history_outlined,
-            '/activity',
           ),
         ],
       ),
     );
   }
 
-  // --- Helpers Dalam File ---
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
+  Widget _buildAturJadwalMendatang(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: const Color(0xFF1068A3)),
-        const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        Row(
           children: [
+            const Icon(Icons.settings_outlined, color: Colors.grey, size: 16),
+            const SizedBox(width: 6),
             Text(
-              label,
+              'ATUR JADWAL',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 10,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
                 color: Colors.grey[500],
+                letterSpacing: 1.2,
               ),
             ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => context.push('/counseling/reschedule'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F4F8),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      // PENINGKATAN SHADOW
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.event_repeat,
+                        color: Color(0xFF1068A3),
+                        size: 26,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Jadwalkan Ulang',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1A2D3D),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => _showBatalkanDialog(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF0F0),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      // PENINGKATAN SHADOW
+                      BoxShadow(
+                        color: Colors.red.withOpacity(0.12),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.cancel_outlined,
+                        color: Colors.redAccent,
+                        size: 26,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Batalkan Sesi',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.redAccent,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // =====================================================================
+  // AKTIF WIDGETS
+  // =====================================================================
+
+  Widget _buildKonselorCardAktif() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          // PENINGKATAN SHADOW
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: Image.network(
+              'https://i.pravatar.cc/150?u=dr.Anton',
+              width: 70,
+              height: 80,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                width: 70,
+                height: 80,
+                color: Colors.grey[200],
+                child: const Icon(Icons.person, color: Colors.grey),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDCFCE7),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'KONSELOR SENIOR',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF16A34A),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'dr. Anton Wijaya',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1A2D3D),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Spesialis Psikologi Klinis &\nKonseling Remaja',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGoogleMeetCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1068A3), Color(0xFF5AB6E5)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          // PENINGKATAN SHADOW
+          BoxShadow(
+            color: const Color(0xFF1068A3).withOpacity(0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.videocam_outlined,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tautan Virtual',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: Colors.white70,
+                    ),
+                  ),
+                  Text(
+                    'Google Meet',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF1068A3),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: Text(
+                'Join Meet',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPersiapanSesiList() {
+    final tips = [
+      'Cari tempat tenang dan minim gangguan',
+      'Siapkan air minum di dekat Anda',
+      'Pastikan koneksi internet stabil',
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.checklist, color: Color(0xFF1068A3), size: 22),
+            const SizedBox(width: 8),
             Text(
-              value,
+              'Persiapan Sesi',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: const Color(0xFF1A2D3D),
               ),
             ),
           ],
         ),
+        const SizedBox(height: 14),
+        ...tips.map(
+          (tip) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  // PENINGKATAN SHADOW
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle_outline,
+                    color: Color(0xFF1068A3),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      tip,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        color: const Color(0xFF1A2D3D),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildSectionTitle(IconData icon, String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: const Color(0xFF1068A3)),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF1A2D3D),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCheckItem(String text, bool done) {
-    return Row(
+  Widget _buildCatatanSaya() {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 16,
-          height: 16,
-          margin: const EdgeInsets.only(top: 2),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: done ? const Color(0xFF1068A3) : Colors.transparent,
-            border: Border.all(color: const Color(0xFF1068A3), width: 1.5),
-          ),
-          child: done
-              ? const Icon(Icons.check, color: Colors.white, size: 10)
-              : null,
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            text,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              color: Colors.grey[700],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildOutlineButton(
-    BuildContext context,
-    String label,
-    IconData icon,
-    String route,
-  ) {
-    return GestureDetector(
-      onTap: () => context.push(route),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: const Color(0xFF1068A3), width: 1.5),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        Row(
           children: [
-            Icon(icon, color: const Color(0xFF1068A3), size: 18),
+            const Icon(Icons.edit_note, color: Color(0xFF1068A3), size: 22),
             const SizedBox(width: 8),
             Text(
-              label,
+              'Catatan Saya',
               style: GoogleFonts.plusJakartaSans(
-                color: const Color(0xFF1068A3),
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
+                color: const Color(0xFF1A2D3D),
               ),
             ),
           ],
         ),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0F4F8),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: TextField(
+            controller: _catatanController,
+            maxLines: 4,
+            style: GoogleFonts.plusJakartaSans(fontSize: 13),
+            decoration: InputDecoration(
+              hintText:
+                  'Tuliskan hal-hal yang ingin kamu diskusikan dengan Dr. Anton di sini...',
+              hintStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                color: Colors.grey[400],
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.all(16),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAturJadwalAktif(BuildContext context) {
+    return Column(
+      children: [
+        TextButton(
+          onPressed: () => context.push('/counseling/reschedule'),
+          child: Text(
+            'Ubah Jadwal',
+            style: GoogleFonts.plusJakartaSans(
+              color: const Color(0xFF1068A3),
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: () => _showBatalkanDialog(context),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Color(0xFFFFCDD2)),
+              backgroundColor: const Color(0xFFFFF5F5),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: Text(
+              'Batalkan Sesi',
+              style: GoogleFonts.plusJakartaSans(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showBatalkanDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Batalkan Sesi?',
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Apakah kamu yakin ingin membatalkan sesi konseling ini?',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            color: Colors.grey[700],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Tidak',
+              style: GoogleFonts.plusJakartaSans(color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: Text(
+              'Ya, Batalkan',
+              style: GoogleFonts.plusJakartaSans(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
