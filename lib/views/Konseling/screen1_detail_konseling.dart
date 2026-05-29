@@ -1,7 +1,7 @@
-// Lokasi: lib/Konseling/screen1_detail_konseling.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import '../../controllers/counseling_controller.dart';
 
 class Screen1DetailKonseling extends StatefulWidget {
   final Map<String, dynamic>? sessionData;
@@ -13,6 +13,27 @@ class Screen1DetailKonseling extends StatefulWidget {
 
 class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
   final TextEditingController _catatanController = TextEditingController();
+
+  late String _namaKonselor;
+  late String _specialty;
+  late String _tanggal;
+  late String _waktu;
+
+  @override
+  void initState() {
+    super.initState();
+    _namaKonselor = widget.sessionData?['konselor'] ?? 
+                    widget.sessionData?['counselor']?['name'] ?? 
+                    'dr. Anton Wijaya';
+    _specialty = widget.sessionData?['specialty'] ?? 
+                 widget.sessionData?['counselor']?['specialty'] ??
+                 CounselingController.getSpecialty(_namaKonselor);
+    if (_specialty.isEmpty) {
+      _specialty = 'Spesialis Trauma & Perundungan';
+    }
+    _tanggal = widget.sessionData?['tanggal'] ?? 'Senin, 12 Okt';
+    _waktu = widget.sessionData?['waktu'] ?? widget.sessionData?['jam'] ?? '10:30 WIB';
+  }
 
   // Default: tampilkan mode Mendatang (Gambar 5)
   // Pass sessionData dengan 'status': 'aktif' untuk Gambar 1
@@ -83,7 +104,7 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
             ),
             const SizedBox(width: 6),
             Text(
-              'Senin, 24 Juli 2024',
+              _tanggal,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13,
                 color: Colors.grey[500],
@@ -97,7 +118,7 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
             ),
             const SizedBox(width: 6),
             Text(
-              '14:00 - 15:00 WIB',
+              _waktu,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13,
                 color: Colors.grey[500],
@@ -171,13 +192,13 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
         _buildInfoTile(
           icon: Icons.calendar_today_outlined,
           label: 'Hari & Tanggal',
-          value: 'Senin, 12 Okt',
+          value: _tanggal,
         ),
         const SizedBox(height: 10),
         _buildInfoTile(
           icon: Icons.access_time_outlined,
           label: 'Waktu',
-          value: '10:30 WIB',
+          value: _waktu,
         ),
         const SizedBox(height: 20),
 
@@ -301,8 +322,8 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
           CircleAvatar(
             radius: 28,
             backgroundColor: Colors.grey[200],
-            backgroundImage: const NetworkImage(
-              'https://i.pravatar.cc/150?u=dr.Anton',
+            backgroundImage: NetworkImage(
+              'https://i.pravatar.cc/150?u=${_namaKonselor.replaceAll(' ', '')}',
             ),
           ),
           const SizedBox(width: 14),
@@ -311,7 +332,7 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Dr. Sarah Johnson',
+                  _namaKonselor,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
@@ -331,7 +352,7 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Spesialisasi Psikologi Pendidikan',
+                      _specialty,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         color: Colors.grey[500],
@@ -544,9 +565,15 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
         const SizedBox(height: 14),
         Row(
           children: [
-            Expanded(
+                Expanded(
               child: GestureDetector(
-                onTap: () => context.push('/counseling/reschedule'),
+                onTap: () {
+                  final kModel = CounselingController.daftarKonselor.firstWhere(
+                    (k) => k.name == _namaKonselor,
+                    orElse: () => CounselingController.daftarKonselor[0],
+                  );
+                  context.push('/counseling/reschedule', extra: kModel.toMap());
+                },
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   decoration: BoxDecoration(
@@ -652,7 +679,7 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: Image.network(
-              'https://i.pravatar.cc/150?u=dr.Anton',
+              'https://i.pravatar.cc/150?u=${_namaKonselor.replaceAll(' ', '')}',
               width: 70,
               height: 80,
               fit: BoxFit.cover,
@@ -690,7 +717,7 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'dr. Anton Wijaya',
+                  _namaKonselor,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
@@ -699,7 +726,7 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Spesialis Psikologi Klinis &\nKonseling Remaja',
+                  _specialty,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     color: Colors.grey[500],
@@ -915,7 +942,13 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
     return Column(
       children: [
         TextButton(
-          onPressed: () => context.push('/counseling/reschedule'),
+          onPressed: () {
+            final kModel = CounselingController.daftarKonselor.firstWhere(
+              (k) => k.name == _namaKonselor,
+              orElse: () => CounselingController.daftarKonselor[0],
+            );
+            context.push('/counseling/reschedule', extra: kModel.toMap());
+          },
           child: Text(
             'Ubah Jadwal',
             style: GoogleFonts.plusJakartaSans(

@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'activity.dart';
 import 'counseling.dart';
+import '../../controllers/chat_controller.dart';
+import '../../models/chat_model.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -248,6 +250,25 @@ class InboxSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final systemChat = ChatController.getChatByName("Sistem Respon");
+    final adminChat = ChatController.getChatByName("Admin Kampus");
+
+    final systemMsg = systemChat != null && systemChat.messages.isNotEmpty
+        ? systemChat.messages.last.text
+        : "Tidak ada pesan";
+    final systemTime = systemChat != null && systemChat.messages.isNotEmpty
+        ? systemChat.messages.last.time
+        : "";
+    final systemUnread = systemChat != null && systemChat.unread > 0;
+
+    final adminMsg = adminChat != null && adminChat.messages.isNotEmpty
+        ? adminChat.messages.last.text
+        : "Tidak ada pesan";
+    final adminTime = adminChat != null && adminChat.messages.isNotEmpty
+        ? adminChat.messages.last.time
+        : "";
+    final adminUnread = adminChat != null && adminChat.unread > 0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -263,18 +284,18 @@ class InboxSection extends StatelessWidget {
 
         _buildInboxCard(
           title: "Sistem Respon",
-          time: "2 JAM LALU",
-          message: "Bukti baru telah ditambahkan ke lapora...",
-          isUnread: true,
+          time: systemTime.toUpperCase(),
+          message: systemMsg,
+          isUnread: systemUnread,
           onTap: onNavigate,
         ),
         const SizedBox(height: 12),
 
         _buildInboxCard(
           title: "Admin Kampus",
-          time: "KEMARIN",
-          message: "Selamat datang di platform Respon &...",
-          isUnread: false,
+          time: adminTime.toUpperCase(),
+          message: adminMsg,
+          isUnread: adminUnread,
           onTap: onNavigate,
         ),
       ],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import '../Konseling/data_konselor.dart'; // Import database konselor
+import '../../controllers/counseling_controller.dart'; // Import database konselor
 
 class NotificationPage extends StatelessWidget {
   const NotificationPage({super.key});
@@ -10,8 +10,8 @@ class NotificationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // ✅ SINKRONISASI TIPE DATA DENGAN INBOX & ROOM CHAT (ANTI-CRASH TYPE)
     final Map<String, dynamic> chatAnton = {
-      'name': daftarKonselor[0]['name'],
-      'specialty': daftarKonselor[0]['specialty'],
+      'name': CounselingController.daftarKonselor[0].name,
+      'specialty': CounselingController.daftarKonselor[0].specialty,
       'color': const Color(0xFF1068A3),
       'isSystem': false,
       'messages': <Map<String, dynamic>>[
@@ -36,8 +36,8 @@ class NotificationPage extends StatelessWidget {
     };
 
     final Map<String, dynamic> chatSarah = {
-      'name': daftarKonselor[3]['name'],
-      'specialty': daftarKonselor[3]['specialty'],
+      'name': CounselingController.daftarKonselor[3].name,
+      'specialty': CounselingController.daftarKonselor[3].specialty,
       'color': Colors.teal,
       'isSystem': false,
       'messages': <Map<String, dynamic>>[

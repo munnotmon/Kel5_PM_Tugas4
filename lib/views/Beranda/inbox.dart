@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import '../Konseling/data_konselor.dart';
+import '../../controllers/chat_controller.dart';
+import '../../models/chat_model.dart';
 
 class InboxPage extends StatefulWidget {
   const InboxPage({super.key});
@@ -13,162 +15,31 @@ class InboxPage extends StatefulWidget {
 class _InboxPageState extends State<InboxPage> {
   int _selectedTab = 0;
   String _searchQuery = "";
-
-  late List<Map<String, dynamic>> _allChats;
+  Timer? _debounce;
 
   @override
-  void initState() {
-    super.initState();
-    _allChats = [
-      // --- KONSELOR ---
-      {
-        ...daftarKonselor[0], // dr. Anton
-        'isSystem': false,
-        'color': const Color(0xFF1068A3),
-        'unread': 2,
-        'messages': [
-          {
-            'text':
-                'Halo Kelompok 5, ada yang bisa saya bantu diskusikan hari ini?',
-            'isMe': false,
-            'time': '10:43',
-          },
-          {
-            'text':
-                'Saya merasa sedikit stres akhir-akhir ini karena tekanan tugas kuliah, Dok.',
-            'isMe': true,
-            'time': '10:44',
-          },
-          {
-            'text': 'Bagaimana perasaanmu hari ini?',
-            'isMe': false,
-            'time': '10:45',
-          },
-        ],
-      },
-      {
-        ...daftarKonselor[1], // Siska
-        'isSystem': false,
-        'color': Colors.orange,
-        'unread': 0,
-        'messages': [
-          {
-            'text': 'Sesi kemarin sangat membantu, terima kasih Siska.',
-            'isMe': true,
-            'time': 'Kemarin, 14:00',
-          },
-          {
-            'text':
-                'Terima kasih sudah berbagi cerita, Kelompok 5. Tetap semangat ya!',
-            'isMe': false,
-            'time': 'Kemarin, 14:05',
-          },
-        ],
-      },
-      {
-        ...daftarKonselor[2], // Budi Hartono
-        'isSystem': false,
-        'color': Colors.purple,
-        'unread': 0,
-        'messages': [
-          {
-            'text': 'Apakah besok ada jadwal bimbingan kosong?',
-            'isMe': true,
-            'time': 'Senin, 09:00',
-          },
-          {
-            'text': 'Sesi bimbingan akademismu besok ya jam 10 pagi.',
-            'isMe': false,
-            'time': 'Senin, 09:15',
-          },
-        ],
-      },
-      {
-        ...daftarKonselor[3], // dr. Sarah
-        'isSystem': false,
-        'color': Colors.teal,
-        'unread': 0,
-        'messages': [
-          {
-            'text':
-                'Halo Kelompok 5, link meet untuk sesi kita besok sudah siap.',
-            'isMe': false,
-            'time': '12 Jan',
-          },
-        ],
-      },
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
 
-      // --- SISTEM ---
-      {
-        'name': 'Sistem Respon',
-        'isSystem': true,
-        'icon': Icons.campaign_outlined,
-        'color': const Color(0xFF1068A3),
-        'unread': 1,
-        'messages': [
-          {
-            'text': 'Laporan Anda #RPT-001 telah diterima.',
-            'isMe': false,
-            'time': 'Kemarin',
-          },
-          {
-            'text':
-                'Bukti baru telah ditambahkan ke laporan Anda. Tim sedang meninjaunya.',
-            'isMe': false,
-            'time': '2 Jam Lalu',
-          },
-        ],
-      },
-      {
-        'name': 'Admin Kampus',
-        'isSystem': true,
-        'icon': Icons.admin_panel_settings_outlined,
-        'color': Colors.green,
-        'unread': 0,
-        'messages': [
-          {
-            'text':
-                'Selamat datang di platform Respon & Konseling Polinema Care+.',
-            'isMe': false,
-            'time': 'Kemarin',
-          },
-        ],
-      },
-      {
-        'name': 'Bantuan Teknis',
-        'isSystem': true,
-        'icon': Icons.support_agent_outlined,
-        'color': Colors.blueGrey,
-        'unread': 0,
-        'messages': [
-          {
-            'text':
-                'Halo, ada yang bisa kami bantu terkait kendala sistem aplikasi?',
-            'isMe': false,
-            'time': 'Senin',
-          },
-        ],
-      },
-    ];
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        setState(() {
+          _searchQuery = query;
+        });
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> displayedChats = _allChats.where((chat) {
-      if (_selectedTab == 1) return chat['isSystem'] == false;
-      if (_selectedTab == 2) return chat['isSystem'] == true;
-      return true;
-    }).toList();
-
-    if (_searchQuery.isNotEmpty) {
-      displayedChats = displayedChats
-          .where(
-            (chat) => chat['name'].toString().toLowerCase().contains(
-              _searchQuery.toLowerCase(),
-            ),
-          )
-          .toList();
-    }
+    final displayedChats = ChatController.getChats(
+      selectedTab: _selectedTab,
+      searchQuery: _searchQuery,
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -234,7 +105,7 @@ class _InboxPageState extends State<InboxPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       child: TextField(
-        onChanged: (val) => setState(() => _searchQuery = val),
+        onChanged: _onSearchChanged,
         decoration: InputDecoration(
           hintText: 'Cari percakapan...',
           hintStyle: GoogleFonts.plusJakartaSans(
@@ -296,23 +167,19 @@ class _InboxPageState extends State<InboxPage> {
     );
   }
 
-  Widget _buildChatItem(Map<String, dynamic> chat) {
-    final isSystem = chat['isSystem'] == true;
-    final color = chat['color'] as Color;
+  Widget _buildChatItem(ChatSession chat) {
+    final isSystem = chat.isSystem;
+    final color = chat.color;
 
-    // ✅ PERBAIKAN: Menggunakan List<dynamic> agar fleksibel menangkap modifikasi dari room_chat
-    final List<dynamic> messages = chat['messages'] ?? [];
+    final messages = chat.messages;
     final lastMessage = messages.isNotEmpty ? messages.last : null;
-    final previewText = lastMessage != null
-        ? lastMessage['text']
-        : 'Tidak ada pesan';
-    final timeText = lastMessage != null ? lastMessage['time'] : '';
+    final previewText = lastMessage != null ? lastMessage.text : 'Tidak ada pesan';
+    final timeText = lastMessage != null ? lastMessage.time : '';
 
     return GestureDetector(
       onTap: () {
-        setState(() => chat['unread'] = 0);
-        context.push('/inbox/room-chat', extra: chat).then((_) {
-          // Memicu refresh halaman saat kembali agar chat terbaru langsung terlihat di preview
+        ChatController.markAsRead(chat.name);
+        context.push('/inbox/room-chat', extra: chat.toMap()).then((_) {
           setState(() {});
         });
       },
@@ -338,9 +205,9 @@ class _InboxPageState extends State<InboxPage> {
               backgroundColor: color.withOpacity(0.1),
               backgroundImage: isSystem
                   ? null
-                  : NetworkImage("https://i.pravatar.cc/150?u=${chat['name']}"),
-              child: isSystem
-                  ? Icon(chat['icon'] as IconData, color: color, size: 22)
+                  : NetworkImage("https://i.pravatar.cc/150?u=${chat.name}"),
+              child: isSystem && chat.icon != null
+                  ? Icon(chat.icon, color: color, size: 22)
                   : null,
             ),
             const SizedBox(width: 14),
@@ -349,7 +216,7 @@ class _InboxPageState extends State<InboxPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    chat['name'],
+                    chat.name,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -382,7 +249,7 @@ class _InboxPageState extends State<InboxPage> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                if ((chat['unread'] ?? 0) > 0)
+                if (chat.unread > 0)
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: const BoxDecoration(
@@ -390,7 +257,7 @@ class _InboxPageState extends State<InboxPage> {
                       shape: BoxShape.circle,
                     ),
                     child: Text(
-                      '${chat['unread']}',
+                      '${chat.unread}',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 9,
                         color: Colors.white,

@@ -2,17 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 
-// Pastikan path import ini sesuai dengan struktur folder kamu
-import '../Konseling/data_konselor.dart';
-import '../Konseling/data_riwayat_konseling.dart';
+import '../../controllers/counseling_controller.dart';
+import '../../models/counseling_model.dart';
+import '../../models/counselor_model.dart';
 
 // Helper: ambil specialty dari daftarKonselor berdasarkan nama
 String _getSpecialtyByName(String nama) {
-  final found = daftarKonselor.firstWhere(
-    (k) => k['name'] == nama,
-    orElse: () => {'specialty': 'Konselor Profesional'},
-  );
-  return found['specialty'] ?? 'Konselor Profesional';
+  final spec = CounselingController.getSpecialty(nama);
+  return spec.isNotEmpty ? spec : 'Konselor Profesional';
 }
 
 class CounselingScreen extends StatelessWidget {
@@ -62,10 +59,10 @@ class CounselingScreen extends StatelessWidget {
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                _KonselorGridCard(data: daftarKonselor[0]),
-                _KonselorGridCard(data: daftarKonselor[1]),
-                _KonselorGridCard(data: daftarKonselor[2]),
-                _KonselorGridCard(data: daftarKonselor[3]),
+                _KonselorGridCard(data: CounselingController.daftarKonselor[0]),
+                _KonselorGridCard(data: CounselingController.daftarKonselor[1]),
+                _KonselorGridCard(data: CounselingController.daftarKonselor[2]),
+                _KonselorGridCard(data: CounselingController.daftarKonselor[3]),
               ],
             ),
           ),
@@ -78,7 +75,7 @@ class CounselingScreen extends StatelessWidget {
             "Lihat Semua",
             onTap: () {
               // Navigasi ke riwayat pertama sebagai preview (opsional)
-              final item = riwayatKonselingList.first;
+              final item = CounselingController.riwayatKonselingList.first;
               GoRouter.of(context).push(
                 '/counseling/detail-history',
                 extra: {
@@ -92,7 +89,7 @@ class CounselingScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          ...riwayatKonselingList
+          ...CounselingController.riwayatKonselingList
               .take(2)
               .map(
                 (item) => _RiwayatKonselingCard(context: context, item: item),
@@ -417,14 +414,14 @@ class CounselingScreen extends StatelessWidget {
 // WIDGET CARD GRID KONSELOR
 // =====================================================================
 class _KonselorGridCard extends StatelessWidget {
-  final Map<String, dynamic> data;
+  final Konselor data;
 
   const _KonselorGridCard({required this.data, super.key});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.push('/counseling/profil', extra: data),
+      onTap: () => context.push('/counseling/profil', extra: data.toMap()),
       child: Container(
         width: 160,
         margin: const EdgeInsets.only(right: 12),
@@ -438,7 +435,7 @@ class _KonselorGridCard extends StatelessWidget {
             const CircleAvatar(radius: 40, backgroundColor: Colors.grey),
             const SizedBox(height: 10),
             Text(
-              data['name'],
+              data.name,
               style: GoogleFonts.plusJakartaSans(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
@@ -446,7 +443,7 @@ class _KonselorGridCard extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             Text(
-              data['specialty'],
+              data.specialty,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 10,
                 color: Colors.grey,
@@ -460,14 +457,14 @@ class _KonselorGridCard extends StatelessWidget {
                 const Icon(Icons.star, color: Colors.amber, size: 12),
                 const SizedBox(width: 4),
                 Text(
-                  data['rating'],
+                  data.rating,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  " (${data['sessions']})",
+                  " (${data.sessions})",
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 9,
                     color: Colors.grey,

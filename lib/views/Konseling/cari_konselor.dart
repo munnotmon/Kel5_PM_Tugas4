@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import 'data_konselor.dart'; // Pastikan import ini sesuai
+import '../../controllers/counseling_controller.dart';
+import '../../models/counselor_model.dart';
 
 class FindCounselorPage extends StatefulWidget {
   const FindCounselorPage({super.key});
@@ -11,11 +13,10 @@ class FindCounselorPage extends StatefulWidget {
 }
 
 class _FindCounselorPageState extends State<FindCounselorPage> {
-  // Variabel State untuk pencarian & filter
   String _searchQuery = '';
   String _selectedFilter = 'Semua';
+  Timer? _debounce;
 
-  // Daftar kategori filter
   final List<String> _filters = [
     'Semua',
     'Perundungan',
@@ -26,14 +27,28 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
   ];
 
   @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        setState(() {
+          _searchQuery = query;
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // === LOGIKA PENYARINGAN (FILTER & SEARCH) ===
-    List<Map<String, dynamic>> filteredKonselor = daftarKonselor.where((
-      konselor,
-    ) {
+    List<Konselor> filteredKonselor = CounselingController.daftarKonselor.where((konselor) {
       // 1. Cek Pencarian Text
-      final String name = (konselor['name'] ?? '').toLowerCase();
-      final String specialty = (konselor['specialty'] ?? '').toLowerCase();
+      final String name = konselor.name.toLowerCase();
+      final String specialty = konselor.specialty.toLowerCase();
       final bool matchesSearch =
           name.contains(_searchQuery.toLowerCase()) ||
           specialty.contains(_searchQuery.toLowerCase());
@@ -41,8 +56,8 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
       // 2. Cek Filter Kategori (Chips)
       bool matchesFilter = true;
       if (_selectedFilter != 'Semua') {
-        final List<String> specialties = (konselor['specialties'] as List)
-            .map((e) => e.toString().toLowerCase())
+        final List<String> specialties = konselor.specialties
+            .map((e) => e.toLowerCase())
             .toList();
         matchesFilter = specialties.contains(_selectedFilter.toLowerCase());
       }
@@ -67,7 +82,7 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
             fontSize: 18,
           ),
         ),
-        actions: [],
+        actions: const [],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,11 +91,7 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: TextField(
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
+              onChanged: _onSearchChanged,
               decoration: InputDecoration(
                 hintText: "Cari nama atau spesialisasi...",
                 hintStyle: GoogleFonts.plusJakartaSans(
@@ -164,8 +175,6 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
                       ...filteredKonselor.map((konselor) {
                         return _buildCounselorTile(context, konselor);
                       }),
-
-                      // Menambahkan section rekomendasi assessment di bagian bawah list
                       const SizedBox(height: 20),
                       _buildAssessmentPrompt(),
                       const SizedBox(height: 40),
@@ -177,7 +186,6 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
     );
   }
 
-  // --- WIDGET CHIPS ---
   Widget _buildChip(String label, bool active) {
     return GestureDetector(
       onTap: () {
@@ -208,10 +216,9 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
     );
   }
 
-  // --- WIDGET CARD KONSELOR ---
-  Widget _buildCounselorTile(BuildContext context, Map<String, dynamic> data) {
+  Widget _buildCounselorTile(BuildContext context, Konselor data) {
     return GestureDetector(
-      onTap: () => context.push('/counseling/profil', extra: data),
+      onTap: () => context.push('/counseling/profil', extra: data.toMap()),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
@@ -229,15 +236,13 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- FOTO PROFIL & STATUS ONLINE ---
             Stack(
               children: [
                 CircleAvatar(
                   radius: 35,
                   backgroundColor: Colors.blueGrey[100],
-                  // Placeholder foto agar ada gambar (bisa diganti sesuai desain)
                   backgroundImage: NetworkImage(
-                    "https://i.pravatar.cc/150?u=${data['name']}",
+                    "https://i.pravatar.cc/150?u=${data.name}",
                   ),
                 ),
                 Positioned(
@@ -247,7 +252,7 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
                     width: 14,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981), // Hijau Online
+                      color: const Color(0xFF10B981),
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                     ),
@@ -256,19 +261,16 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
               ],
             ),
             const SizedBox(width: 16),
-
-            // --- INFO KONSELOR ---
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Baris Nama & Rating
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Text(
-                          data['name'],
+                          data.name,
                           style: GoogleFonts.plusJakartaSans(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -296,7 +298,7 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              data['rating'],
+                              data.rating,
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -309,20 +311,15 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
                     ],
                   ),
                   const SizedBox(height: 4),
-
-                  // Spesialisasi (Warna Biru)
                   Text(
-                    data['specialty'],
+                    data.specialty,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       color: const Color(0xFF1A6B8A),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Baris Bawah (Sesi, Verified, Lihat Profil)
                   Row(
                     children: [
                       Icon(
@@ -332,8 +329,7 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        data['sessions']?.replaceAll(' Sesi', '') ??
-                            '', // Mengambil angka saja
+                        data.sessions.replaceAll(' Sesi', ''),
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           color: Colors.grey[600],
@@ -347,9 +343,7 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
                           color: Colors.grey[600],
                         ),
                       ),
-
                       const SizedBox(width: 12),
-
                       const Icon(
                         Icons.verified,
                         color: Color(0xFF10B981),
@@ -364,9 +358,7 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-
                       const Spacer(),
-
                       Text(
                         "Lihat Profil",
                         style: GoogleFonts.plusJakartaSans(
@@ -391,14 +383,13 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
     );
   }
 
-  // --- WIDGET ASSESSMENT BOTTOM ---
   Widget _buildAssessmentPrompt() {
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFE0F2F8),
+          decoration: const BoxDecoration(
+            color: Color(0xFFE0F2F8),
             shape: BoxShape.circle,
           ),
           child: const Icon(
@@ -430,7 +421,6 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
     );
   }
 
-  // --- WIDGET KETIKA PENCARIAN KOSONG ---
   Widget _buildEmptyState() {
     return Center(
       child: Column(

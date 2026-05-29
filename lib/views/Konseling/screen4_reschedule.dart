@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import 'data_konselor.dart';
+import '../../controllers/counseling_controller.dart';
 
 class Screen4Reschedule extends StatefulWidget {
   final Map<String, dynamic>? counselorData;
@@ -43,7 +43,7 @@ class _Screen4RescheduleState extends State<Screen4Reschedule> {
 
   @override
   Widget build(BuildContext context) {
-    final konselor = widget.counselorData ?? daftarKonselor[0];
+    final konselor = widget.counselorData ?? CounselingController.daftarKonselor[0].toMap();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),

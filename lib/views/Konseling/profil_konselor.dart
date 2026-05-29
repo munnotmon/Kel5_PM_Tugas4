@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import 'data_konselor.dart';
+import '../../controllers/counseling_controller.dart';
+import '../../models/counselor_model.dart';
 
 class CounselorProfilePage extends StatefulWidget {
   final Map<String, dynamic>? counselorData;
@@ -17,25 +18,24 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
   String selectedTime = "";
   String selectedMode = "Offline";
 
-  late final Map<String, dynamic> data;
+  late final Konselor counselor;
   List<DateTime> _availableDates = [];
   List<String> _availableTimes = [];
 
   @override
   void initState() {
     super.initState();
-    data = widget.counselorData ?? daftarKonselor[0];
+    final mapData = widget.counselorData ?? CounselingController.daftarKonselor[0].toMap();
+    counselor = Konselor.fromMap(mapData);
 
     // Ambil data array jam kerja spesifik dari konselor
-    _availableTimes = List<String>.from(
-      data['available_times'] ?? ["09:00 WIB", "10:30 WIB"],
-    );
+    _availableTimes = counselor.availableTimes;
     if (_availableTimes.isNotEmpty) {
       selectedTime = _availableTimes[0];
     }
 
     // Ambil data hari praktek (1-7), jika kosong default ke Senin, Rabu, Jumat [1, 3, 5]
-    List<int> practiceDays = List<int>.from(data['practice_days'] ?? [1, 3, 5]);
+    List<int> practiceDays = counselor.practiceDays.isNotEmpty ? counselor.practiceDays : [1, 3, 5];
     _generateCalendarDates(practiceDays);
   }
 
@@ -173,10 +173,10 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
                   children: [
                     _buildPillStat(
                       Icons.work_outline,
-                      data['experience_years'],
+                      counselor.experienceYears,
                     ),
                     const SizedBox(width: 12),
-                    _buildPillStat(Icons.chat_bubble_outline, data['sessions']),
+                    _buildPillStat(Icons.chat_bubble_outline, counselor.sessions),
                   ],
                 ),
                 const SizedBox(height: 32),
@@ -189,7 +189,7 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  data['about'],
+                  counselor.about,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     color: Colors.grey[600],
@@ -208,8 +208,8 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: (data['specialties'] as List)
-                      .map((spec) => _specChip(spec.toString()))
+                  children: counselor.specialties
+                      .map((spec) => _specChip(spec))
                       .toList(),
                 ),
                 const SizedBox(height: 24),
@@ -221,18 +221,18 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                ...((data['educations'] as List).map(
+                ...(counselor.educations.map(
                   (edu) => _buildEduExpItem(
                     Icons.school_outlined,
-                    edu['title'].toString(),
-                    edu['subtitle'].toString(),
+                    edu.title,
+                    edu.subtitle,
                   ),
                 )),
-                ...((data['experiences'] as List).map(
+                ...(counselor.experiences.map(
                   (exp) => _buildEduExpItem(
                     Icons.business_center_outlined,
-                    exp['title'].toString(),
-                    exp['subtitle'].toString(),
+                    exp.title,
+                    exp.subtitle,
                   ),
                 )),
 
@@ -296,7 +296,7 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
                   context.push(
                     '/counseling/konfirmasi',
                     extra: {
-                      'counselor': data,
+                      'counselor': counselor.toMap(),
                       'tanggal':
                           finalSelectedDate, // Tanggal Kalender Riil terkirim dinamis
                       'waktu': selectedTime,
@@ -332,8 +332,6 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
     );
   }
 
-  // --- UI WIDGETS ---
-
   Widget _buildHeader() {
     return Center(
       child: Column(
@@ -346,7 +344,7 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
               color: Colors.blueGrey[200],
               image: DecorationImage(
                 image: NetworkImage(
-                  "https://i.pravatar.cc/150?u=${data['name']}",
+                  "https://i.pravatar.cc/150?u=${counselor.name}",
                 ),
                 fit: BoxFit.cover,
               ),
@@ -354,14 +352,14 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
           ),
           const SizedBox(height: 16),
           Text(
-            data['name'],
+            counselor.name,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
           ),
           Text(
-            data['specialty'],
+            counselor.specialty,
             style: GoogleFonts.plusJakartaSans(
               color: const Color(0xFF1068A3),
               fontSize: 14,
