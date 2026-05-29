@@ -78,16 +78,6 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
         ),
       ),
       centerTitle: true,
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 12),
-          child: Icon(
-            Icons.verified_user_rounded,
-            color: const Color(0xFF1A6B8A),
-            size: 26,
-          ),
-        ),
-      ],
     );
   }
 

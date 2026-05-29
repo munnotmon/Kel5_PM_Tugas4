@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 
 class PusatBantuanScreen extends StatefulWidget {
   const PusatBantuanScreen({super.key});
@@ -390,15 +391,13 @@ class _PusatBantuanScreenState extends State<PusatBantuanScreen> {
               _buildCtaButton(
                 icon: Icons.chat_bubble_outline_rounded,
                 label: 'Chat dengan Admin',
-                onTap: () {},
-              ),
-              const SizedBox(height: 10),
-
-              // Kirim Email button
-              _buildCtaButton(
-                icon: Icons.mail_outline_rounded,
-                label: 'Kirim Email',
-                onTap: () {},
+                onTap: () => context.push('/inbox/room-chat', extra: {
+                  'name': 'Bantuan Teknis',
+                  'specialty': 'Admin Sistem',
+                  'isSystem': true,
+                  'messages': <Map<String, dynamic>>[],
+                  'unread': 0,
+                }),
               ),
             ],
           ),

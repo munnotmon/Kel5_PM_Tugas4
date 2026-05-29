@@ -1,9 +1,36 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'profile_store.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    ProfileStore.nama.addListener(_onProfileChanged);
+    ProfileStore.username.addListener(_onProfileChanged);
+    ProfileStore.photo.addListener(_onProfileChanged);
+  }
+
+  void _onProfileChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    ProfileStore.nama.removeListener(_onProfileChanged);
+    ProfileStore.username.removeListener(_onProfileChanged);
+    ProfileStore.photo.removeListener(_onProfileChanged);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,58 +43,71 @@ class ProfileScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            _buildProfileCard(),
+            _buildProfileCard(context),
             const SizedBox(height: 16),
             _buildInfoCard(),
             const SizedBox(height: 24),
+
             _buildSectionLabel('PENGATURAN APLIKASI'),
             const SizedBox(height: 10),
+
             _buildMenuGroup([
               _MenuItem(
                 icon: Icons.notifications_outlined,
                 iconColor: const Color(0xFF1A6B8A),
                 iconBg: const Color(0xFFE0F2F8),
                 label: 'Pengaturan Notifikasi',
-                onTap: () => context.push('/profile/notification-settings'),
+                onTap: () =>
+                    context.push('/profile/notification-settings'),
               ),
               _MenuItem(
                 icon: Icons.shield_outlined,
                 iconColor: const Color(0xFF1A6B8A),
                 iconBg: const Color(0xFFE0F2F8),
                 label: 'Keamanan Akun',
-                onTap: () => context.push('/profile/account-security'),
+                onTap: () =>
+                    context.push('/profile/account-security'),
                 showDivider: false,
               ),
             ]),
+
             const SizedBox(height: 24),
+
             _buildSectionLabel('DUKUNGAN'),
             const SizedBox(height: 10),
+
             _buildMenuGroup([
               _MenuItem(
                 icon: Icons.help_outline_rounded,
                 iconColor: const Color(0xFF6B7280),
                 iconBg: const Color(0xFFF0F2F5),
                 label: 'Pusat Bantuan',
-                onTap: () => context.push('/profile/pusat-bantuan'),
+                onTap: () =>
+                    context.push('/profile/pusat-bantuan'),
               ),
               _MenuItem(
                 icon: Icons.description_outlined,
                 iconColor: const Color(0xFF6B7280),
                 iconBg: const Color(0xFFF0F2F5),
                 label: 'Syarat & Ketentuan',
-                onTap: () => context.push('/profile/syarat-ketentuan'),
+                onTap: () =>
+                    context.push('/profile/syarat-ketentuan'),
               ),
               _MenuItem(
                 icon: Icons.info_outline_rounded,
                 iconColor: const Color(0xFF6B7280),
                 iconBg: const Color(0xFFF0F2F5),
                 label: 'Tentang Respon & Konseling',
-                onTap: () => context.push('/profile/tentang-aplikasi'),
+                onTap: () =>
+                    context.push('/profile/tentang-aplikasi'),
                 showDivider: false,
               ),
             ]),
+
             const SizedBox(height: 24),
+
             _buildLogoutButton(context),
+
             const SizedBox(height: 16),
           ],
         ),
@@ -80,8 +120,12 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF2F4F7),
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Color(0xFF1A6B8A)),
-        onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
+        icon: const Icon(
+          Icons.arrow_back,
+          color: Color(0xFF1A6B8A),
+        ),
+        onPressed: () =>
+            context.canPop() ? context.pop() : context.go('/home'),
       ),
       title: Text(
         'Profil Saya',
@@ -94,72 +138,110 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileCard() {
+  Widget _buildProfileCard(BuildContext context) {
+    final Uint8List? photo = ProfileStore.photo.value;
+    final String nama = ProfileStore.nama.value;
+    final String username = ProfileStore.username.value;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32),
+      padding: const EdgeInsets.symmetric(vertical: 40),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(32),
         gradient: const LinearGradient(
-          colors: [Color(0xFF1A6B8A), Color(0xFF2AAFCF)],
+          colors: [
+            Color(0xFF1A6B8A),
+            Color(0xFF2AAFCF),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Stack(
+            clipBehavior: Clip.none,
             children: [
               Container(
-                width: 90,
-                height: 90,
+                width: 110,
+                height: 110,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 3),
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 4,
+                  ),
                   color: const Color(0xFFE8D5C4),
                 ),
                 child: ClipOval(
+                  child: photo != null
+                      ? Image.memory(
+                          photo,
+                          width: 110,
+                          height: 110,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          color: const Color(0xFFE8D5C4),
+                          child: const Icon(
+                            Icons.person,
+                            size: 70,
+                            color: Colors.white54,
+                          ),
+                        ),
+                ),
+              ),
+
+              // ICON EDIT
+              Positioned(
+                bottom: -2,
+                right: -2,
+                child: GestureDetector(
+                  onTap: () =>
+                      context.push('/profile/edit-profile'),
                   child: Container(
-                    color: const Color(0xFFE8D5C4),
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6BC59A),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 3,
+                      ),
+                    ),
                     child: const Icon(
-                      Icons.person,
-                      size: 60,
-                      color: Colors.white54,
+                      Icons.edit,
+                      size: 18,
+                      color: Colors.white,
                     ),
                   ),
                 ),
               ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  width: 26,
-                  height: 26,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF4CAF82),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  child: const Icon(Icons.check, size: 14, color: Colors.white),
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: 14),
+
+          const SizedBox(height: 24),
+
           Text(
-            'Kelompok 5',
+            nama,
+            textAlign: TextAlign.center,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 4),
+
+          const SizedBox(height: 6),
+
           Text(
-            'Mahasiswa • 12345678',
+            '@$username',
+            textAlign: TextAlign.center,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 14,
-              color: Colors.white.withOpacity(0.8),
+              fontSize: 16,
+              color: Colors.white.withOpacity(0.85),
             ),
           ),
         ],
@@ -168,6 +250,9 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildInfoCard() {
+    final String nama = ProfileStore.nama.value;
+    final String username = ProfileStore.username.value;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -178,17 +263,31 @@ class ProfileScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow('EMAIL', 'Kelompok5Mantap@campus.edu'),
+          _buildInfoRow('NAMA LENGKAP', nama),
+
           const SizedBox(height: 18),
-          const Divider(height: 1, color: Color(0xFFF0F2F5)),
+
+          const Divider(
+            height: 1,
+            color: Color(0xFFF0F2F5),
+          ),
+
           const SizedBox(height: 18),
-          _buildInfoRow('PHONE NUMBER', '+62 812-3456-7890'),
+
+          _buildInfoRow('USERNAME', '@$username'),
+
           const SizedBox(height: 18),
-          const Divider(height: 1, color: Color(0xFFF0F2F5)),
+
+          const Divider(
+            height: 1,
+            color: Color(0xFFF0F2F5),
+          ),
+
           const SizedBox(height: 18),
+
           _buildInfoRow(
-            'KAMPUS / JURUSAN',
-            'Politeknik Negeri Malang / Teknologi Informasi',
+            'EMAIL',
+            'Kelompok5Mantap@campus.edu',
           ),
         ],
       ),
@@ -208,7 +307,9 @@ class ProfileScreen extends StatelessWidget {
             letterSpacing: 0.8,
           ),
         ),
+
         const SizedBox(height: 6),
+
         Text(
           value,
           style: GoogleFonts.plusJakartaSans(
@@ -242,6 +343,7 @@ class ProfileScreen extends StatelessWidget {
       child: Column(
         children: items.asMap().entries.map((entry) {
           final item = entry.value;
+
           return Column(
             children: [
               InkWell(
@@ -261,9 +363,15 @@ class ProfileScreen extends StatelessWidget {
                           color: item.iconBg,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Icon(item.icon, color: item.iconColor, size: 20),
+                        child: Icon(
+                          item.icon,
+                          color: item.iconColor,
+                          size: 20,
+                        ),
                       ),
+
                       const SizedBox(width: 14),
+
                       Expanded(
                         child: Text(
                           item.label,
@@ -274,6 +382,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                       ),
+
                       const Icon(
                         Icons.arrow_forward_ios,
                         size: 14,
@@ -283,10 +392,14 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
               ),
+
               if (item.showDivider)
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Divider(height: 1, color: Color(0xFFF0F2F5)),
+                  child: Divider(
+                    height: 1,
+                    color: Color(0xFFF0F2F5),
+                  ),
                 ),
             ],
           );
@@ -310,8 +423,14 @@ class ProfileScreen extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.logout_rounded, color: Colors.red, size: 20),
+              const Icon(
+                Icons.logout_rounded,
+                color: Colors.red,
+                size: 20,
+              ),
+
               const SizedBox(width: 8),
+
               Text(
                 'Keluar',
                 style: GoogleFonts.plusJakartaSans(
@@ -335,7 +454,12 @@ class ProfileScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         insetPadding: const EdgeInsets.symmetric(horizontal: 28),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(28, 36, 28, 28),
+          padding: const EdgeInsets.fromLTRB(
+            28,
+            36,
+            28,
+            28,
+          ),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(28),
@@ -343,7 +467,6 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Door icon
               Container(
                 width: 80,
                 height: 80,
@@ -357,8 +480,9 @@ class ProfileScreen extends StatelessWidget {
                   size: 36,
                 ),
               ),
+
               const SizedBox(height: 24),
-              // Title
+
               Text(
                 'Keluar dari Akun?',
                 style: GoogleFonts.plusJakartaSans(
@@ -368,8 +492,9 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
+
               const SizedBox(height: 12),
-              // Subtitle
+
               Text(
                 'Apakah Anda yakin ingin keluar? Anda perlu memasukkan kata sandi kembali untuk masuk ke akun Anda.',
                 style: GoogleFonts.plusJakartaSans(
@@ -379,8 +504,9 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
+
               const SizedBox(height: 28),
-              // Ya, Keluar button
+
               SizedBox(
                 width: double.infinity,
                 height: 52,
@@ -406,8 +532,9 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
               ),
+
               const SizedBox(height: 16),
-              // Batal button
+
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
                 child: Text(

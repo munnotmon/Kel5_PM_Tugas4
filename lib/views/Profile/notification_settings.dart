@@ -130,7 +130,7 @@ class _NotificationSettingsScreenState
   Widget _buildHeroBanner() {
     return Container(
       width: double.infinity,
-      height: 140,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         gradient: const LinearGradient(
@@ -139,14 +139,14 @@ class _NotificationSettingsScreenState
           end: Alignment.bottomRight,
         ),
       ),
-      child: Stack(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Text content
-          Padding(
-            padding: const EdgeInsets.all(24),
+          // Text content — Expanded agar tidak overflow
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   'Pilih yang Penting',
@@ -157,32 +157,23 @@ class _NotificationSettingsScreenState
                   ),
                 ),
                 const SizedBox(height: 8),
-                SizedBox(
-                  width: 190,
-                  child: Text(
-                    'Atur bagaimana Haven Guard memberi tahu Anda tentang pembaruan keamanan dan sesi.',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12.5,
-                      color: const Color(0xFF3D5A70),
-                      height: 1.5,
-                    ),
+                Text(
+                  'Atur bagaimana Haven Guard memberi tahu Anda tentang pembaruan keamanan dan sesi.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    color: const Color(0xFF3D5A70),
+                    height: 1.5,
                   ),
                 ),
               ],
             ),
           ),
-          // Bell illustration on the right — tanpa gradient gelap
-          Positioned(
-            right: 16,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: Icon(
-                Icons.notifications_rounded,
-                size: 80,
-                color: const Color(0xFFD4A017).withOpacity(0.75),
-              ),
-            ),
+          const SizedBox(width: 12),
+          // Bell illustration — warna senada dengan background biru
+          Icon(
+            Icons.notifications_rounded,
+            size: 80,
+            color: const Color(0xFF1A6B8A).withOpacity(0.35),
           ),
         ],
       ),

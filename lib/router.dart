@@ -31,6 +31,7 @@ import 'views/Profile/notification_settings.dart';
 import 'views/Profile/account_security.dart';
 import 'views/Profile/change_password.dart';
 import 'views/Profile/password_updated.dart';
+import 'views/Profile/edit_profile.dart';
 import 'views/Profile/pusat_bantuan.dart';
 import 'views/Profile/syarat_ketentuan.dart';
 import 'views/Profile/tentang_aplikasi.dart';
@@ -246,6 +247,11 @@ final GoRouter appRouter = GoRouter(
               path: '/profile',
               builder: (context, state) => const ProfileScreen(),
               routes: [
+                GoRoute(
+                  path: 'edit-profile',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) => const EditProfileScreen(),
+                ),
                 GoRoute(
                   path: 'notification-settings',
                   parentNavigatorKey: _rootNavigatorKey,
