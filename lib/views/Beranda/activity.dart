@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 
-import '../Konseling/data_riwayat_konseling.dart';
-import '../Konseling/data_konselor.dart';
+import '../../controllers/counseling_controller.dart';
+import '../../models/counseling_model.dart';
+import '../../models/counselor_model.dart';
 
 // =====================================================================
 // MODEL & DATA LAPORAN
@@ -480,31 +481,11 @@ class _TabKonselingState extends State<_TabKonseling> {
   final List<String> _filters = ['Semua', 'Bulan Ini', 'Selesai'];
 
   List<KonselingItem> get _filteredList {
-    switch (_selectedFilter) {
-      case 1:
-        return riwayatKonselingList
-            .where((item) => item.tanggal.contains('Okt'))
-            .toList();
-      case 2:
-        return riwayatKonselingList
-            .where((item) => item.status == StatusKonseling.selesai)
-            .toList();
-      default:
-        return riwayatKonselingList;
-    }
+    return CounselingController.getFilteredSessions(_selectedFilter);
   }
 
   String _getSpecialty(String namaKonselor) {
-    try {
-      final found = daftarKonselor.firstWhere(
-        (k) =>
-            (k['name'] as String).toLowerCase() == namaKonselor.toLowerCase(),
-        orElse: () => {},
-      );
-      return found['specialty'] as String? ?? '';
-    } catch (_) {
-      return '';
-    }
+    return CounselingController.getSpecialty(namaKonselor);
   }
 
   @override

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import 'data_konselor.dart';
+import '../../controllers/counseling_controller.dart';
 
 class ScreenDetailSesi extends StatefulWidget {
   final Map<String, dynamic>? sessionData;
@@ -35,15 +35,11 @@ class _ScreenDetailSesiState extends State<ScreenDetailSesi> {
     _waktu = widget.sessionData?['waktu'] ?? widget.sessionData?['jam'] ?? '10:30 WIB';
 
     // 2. Cari data lengkap dari daftarKonselor berdasarkan nama agar singkron
-    _konselorData = daftarKonselor.firstWhere(
-      (k) => k['name'] == _namaKonselor,
-      orElse: () => {
-        'name': _namaKonselor,
-        'specialty': 'Spesialis Konselor Klinis',
-        'rating': '4.8',
-        'experience_years': '5 Tahun Eksp.',
-      },
+    final kModel = CounselingController.daftarKonselor.firstWhere(
+      (k) => k.name == _namaKonselor,
+      orElse: () => CounselingController.daftarKonselor[0],
     );
+    _konselorData = kModel.toMap();
     
     _specialty = _konselorData['specialty'] ?? 'Spesialis Konselor Klinis';
   }

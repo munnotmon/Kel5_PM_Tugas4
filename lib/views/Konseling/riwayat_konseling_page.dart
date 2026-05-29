@@ -2,8 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import 'data_riwayat_konseling.dart';
-import 'data_konselor.dart';
+import '../../controllers/counseling_controller.dart';
+import '../../models/counseling_model.dart';
+import '../../models/counselor_model.dart';
 
 class RiwayatKonselingPage extends StatefulWidget {
   const RiwayatKonselingPage({super.key});
@@ -16,35 +17,16 @@ class _RiwayatKonselingPageState extends State<RiwayatKonselingPage> {
   int _selectedFilter = 0; // 0=Semua, 1=Bulan Ini, 2=Selesai
   final List<String> _filters = ['Semua', 'Bulan Ini', 'Selesai'];
 
-  List<KonselingItem> get _allSessions => riwayatKonselingList;
+  List<KonselingItem> get _allSessions => CounselingController.riwayatKonselingList;
 
   List<KonselingItem> get _filteredSessions {
-    if (_selectedFilter == 0) return _allSessions;
-    if (_selectedFilter == 1) {
-      return _allSessions.where((s) => s.tanggal.contains('Okt')).toList();
-    }
-    if (_selectedFilter == 2) {
-      return _allSessions
-          .where((s) => s.status == StatusKonseling.selesai)
-          .toList();
-    }
-    return _allSessions;
+    return CounselingController.getFilteredSessions(_selectedFilter);
   }
 
   /// Cari specialty dari daftarKonselor berdasarkan nama konselor.
   /// Jika tidak ketemu, kembalikan string kosong.
   String _getSpecialty(String namaKonselor) {
-    try {
-      final found = daftarKonselor.firstWhere(
-        (k) =>
-            (k['name'] as String).toLowerCase() ==
-            namaKonselor.toLowerCase(),
-        orElse: () => {},
-      );
-      return found['specialty'] as String? ?? '';
-    } catch (_) {
-      return '';
-    }
+    return CounselingController.getSpecialty(namaKonselor);
   }
 
   @override

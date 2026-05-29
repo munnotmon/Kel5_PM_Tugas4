@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../controllers/chat_controller.dart';
+import '../../models/chat_model.dart';
 
 class RoomChatPage extends StatefulWidget {
   final Map<String, dynamic> counselorData;
@@ -19,23 +21,20 @@ class _RoomChatPageState extends State<RoomChatPage> {
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _picker = ImagePicker();
 
-  // ✅ PERBAIKAN: Mengunci tipe data agar menjadi List Map yang stabil
-  late List<Map<String, dynamic>> _messages;
+  late ChatSession _session;
 
   @override
   void initState() {
     super.initState();
-    _messages = List<Map<String, dynamic>>.from(
-      widget.counselorData['messages'] ??
-          [
-            {
-              'text':
-                  'Halo Kelompok 5, ada yang bisa saya bantu diskusikan hari ini?',
-              'isMe': false,
-              'time': '10:43',
-            },
-          ],
-    );
+    final name = widget.counselorData['name'] ?? 'Konselor';
+    
+    // Temukan session dari ChatController, jika belum ada buat session baru
+    ChatSession? found = ChatController.getChatByName(name);
+    if (found == null) {
+      found = ChatSession.fromMap(widget.counselorData);
+      ChatController.allChats.add(found);
+    }
+    _session = found;
   }
 
   void _scrollToBottom() {
@@ -53,18 +52,10 @@ class _RoomChatPageState extends State<RoomChatPage> {
   void _sendMessage() {
     if (_msgController.text.trim().isEmpty) return;
 
-    final now = DateTime.now();
-    final timeStr =
-        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-
     setState(() {
-      _messages.add({
-        'text': _msgController.text.trim(),
-        'isMe': true,
-        'time': timeStr,
-      });
-      // Menulis kembali ke data referensi utama secara sinkron
-      widget.counselorData['messages'] = _messages;
+      ChatController.sendMessage(_session.name, _msgController.text.trim());
+      // Sinkronisasi data di map widget (backward compatibility)
+      widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
     });
 
     _msgController.clear();
@@ -79,18 +70,10 @@ class _RoomChatPageState extends State<RoomChatPage> {
       );
 
       if (image != null) {
-        final now = DateTime.now();
-        final timeStr =
-            '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-
         setState(() {
-          _messages.add({
-            'text': 'Lampiran Gambar',
-            'isMe': true,
-            'time': timeStr,
-            'imagePath': image.path,
-          });
-          widget.counselorData['messages'] = _messages;
+          ChatController.sendMessage(_session.name, 'Lampiran Gambar', imagePath: image.path);
+          // Sinkronisasi data di map widget (backward compatibility)
+          widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
         });
 
         _scrollToBottom();
@@ -114,7 +97,6 @@ class _RoomChatPageState extends State<RoomChatPage> {
             child: Wrap(
               children: [
                 ListTile(
-                  // ✅ FIX: Kata 'const' di depan Container telah dibersihkan agar tidak error
                   leading: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: const BoxDecoration(
@@ -140,7 +122,6 @@ class _RoomChatPageState extends State<RoomChatPage> {
                   },
                 ),
                 ListTile(
-                  // ✅ FIX: Kata 'const' di depan Container telah dibersihkan agar tidak error
                   leading: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: const BoxDecoration(
@@ -182,8 +163,8 @@ class _RoomChatPageState extends State<RoomChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cns = widget.counselorData;
-    final isSystem = cns['isSystem'] == true;
+    final isSystem = _session.isSystem;
+    final messages = _session.messages;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -201,17 +182,17 @@ class _RoomChatPageState extends State<RoomChatPage> {
                 CircleAvatar(
                   radius: 18,
                   backgroundColor: isSystem
-                      ? (cns['color'] as Color).withOpacity(0.2)
+                      ? _session.color.withOpacity(0.2)
                       : Colors.grey[200],
                   backgroundImage: isSystem
                       ? null
                       : NetworkImage(
-                          "https://i.pravatar.cc/150?u=${cns['name']}",
+                          "https://i.pravatar.cc/150?u=${_session.name}",
                         ),
-                  child: isSystem
+                  child: isSystem && _session.icon != null
                       ? Icon(
-                          cns['icon'] as IconData,
-                          color: cns['color'] as Color,
+                          _session.icon,
+                          color: _session.color,
                           size: 20,
                         )
                       : null,
@@ -237,7 +218,7 @@ class _RoomChatPageState extends State<RoomChatPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    cns['name'] ?? 'Konselor',
+                    _session.name,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -247,7 +228,7 @@ class _RoomChatPageState extends State<RoomChatPage> {
                   Text(
                     isSystem
                         ? 'Pusat Informasi Otomatis'
-                        : (cns['specialty'] ?? 'Konselor'),
+                        : _session.specialty,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
                       color: Colors.grey[500],
@@ -265,11 +246,11 @@ class _RoomChatPageState extends State<RoomChatPage> {
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.all(20),
-              itemCount: _messages.length,
+              itemCount: messages.length,
               itemBuilder: (context, index) {
-                final msg = _messages[index];
-                final isMe = msg['isMe'] == true;
-                final hasImage = msg['imagePath'] != null;
+                final msg = messages[index];
+                final isMe = msg.isMe;
+                final hasImage = msg.imagePath != null;
 
                 return Align(
                   alignment: isMe
@@ -303,19 +284,19 @@ class _RoomChatPageState extends State<RoomChatPage> {
                               borderRadius: BorderRadius.circular(12),
                               child: kIsWeb
                                   ? Image.network(
-                                      msg['imagePath'],
+                                      msg.imagePath!,
                                       width: 220,
                                       fit: BoxFit.cover,
                                     )
                                   : Image.file(
-                                      File(msg['imagePath']),
+                                      File(msg.imagePath!),
                                       width: 220,
                                       fit: BoxFit.cover,
                                     ),
                             ),
                           ),
                         Text(
-                          msg['text'],
+                          msg.text,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             color: isMe
@@ -326,7 +307,7 @@ class _RoomChatPageState extends State<RoomChatPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          msg['time'],
+                          msg.time,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 9,
                             color: isMe ? Colors.white70 : Colors.grey[400],

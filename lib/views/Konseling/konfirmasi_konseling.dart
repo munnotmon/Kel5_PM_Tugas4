@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import 'data_konselor.dart';
+import '../../controllers/counseling_controller.dart';
+import '../../models/counselor_model.dart';
 
 class ConfirmAppointmentPage extends StatelessWidget {
   final Map<String, dynamic>? counselorData;
@@ -20,7 +21,7 @@ class ConfirmAppointmentPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Data fallback jika tidak ada data yang dilempar
-    final data = counselorData ?? daftarKonselor[0];
+    final data = counselorData ?? CounselingController.daftarKonselor[0].toMap();
     final tgl = tanggal ?? "Senin, 12 Okt";
     final wkt = waktu ?? "10:30 WIB";
     final md = mode ?? "Lokal";
@@ -111,6 +112,13 @@ class ConfirmAppointmentPage extends StatelessWidget {
                   // PERBAIKAN: ElevatedButton ditempatkan dengan benar di dalam child
                   child: ElevatedButton(
                     onPressed: () {
+                      if (data != null) {
+                        CounselingController.addAppointment(
+                          konselor: data['name'] ?? '',
+                          tanggal: tgl,
+                          jam: wkt,
+                        );
+                      }
                       context.push(
                         '/counseling/sukses',
                         extra: {

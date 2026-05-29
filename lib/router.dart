@@ -3,41 +3,41 @@ import 'package:go_router/go_router.dart';
 
 // --- IMPORT SEMUA FILE ---
 import 'main.dart';
-import 'splash_screen/splash_care.dart';
-import 'Beranda/home.dart';
-import 'Beranda/activity.dart';
-import 'Beranda/inbox.dart';
-import 'Beranda/counseling.dart';
-import 'Profile/profile.dart';
-import 'Laporan_Perundungan/detail_laporan.dart';
-import 'login_daftar_akun/login_care.dart';
-import 'login_daftar_akun/register_care.dart';
-import 'login_daftar_akun/verification_care.dart';
-import 'login_daftar_akun/success_verification.dart';
-import 'login_daftar_akun/google_account.dart';
-import 'Laporan_Perundungan/LaporPerundunganPage.dart';
-import 'Laporan_Perundungan/LaporanStep2Page.dart';
-import 'Laporan_Perundungan/LaporanStep3Page.dart';
-import 'Laporan_Perundungan/LaporanStep4Page.dart';
-import 'Konseling/cari_konselor.dart';
-import 'Konseling/profil_konselor.dart';
-import 'Konseling/konfirmasi_konseling.dart';
-import 'Konseling/sukses_konseling.dart';
-import 'Konseling/screen1_detail_konseling.dart';
-import 'Konseling/screen3_detail_history.dart';
-import 'Konseling/screen4_reschedule.dart';
-import 'Konseling/screen_detail_sesi.dart';
-import 'Profile/notification_settings.dart';
-import 'Profile/account_security.dart';
-import 'Profile/change_password.dart';
-import 'Profile/password_updated.dart';
-import 'Profile/pusat_bantuan.dart';
-import 'Profile/syarat_ketentuan.dart';
-import 'Profile/tentang_aplikasi.dart';
-import 'inbox/room_chat.dart';
-import 'notification/notification_page.dart';
-import 'notification/detail_laporan_page.dart';
-import 'notification/detail_pesan_page.dart';
+import 'views/splash_screen/splash_care.dart';
+import 'views/Beranda/home.dart';
+import 'views/Beranda/activity.dart';
+import 'views/Beranda/inbox.dart';
+import 'views/Beranda/counseling.dart';
+import 'views/Profile/profile.dart';
+import 'views/Laporan_Perundungan/detail_laporan.dart';
+import 'views/login_daftar_akun/login_care.dart';
+import 'views/login_daftar_akun/register_care.dart';
+import 'views/login_daftar_akun/verification_care.dart';
+import 'views/login_daftar_akun/success_verification.dart';
+import 'views/login_daftar_akun/google_account.dart';
+import 'views/Laporan_Perundungan/LaporPerundunganPage.dart';
+import 'views/Laporan_Perundungan/LaporanStep2Page.dart';
+import 'views/Laporan_Perundungan/LaporanStep3Page.dart';
+import 'views/Laporan_Perundungan/Laporanstep4page.dart';
+import 'views/Konseling/cari_konselor.dart';
+import 'views/Konseling/profil_konselor.dart';
+import 'views/Konseling/konfirmasi_konseling.dart';
+import 'views/Konseling/sukses_konseling.dart';
+import 'views/Konseling/screen1_detail_konseling.dart';
+import 'views/Konseling/screen3_detail_history.dart';
+import 'views/Konseling/screen4_reschedule.dart';
+import 'views/Konseling/screen_detail_sesi.dart';
+import 'views/Profile/notification_settings.dart';
+import 'views/Profile/account_security.dart';
+import 'views/Profile/change_password.dart';
+import 'views/Profile/password_updated.dart';
+import 'views/Profile/pusat_bantuan.dart';
+import 'views/Profile/syarat_ketentuan.dart';
+import 'views/Profile/tentang_aplikasi.dart';
+import 'views/inbox/room_chat.dart';
+import 'views/notification/notification_page.dart';
+import 'views/notification/detail_laporan_page.dart';
+import 'views/notification/detail_pesan_page.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> activityNavigatorKey =
@@ -100,7 +100,9 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/counseling/detail-sesi',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const Screen1DetailKonseling(),
+      builder: (context, state) => Screen1DetailKonseling(
+        sessionData: state.extra as Map<String, dynamic>?,
+      ),
     ),
     GoRoute(
       path: '/counseling/detail-sesi-aktif',
@@ -126,7 +128,9 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/counseling/reschedule',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const Screen4Reschedule(),
+      builder: (context, state) => Screen4Reschedule(
+        counselorData: state.extra as Map<String, dynamic>?,
+      ),
     ),
     GoRoute(
       path: '/counseling/cari',

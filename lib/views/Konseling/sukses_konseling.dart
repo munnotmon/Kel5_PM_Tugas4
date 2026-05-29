@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import 'data_konselor.dart';
+import '../../controllers/counseling_controller.dart';
 
 class SuccessAppointmentPage extends StatelessWidget {
   final Map<String, dynamic>?
@@ -12,7 +12,7 @@ class SuccessAppointmentPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Mengekstrak data yang dilempar dari halaman Konfirmasi
-    final data = sessionData?['counselor'] ?? daftarKonselor[0];
+    final data = sessionData?['counselor'] ?? CounselingController.daftarKonselor[0].toMap();
     final tgl = sessionData?['tanggal'] ?? "Senin, 12 Okt";
     final wkt = sessionData?['waktu'] ?? "10:30 WIB";
     final md = sessionData?['mode'] ?? "Virtual";
