@@ -51,10 +51,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('mahasiswa_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('admin_id')->nullable()->constrained('users')->onDelete('cascade');
-            $table->foreignId('jadwal_id')->constrained('jadwal_konseling')->onDelete('cascade');
+            $table->foreignId('jadwal_id')->nullable()->constrained('jadwal_konseling')->onDelete('cascade');
             $table->string('nomor_antrian')->nullable();
             $table->text('keluhan')->nullable();
             $table->string('status')->default('Diajukan');
+            $table->string('tipe')->default('konseling');
             $table->timestamps();
         });
 
@@ -92,7 +93,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('konseling_id')->constrained('konseling')->onDelete('cascade');
             $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
-            $table->text('isi_pesan');
+            $table->text('isi_pesan')->nullable();
+            $table->string('path_gambar')->nullable();
             $table->string('status_pesan')->default('sent');
             $table->timestamps();
         });

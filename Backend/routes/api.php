@@ -28,6 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/laporan', [LaporanController::class, 'store']);
     Route::get('/laporan/{id}', [LaporanController::class, 'show']);
     Route::post('/laporan/{id}/status', [LaporanController::class, 'updateStatus']);
+    Route::post('/laporan/{id}/chat', [LaporanController::class, 'getOrCreateChatForReport']);
 
     // Konselor (Profil Konselor)
     Route::get('/konselor', [KonselorController::class, 'index']);

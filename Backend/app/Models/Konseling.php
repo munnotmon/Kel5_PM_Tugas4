@@ -18,6 +18,7 @@ class Konseling extends Model
         'nomor_antrian',
         'keluhan',
         'status',
+        'tipe',
     ];
 
     public function mahasiswa()

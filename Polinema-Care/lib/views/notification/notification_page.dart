@@ -1,55 +1,89 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import '../../controllers/counseling_controller.dart'; // Import database konselor
+import '../../services/api_service.dart';
 
-class NotificationPage extends StatelessWidget {
+class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
 
   @override
+  State<NotificationPage> createState() => _NotificationPageState();
+}
+
+class _NotificationPageState extends State<NotificationPage> {
+  List<dynamic> _notifications = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNotifications();
+    _markAllAsRead();
+  }
+
+  Future<void> _fetchNotifications() async {
+    try {
+      final response = await ApiService.get('/notifikasi');
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['success'] == true) {
+          if (mounted) {
+            setState(() {
+              _notifications = body['data'] ?? [];
+              _isLoading = false;
+            });
+          }
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching notifications: $e');
+    }
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _markAllAsRead() async {
+    try {
+      await ApiService.post('/notifikasi/read-all', {});
+    } catch (e) {
+      debugPrint('Error marking notifications as read: $e');
+    }
+  }
+
+  String _formatTime(String rawStr) {
+    if (rawStr.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(rawStr).toLocal();
+      final now = DateTime.now();
+      final difference = now.difference(dt);
+      
+      if (difference.inMinutes < 1) {
+        return 'Baru saja';
+      } else if (difference.inMinutes < 60) {
+        return '${difference.inMinutes}m lalu';
+      } else if (difference.inHours < 24) {
+        return '${difference.inHours}j lalu';
+      } else if (difference.inDays < 7) {
+        return '${difference.inDays}h lalu';
+      } else {
+        final months = [
+          'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+          'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+        ];
+        return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
+      }
+    } catch (_) {
+      return rawStr;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // ✅ SINKRONISASI TIPE DATA DENGAN INBOX & ROOM CHAT (ANTI-CRASH TYPE)
-    final Map<String, dynamic> chatAnton = {
-      'name': CounselingController.konselorAt(0).name,
-      'specialty': CounselingController.konselorAt(0).specialty,
-      'color': const Color(0xFF1068A3),
-      'isSystem': false,
-      'messages': <Map<String, dynamic>>[
-        {
-          'text':
-              'Halo Kelompok 5, ada yang bisa saya bantu diskusikan hari ini?',
-          'isMe': false,
-          'time': '10:43',
-        },
-        {
-          'text':
-              'Saya merasa sedikit stres akhir-akhir ini karena tekanan tugas kuliah, Dok.',
-          'isMe': true,
-          'time': '10:44',
-        },
-        {
-          'text': 'Bagaimana perasaanmu hari ini?',
-          'isMe': false,
-          'time': '10:45',
-        },
-      ],
-    };
-
-    final Map<String, dynamic> chatSarah = {
-      'name': CounselingController.konselorAt(3).name,
-      'specialty': CounselingController.konselorAt(3).specialty,
-      'color': Colors.teal,
-      'isSystem': false,
-      'messages': <Map<String, dynamic>>[
-        {
-          'text':
-              'Halo Kelompok 5, link meet untuk sesi kita besok sudah siap.',
-          'isMe': false,
-          'time': '12 Jan',
-        },
-      ],
-    };
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -69,99 +103,123 @@ class NotificationPage extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        children: [
-          _buildSectionLabel('HARI INI'),
-          _buildNotifItem(
-            context,
-            type: 'pesan',
-            title: 'Pesan dari dr. Anton Wijaya',
-            desc: '“Bagaimana perasaanmu hari ini?”',
-            time: '10:45',
-            icon: Icons.chat_bubble_outline_rounded,
-            color: const Color(0xFF1068A3),
-            extraData: chatAnton,
-          ),
-          _buildNotifItem(
-            context,
-            type: 'laporan',
-            title: 'Laporan Diproses (#RPT-001)',
-            desc:
-                'Bukti baru telah ditambahkan ke laporan Anda. Tim sedang meninjaunya.',
-            time: '2 Jam Lalu',
-            icon: Icons.description_outlined,
-            color: const Color(0xFF3B82F6),
-            extraData: null,
-          ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _notifications.isEmpty
+              ? _buildEmptyState()
+              : RefreshIndicator(
+                  onRefresh: _fetchNotifications,
+                  color: const Color(0xFF1068A3),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    itemCount: _notifications.length,
+                    itemBuilder: (context, index) {
+                      final notif = _notifications[index];
+                      final title = notif['judul'] ?? 'Notifikasi';
+                      final desc = notif['isi'] ?? '';
+                      final time = notif['created_at']?.toString() ?? '';
+                      final isRead = notif['sudah_dibaca'] == true || notif['sudah_dibaca'] == 1;
 
-          _buildSectionLabel('MINGGU INI'),
-          _buildNotifItem(
-            context,
-            type: 'pesan',
-            title: 'Pesan dari dr. Sarah Johnson',
-            desc:
-                '“Halo Kelompok 5, link meet untuk sesi kita besok sudah siap.”',
-            time: '12 Jan',
-            icon: Icons.chat_bubble_outline_rounded,
-            color: Colors.teal,
-            extraData: chatSarah,
+                      IconData icon = Icons.info_outline;
+                      Color color = Colors.orange;
+
+                      if (title.toLowerCase().contains('pesan') || title.toLowerCase().contains('chat')) {
+                        icon = Icons.chat_bubble_outline_rounded;
+                        color = const Color(0xFF1068A3);
+                      } else if (title.toLowerCase().contains('laporan')) {
+                        icon = Icons.description_outlined;
+                        color = const Color(0xFF3B82F6);
+                      } else if (title.toLowerCase().contains('konseling')) {
+                        icon = Icons.calendar_today_outlined;
+                        color = Colors.teal;
+                      }
+
+                      return _buildNotifItem(
+                        context,
+                        title: title,
+                        desc: desc,
+                        time: _formatTime(time),
+                        icon: icon,
+                        color: color,
+                        isRead: isRead,
+                        onTap: () {
+                          if (title.toLowerCase().contains('pesan') || title.toLowerCase().contains('chat')) {
+                            context.go('/inbox');
+                          } else if (title.toLowerCase().contains('laporan')) {
+                            context.go('/activity', extra: 0);
+                          } else if (title.toLowerCase().contains('konseling')) {
+                            context.go('/activity', extra: 1);
+                          }
+                        },
+                      );
+                    },
+                  ),
+                ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF0F5FA),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.notifications_off_outlined,
+              size: 60,
+              color: Color(0xFF90A3BF),
+            ),
           ),
-          _buildNotifItem(
-            context,
-            type: 'sistem',
-            title: 'Welcome to Polinema Care+',
-            desc:
-                'Selamat datang di platform Respon & Konseling Polinema Care+.',
-            time: 'Kemarin',
-            icon: Icons.admin_panel_settings_outlined,
-            color: Colors.green,
-            extraData: null,
+          const SizedBox(height: 20),
+          Text(
+            'Belum ada notifikasi',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF1A2D3D),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Semua notifikasi aktivitas Anda akan muncul di sini.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              color: Colors.grey[500],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionLabel(String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Text(
-        label,
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          color: Colors.grey[400],
-          letterSpacing: 1.2,
-        ),
-      ),
-    );
-  }
-
   Widget _buildNotifItem(
     BuildContext context, {
-    required String type,
     required String title,
     required String desc,
     required String time,
     required IconData icon,
     required Color color,
-    required Map<String, dynamic>? extraData,
+    required bool isRead,
+    required VoidCallback onTap,
   }) {
     return GestureDetector(
-      onTap: () {
-        if (type == 'laporan') {
-          context.push('/notifications/detail-laporan');
-        } else if (type == 'pesan') {
-          context.push('/notifications/detail-pesan', extra: extraData);
-        }
-      },
+      onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 20),
-        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8F9FA),
+          color: isRead ? const Color(0xFFF8F9FA) : const Color(0xFFEDF7FD),
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isRead ? Colors.transparent : const Color(0xFFBFE0F5),
+            width: 1,
+          ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,7 +256,7 @@ class NotificationPage extends StatelessWidget {
                         time,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
-                          color: Colors.grey[400],
+                          color: Colors.grey[500],
                         ),
                       ),
                     ],

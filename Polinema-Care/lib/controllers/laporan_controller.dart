@@ -5,11 +5,15 @@ import 'package:http/http.dart' as http;
 import '../services/api_service.dart';
 import '../models/laporan_model.dart';
 
+import 'package:image_picker/image_picker.dart' show XFile;
+
 class LaporanController {
   static LaporanModel activeReport = LaporanModel();
+  static List<XFile> rawFiles = [];
 
   static void resetActiveReport() {
     activeReport = LaporanModel();
+    rawFiles.clear();
   }
 
   static void updateStep1({
@@ -70,30 +74,40 @@ class LaporanController {
         'deskripsi_pelaku': (data['pelaku'] ?? '').toString(),
         'lokasi': (data['lokasi'] ?? '').toString(),
         'tanggal_kejadian': (data['tanggal_kejadian_raw'] ?? DateTime.now().toIso8601String()).toString(),
+        'program_studi': (data['prodi'] ?? '').toString(),
       };
 
       final List<http.MultipartFile> files = [];
-      final List<dynamic> lampiran = data['lampiran'] ?? [];
-      
-      if (!kIsWeb) {
-        for (final path in lampiran) {
-          if (path is String && path.isNotEmpty) {
-            final file = File(path);
-            if (await file.exists()) {
-              final multipartFile = await http.MultipartFile.fromPath('bukti_files[]', path);
-              files.add(multipartFile);
-            }
+
+      for (final xfile in rawFiles) {
+        if (kIsWeb) {
+          final bytes = await xfile.readAsBytes();
+          final multipartFile = http.MultipartFile.fromBytes(
+            'bukti_files[]',
+            bytes,
+            filename: xfile.name,
+          );
+          files.add(multipartFile);
+        } else {
+          final file = File(xfile.path);
+          if (await file.exists()) {
+            final multipartFile = await http.MultipartFile.fromPath(
+              'bukti_files[]',
+              xfile.path,
+            );
+            files.add(multipartFile);
           }
-        }
-      } else {
-        if (lampiran.isNotEmpty) {
-          print('File upload via path is not supported on web. Skipping file upload.');
         }
       }
 
       final response = await ApiService.postMultipart('/laporan', fields, files);
       print('Submit Report status code: ${response.statusCode}');
       print('Submit Report body: ${response.body}');
+      
+      if (response.statusCode == 201) {
+        rawFiles.clear();
+      }
+
       final body = jsonDecode(response.body);
       return response.statusCode == 201 && body['success'] == true;
     } catch (e) {

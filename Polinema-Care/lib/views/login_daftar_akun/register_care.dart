@@ -363,62 +363,6 @@ class _RegisterCareState extends State<RegisterCare> {
                                     ),
                             ),
                           ),
-                          const SizedBox(height: 20),
-
-                          // --- SEPARATOR ---
-                          _buildSeparator(),
-                          const SizedBox(height: 20),
-
-                          // --- GOOGLE REGISTER (Daftar dengan Google) ---
-                          SizedBox(
-                            width: double.infinity,
-                            height: 55,
-                            child: OutlinedButton(
-                              onPressed: () {
-                                context.push('/google_account');
-                              },
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: Colors.grey.shade300),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  // Google Icon (G warna-warni)
-                                  ShaderMask(
-                                    shaderCallback: (bounds) =>
-                                        const LinearGradient(
-                                          colors: [
-                                            Color(0xFF4285F4),
-                                            Color(0xFFDB4437),
-                                            Color(0xFFF4B400),
-                                            Color(0xFF0F9D58),
-                                          ],
-                                        ).createShader(bounds),
-                                    child: Text(
-                                      'G',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 26,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    'Daftar dengan Google',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 16,
-                                      color: const Color(0xFF2D3142),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -476,26 +420,6 @@ class _RegisterCareState extends State<RegisterCare> {
           color: const Color(0xFF4B5563),
         ),
       ),
-    );
-  }
-
-  Widget _buildSeparator() {
-    return Row(
-      children: [
-        const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            "ATAU",
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF9CA3AF),
-            ),
-          ),
-        ),
-        const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
-      ],
     );
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
@@ -6,9 +8,128 @@ import 'counseling.dart';
 import '../../controllers/chat_controller.dart';
 import '../../models/chat_model.dart';
 import '../../controllers/laporan_controller.dart';
+import '../../services/api_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _unreadCount = 0;
+  Timer? _timer;
+  Future<List<Map<String, dynamic>>>? _reportsFuture;
+  Future<List<ChatSession>>? _chatsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _reportsFuture = LaporanController.fetchReports();
+    _chatsFuture = ChatController.fetchChats();
+    _fetchUnreadCount();
+    _timer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      _fetchUnreadCount();
+      _refreshData();
+    });
+  }
+
+  void _refreshData() {
+    if (!ApiService.isAuthenticated) return;
+    if (mounted) {
+      setState(() {
+        _reportsFuture = LaporanController.fetchReports();
+        _chatsFuture = ChatController.fetchChats();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchUnreadCount() async {
+    if (!ApiService.isAuthenticated) return;
+    try {
+      final response = await ApiService.get('/notifikasi');
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['success'] == true) {
+          final List list = body['data'] ?? [];
+          final count = list.where((item) => item['sudah_dibaca'] == false || item['sudah_dibaca'] == 0 || item['sudah_dibaca'] == '0').length;
+          if (mounted) {
+            setState(() {
+              _unreadCount = count;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching unread notification count: $e');
+    }
+  }
+
+  Widget _buildNotificationBell(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        GestureDetector(
+          onTap: () async {
+            await context.push('/notifications');
+            _fetchUnreadCount();
+          },
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey.withOpacity(0.15)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.notifications_none_rounded,
+              color: Color(0xFF1068A3),
+              size: 22,
+            ),
+          ),
+        ),
+        if (_unreadCount > 0)
+          Positioned(
+            right: -2,
+            top: -2,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.redAccent,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 16,
+                minHeight: 16,
+              ),
+              child: Text(
+                '$_unreadCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 8,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +173,7 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ],
                     ),
+                    _buildNotificationBell(context),
                   ],
                 ),
                 const SizedBox(height: 22),
@@ -116,6 +238,7 @@ class HomeScreen extends StatelessWidget {
                 ActivitySection(
                   onSeeAll: () =>
                       context.go('/activity', extra: 0), // ← fix: push → go
+                  future: _reportsFuture,
                 ),
 
                 const SizedBox(height: 32),
@@ -130,7 +253,10 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 32),
 
                 // --- SECTION INBOX ---
-                InboxSection(onNavigate: () => context.go('/inbox')),
+                InboxSection(
+                  onNavigate: () => context.go('/inbox'),
+                  future: _chatsFuture,
+                ),
 
                 const SizedBox(height: 100),
               ],
@@ -144,8 +270,9 @@ class HomeScreen extends StatelessWidget {
 
 class ActivitySection extends StatelessWidget {
   final VoidCallback? onSeeAll;
+  final Future<List<Map<String, dynamic>>>? future;
 
-  const ActivitySection({super.key, this.onSeeAll});
+  const ActivitySection({super.key, this.onSeeAll, this.future});
 
   @override
   Widget build(BuildContext context) {
@@ -178,7 +305,7 @@ class ActivitySection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         FutureBuilder<List<Map<String, dynamic>>>(
-          future: LaporanController.fetchReports(),
+          future: future,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()));
@@ -326,8 +453,9 @@ class ActivitySection extends StatelessWidget {
 // =====================================================================
 class InboxSection extends StatelessWidget {
   final VoidCallback? onNavigate;
+  final Future<List<ChatSession>>? future;
 
-  const InboxSection({super.key, this.onNavigate});
+  const InboxSection({super.key, this.onNavigate, this.future});
 
   @override
   Widget build(BuildContext context) {
@@ -344,7 +472,7 @@ class InboxSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         FutureBuilder<List<ChatSession>>(
-          future: ChatController.fetchChats(),
+          future: future,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(

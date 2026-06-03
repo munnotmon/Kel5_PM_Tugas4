@@ -43,7 +43,8 @@ class LaporanController extends Controller
             'lokasi' => 'nullable|string|max:255',
             'tanggal_kejadian' => 'nullable|date',
             'bukti_files' => 'nullable|array',
-            'bukti_files.*' => 'file|max:5120', // max 5MB per file
+            'bukti_files.*' => 'file|max:1048576', // max 1GB per file
+            'program_studi' => 'nullable|string|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -65,6 +66,16 @@ class LaporanController extends Controller
             'tanggal_kejadian' => $request->tanggal_kejadian,
             'status' => 'Menunggu',
         ]);
+
+        // Update program studi in mahasiswa's profile if provided
+        if ($request->has('program_studi') && $request->program_studi) {
+            $user = $request->user();
+            $profile = \App\Models\ProfilMahasiswa::where('user_id', $user->id)->first();
+            if ($profile) {
+                $profile->program_studi = $request->program_studi;
+                $profile->save();
+            }
+        }
 
         // Process attachments/bukti files
         if ($request->hasFile('bukti_files')) {
@@ -172,6 +183,51 @@ class LaporanController extends Controller
             'success' => true,
             'message' => 'Status laporan berhasil diperbarui',
             'data' => $report->load(['pelapor.profilMahasiswa', 'bukti'])
+        ]);
+    }
+
+    public function getOrCreateChatForReport(Request $request, $id)
+    {
+        $user = $request->user();
+
+        if ($user->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Hanya admin yang dapat menghubungi pelapor.'
+            ], 403);
+        }
+
+        $report = LaporanPerundungan::find($id);
+
+        if (!$report) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Laporan tidak ditemukan'
+            ], 404);
+        }
+
+        // Cari sesi chat tindak lanjut laporan yang sudah ada antara admin ini dan pelapor yang masih aktif
+        $session = \App\Models\Konseling::where('mahasiswa_id', $report->pelapor_id)
+            ->where('admin_id', $user->id)
+            ->where('tipe', 'laporan')
+            ->whereNotIn('status', ['Selesai', 'Dibatalkan'])
+            ->first();
+
+        if (!$session) {
+            $session = \App\Models\Konseling::create([
+                'mahasiswa_id' => $report->pelapor_id,
+                'admin_id' => $user->id,
+                'jadwal_id' => null,
+                'keluhan' => 'Tindak lanjut laporan: ' . $report->judul_pelaporan,
+                'status' => 'Berlangsung',
+                'tipe' => 'laporan',
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sesi chat berhasil dihubungkan',
+            'data' => $session->load(['mahasiswa.profilMahasiswa', 'admin', 'jadwalKonseling'])
         ]);
     }
 }

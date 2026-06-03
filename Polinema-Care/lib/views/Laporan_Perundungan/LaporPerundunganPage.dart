@@ -39,8 +39,8 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
     _nimController.text = d['nim'] ?? AuthController.currentUserNim;
     _teleponController.text = d['telepon'] ?? AuthController.currentUserPhone;
     
-    final initialProdi = d['prodi'] as String? ?? AuthController.currentUserProdi;
-    if (initialProdi.isNotEmpty && _prodiList.contains(initialProdi)) {
+    final initialProdi = d['prodi'] as String?;
+    if (initialProdi != null && initialProdi.isNotEmpty && _prodiList.contains(initialProdi)) {
       _selectedProdi = initialProdi;
     } else {
       _selectedProdi = null;

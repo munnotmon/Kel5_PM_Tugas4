@@ -22,19 +22,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   late TextEditingController _namaController;
   late TextEditingController _teleponController;
-  late String _programStudi;
-
-  final List<String> _prodiOptions = [
-    'Teknologi Informasi',
-    'Teknik Informatika',
-    'Sistem Informasi Bisnis',
-    'Teknik Telekomunikasi',
-    'Teknik Elektro',
-    'Teknik Mesin',
-    'Teknik Sipil',
-    'Akuntansi',
-    'Administrasi Niaga'
-  ];
 
 
   bool _isSaving = false;
@@ -49,9 +36,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _namaController = TextEditingController(text: ProfileStore.nama.value);
     _teleponController = TextEditingController(text: ProfileStore.nomorTelepon.value);
 
-    final initialProdi = ProfileStore.programStudi.value;
-    _programStudi = _prodiOptions.contains(initialProdi) ? initialProdi : _prodiOptions[0];
-
     _namaController.addListener(_onFieldChanged);
     _teleponController.addListener(_onFieldChanged);
   }
@@ -60,7 +44,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final changed =
         _namaController.text != ProfileStore.nama.value ||
         _teleponController.text != ProfileStore.nomorTelepon.value ||
-        _programStudi != ProfileStore.programStudi.value ||
         _profileImage != null;
     if (changed != _hasChanges) {
       setState(() => _hasChanges = changed);
@@ -91,7 +74,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final result = await AuthController.updateProfile(
       nama: _namaController.text.trim(),
       nomorTelepon: _teleponController.text.trim(),
-      programStudi: _programStudi,
+      programStudi: ProfileStore.programStudi.value,
       angkatan: 0,
       photoFile: _profileImage,
     );
@@ -600,36 +583,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               return null;
             },
           ),
-          const SizedBox(height: 20),
 
-          // Program Studi
-          _buildFieldLabel('Program Studi'),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            value: _programStudi,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14,
-              color: const Color(0xFF1A2D3D),
-            ),
-            decoration: PolinemaCareInputDecoration.get(
-              hint: 'Pilih Program Studi',
-              icon: Icons.school_outlined,
-            ),
-            items: _prodiOptions
-                .map((prodi) => DropdownMenuItem<String>(
-                      value: prodi,
-                      child: Text(prodi),
-                    ))
-                .toList(),
-            onChanged: (val) {
-              if (val != null) {
-                setState(() {
-                  _programStudi = val;
-                  _onFieldChanged();
-                });
-              }
-            },
-          ),
         ],
       ),
     );

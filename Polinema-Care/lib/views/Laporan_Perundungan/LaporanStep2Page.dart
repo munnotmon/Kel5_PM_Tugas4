@@ -9,6 +9,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../controllers/laporan_controller.dart';
 
 class LaporanStep2Page extends StatefulWidget {
   final Map<String, dynamic> prevData;
@@ -56,11 +57,16 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
     _lokasiController.text = d['lokasi'] ?? '';
     _selectedJenis = d['jenis'] as String?;
     _deskripsiController.text = d['deskripsi'] ?? '';
-    // Restore lampiran path jika ada
-    final lampiranPaths = d['lampiran'];
-    if (lampiranPaths is List) {
-      for (final path in lampiranPaths) {
-        _attachments.add(XFile(path.toString()));
+    // Restore lampiran jika ada
+    if (LaporanController.rawFiles.isNotEmpty) {
+      _attachments.addAll(LaporanController.rawFiles);
+    } else {
+      final lampiranPaths = d['lampiran'];
+      if (lampiranPaths is List) {
+        for (final path in lampiranPaths) {
+          _attachments.add(XFile(path.toString()));
+        }
+        LaporanController.rawFiles = List<XFile>.from(_attachments);
       }
     }
     // Restore DateTime dari string 'waktu' format: "9 Mei 2026, 15:17"
@@ -412,7 +418,10 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
       MaterialPageRoute(
         builder: (context) => CameraAwesomePage(
           onFilesReady: (files) {
-            setState(() => _attachments.addAll(files));
+            setState(() {
+              _attachments.addAll(files);
+              LaporanController.rawFiles = List<XFile>.from(_attachments);
+            });
           },
         ),
       ),
@@ -426,12 +435,16 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
         for (final xfile in picked) {
           _attachments.add(xfile);
         }
+        LaporanController.rawFiles = List<XFile>.from(_attachments);
       });
     }
   }
 
   void _removeAttachment(int index) {
-    setState(() => _attachments.removeAt(index));
+    setState(() {
+      _attachments.removeAt(index);
+      LaporanController.rawFiles = List<XFile>.from(_attachments);
+    });
   }
 
   // =====================================================================
@@ -443,6 +456,15 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Waktu kejadian wajib diisi'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      if (_attachments.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Lampiran bukti wajib diunggah (minimal 1 foto/video)'),
             backgroundColor: Colors.red,
           ),
         );
@@ -1044,12 +1066,13 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildLabel('DESKRIPSI KEJADIAN', showAsterisk: false),
+        _buildLabel('DESKRIPSI KEJADIAN'),
         const SizedBox(height: 10),
         TextFormField(
           controller: _deskripsiController,
           maxLines: 5,
-          validator: (null),
+          validator: (val) =>
+              val == null || val.isEmpty ? 'Deskripsi kejadian wajib diisi' : null,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
             color: const Color(0xFF1A2D3D),
@@ -1174,7 +1197,7 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Foto, Video, atau Tangkapan Layar (Maks. 10MB)',
+                  'Foto, Video, atau Tangkapan Layar (Maks. 1GB)',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     color: Colors.grey[500],

@@ -15,6 +15,7 @@ class Pesan extends Model
         'konseling_id',
         'sender_id',
         'isi_pesan',
+        'path_gambar',
         'status_pesan',
     ];
 

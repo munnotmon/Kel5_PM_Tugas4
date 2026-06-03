@@ -23,7 +23,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ProfileStore.photo.addListener(_onProfileChanged);
     ProfileStore.email.addListener(_onProfileChanged);
     ProfileStore.nomorTelepon.addListener(_onProfileChanged);
-    ProfileStore.programStudi.addListener(_onProfileChanged);
     ProfileStore.angkatan.addListener(_onProfileChanged);
     ProfileStore.photoUrl.addListener(_onProfileChanged);
   }
@@ -39,7 +38,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ProfileStore.photo.removeListener(_onProfileChanged);
     ProfileStore.email.removeListener(_onProfileChanged);
     ProfileStore.nomorTelepon.removeListener(_onProfileChanged);
-    ProfileStore.programStudi.removeListener(_onProfileChanged);
     ProfileStore.angkatan.removeListener(_onProfileChanged);
     ProfileStore.photoUrl.removeListener(_onProfileChanged);
     super.dispose();
@@ -294,9 +292,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final String nomorTelepon = ProfileStore.nomorTelepon.value.isNotEmpty
         ? ProfileStore.nomorTelepon.value
         : '-';
-    final String programStudi = ProfileStore.programStudi.value.isNotEmpty
-        ? ProfileStore.programStudi.value
-        : '-';
 
     return Container(
       width: double.infinity,
@@ -315,8 +310,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildInfoRow('EMAIL', email),
           _buildDivider(),
           _buildInfoRow('NOMOR TELEPON', nomorTelepon),
-          _buildDivider(),
-          _buildInfoRow('PROGRAM STUDI', programStudi),
         ],
       ),
     );

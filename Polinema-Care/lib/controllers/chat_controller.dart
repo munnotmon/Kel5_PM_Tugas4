@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../models/chat_model.dart';
 import '../services/api_service.dart';
 import 'auth_controller.dart';
@@ -22,19 +24,20 @@ class ChatController {
           final id = item['id'] as int;
           final adminName = item['admin']?['nama'] ?? 'Admin Kampus';
           final status = item['status'] ?? 'Diajukan';
+          final tipe = item['tipe'] ?? 'konseling';
           
-          final msgResponse = await ApiService.get('/chat/$id');
-          final msgBody = jsonDecode(msgResponse.body);
-          final List msgList = (msgResponse.statusCode == 200 && msgBody['success'] == true)
-              ? msgBody['data'] ?? []
-              : [];
+          final label = tipe == 'laporan' ? 'Tindak Lanjut Laporan' : 'Sesi Konseling #KSL-$id';
+          final specialty = '$label ($status)';
+          
+          final List msgList = item['pesan'] ?? [];
           
           final messages = msgList.map((m) {
             final text = m['isi_pesan'] ?? '';
             final isMe = m['sender_id'] == AuthController.currentUser?['id'];
             final createdAt = m['created_at']?.toString() ?? '';
-            final timeStr = createdAt.length >= 16 ? createdAt.substring(11, 16) : '';
-            return ChatMessage(text: text, isMe: isMe, time: timeStr);
+            final timeStr = _formatTime(createdAt);
+            final imagePath = m['path_gambar'] as String?;
+            return ChatMessage(text: text, isMe: isMe, time: timeStr, imagePath: imagePath);
           }).toList();
 
           int unreadCount = 0;
@@ -47,7 +50,7 @@ class ChatController {
           realChats.add(
             ChatSession(
               name: adminName,
-              specialty: 'Sesi Konseling #KSL-$id ($status)',
+              specialty: specialty,
               isSystem: false,
               color: Colors.blueAccent,
               unread: unreadCount,
@@ -79,8 +82,9 @@ class ChatController {
           final text = m['isi_pesan'] ?? '';
           final isMe = m['sender_id'] == AuthController.currentUser?['id'];
           final createdAt = m['created_at']?.toString() ?? '';
-          final timeStr = createdAt.length >= 16 ? createdAt.substring(11, 16) : '';
-          return ChatMessage(text: text, isMe: isMe, time: timeStr);
+          final timeStr = _formatTime(createdAt);
+          final imagePath = m['path_gambar'] as String?;
+          return ChatMessage(text: text, isMe: isMe, time: timeStr, imagePath: imagePath);
         }).toList();
 
         session.messages.clear();
@@ -114,26 +118,56 @@ class ChatController {
     }
   }
 
-  static Future<bool> sendMessage(String sessionName, String text, {String? imagePath}) async {
+  static Future<bool> sendMessage(
+    String sessionName, 
+    String text, 
+    {String? imagePath, 
+     Uint8List? imageBytes, 
+     String? imageName}
+  ) async {
     final session = getChatByName(sessionName);
     if (session == null) return false;
 
     if (session.konselingId != null) {
       try {
-        final response = await ApiService.post('/chat', {
-          'konseling_id': session.konselingId,
-          'isi_pesan': text,
-        });
+        http.Response response;
+        if (imageBytes != null && imageName != null) {
+          final file = http.MultipartFile.fromBytes('gambar', imageBytes, filename: imageName);
+          response = await ApiService.postMultipart(
+            '/chat',
+            {
+              'konseling_id': session.konselingId.toString(),
+              'isi_pesan': text,
+            },
+            [file],
+          );
+        } else if (imagePath != null) {
+          final file = await http.MultipartFile.fromPath('gambar', imagePath);
+          response = await ApiService.postMultipart(
+            '/chat',
+            {
+              'konseling_id': session.konselingId.toString(),
+              'isi_pesan': text,
+            },
+            [file],
+          );
+        } else {
+          response = await ApiService.post('/chat', {
+            'konseling_id': session.konselingId,
+            'isi_pesan': text,
+          });
+        }
         final body = jsonDecode(response.body);
         if (response.statusCode == 201 && body['success'] == true) {
           final now = DateTime.now();
           final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+          final returnedPath = body['data']?['path_gambar'] as String?;
           session.messages.add(
             ChatMessage(
               text: text,
               isMe: true,
               time: timeStr,
-              imagePath: imagePath,
+              imagePath: returnedPath ?? imagePath,
             ),
           );
           return true;
@@ -161,6 +195,16 @@ class ChatController {
     final session = getChatByName(sessionName);
     if (session != null) {
       session.unread = 0;
+    }
+  }
+
+  static String _formatTime(String createdAt) {
+    if (createdAt.isEmpty) return '';
+    try {
+      final parsedDate = DateTime.parse(createdAt).toLocal();
+      return '${parsedDate.hour.toString().padLeft(2, '0')}:${parsedDate.minute.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return createdAt.length >= 16 ? createdAt.substring(11, 16) : '';
     }
   }
 }

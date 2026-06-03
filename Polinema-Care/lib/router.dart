@@ -14,7 +14,6 @@ import 'views/login_daftar_akun/login_care.dart';
 import 'views/login_daftar_akun/register_care.dart';
 import 'views/login_daftar_akun/verification_care.dart';
 import 'views/login_daftar_akun/success_verification.dart';
-import 'views/login_daftar_akun/google_account.dart';
 import 'views/Laporan_Perundungan/LaporPerundunganPage.dart';
 import 'views/Laporan_Perundungan/LaporanStep2Page.dart';
 import 'views/Laporan_Perundungan/LaporanStep3Page.dart';
@@ -54,8 +53,7 @@ final GoRouter appRouter = GoRouter(
       '/register', 
       '/splash', 
       '/verification', 
-      '/success_verification', 
-      '/google_account'
+      '/success_verification'
     ];
     final location = state.matchedLocation;
     final isPublic = publicRoutes.contains(location);
@@ -87,11 +85,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) =>
           VerificationCare(email: state.extra as String? ?? ''),
     ),
-    GoRoute(
-      path: '/google_account',
-      builder: (context, state) =>
-          GoogleAccountSelection(isLogin: state.extra as bool? ?? true),
-    ),
+
     GoRoute(
       path: '/success_verification',
       builder: (context, state) => const SuccessVerificationCare(),

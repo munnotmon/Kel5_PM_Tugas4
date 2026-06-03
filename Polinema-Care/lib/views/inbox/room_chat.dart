@@ -89,15 +89,114 @@ class _RoomChatPageState extends State<RoomChatPage> {
       );
 
       if (image != null) {
-        final success = await ChatController.sendMessage(_session.name, 'Lampiran Gambar', imagePath: image.path);
-        if (success) {
-          if (mounted) {
-            setState(() {
-              widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
-            });
-            _scrollToBottom();
+        if (!mounted) return;
+        final TextEditingController captionController = TextEditingController();
+        
+        final bool? confirmSend = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return Dialog(
+              backgroundColor: const Color(0xFF1E272C),
+              insetPadding: const EdgeInsets.all(0),
+              child: Scaffold(
+                backgroundColor: const Color(0xFF1E272C),
+                appBar: AppBar(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  leading: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(context, false),
+                  ),
+                  title: Text(
+                    'Kirim Gambar',
+                    style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                body: Column(
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: kIsWeb
+                              ? Image.network(
+                                  image.path,
+                                  fit: BoxFit.contain,
+                                )
+                              : Image.file(
+                                  File(image.path),
+                                  fit: BoxFit.contain,
+                                ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      color: const Color(0xFF131C21),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: captionController,
+                              style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
+                              decoration: InputDecoration(
+                                hintText: 'Tambahkan keterangan...',
+                                hintStyle: GoogleFonts.plusJakartaSans(color: Colors.grey, fontSize: 14),
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          CircleAvatar(
+                            backgroundColor: const Color(0xFF1068A3),
+                            child: IconButton(
+                              icon: const Icon(Icons.send, color: Colors.white, size: 20),
+                              onPressed: () => Navigator.pop(context, true),
+                            ),
+                          )
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            );
+          }
+        );
+
+        if (confirmSend == true) {
+          final caption = captionController.text.trim();
+          final textToSend = caption.isNotEmpty ? caption : 'Lampiran Gambar';
+          
+          bool success;
+          if (kIsWeb) {
+            final bytes = await image.readAsBytes();
+            success = await ChatController.sendMessage(
+              _session.name,
+              textToSend,
+              imageBytes: bytes,
+              imageName: image.name,
+              imagePath: image.path,
+            );
+          } else {
+            success = await ChatController.sendMessage(
+              _session.name,
+              textToSend,
+              imagePath: image.path,
+            );
+          }
+          
+          if (success) {
+            if (mounted) {
+              setState(() {
+                widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
+              });
+              _scrollToBottom();
+            }
           }
         }
+        captionController.dispose();
       }
     } catch (e) {
       debugPrint("Gagal mengambil gambar: $e");
@@ -304,7 +403,7 @@ class _RoomChatPageState extends State<RoomChatPage> {
                             padding: const EdgeInsets.only(bottom: 8.0),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: kIsWeb
+                              child: (msg.imagePath!.startsWith('http://') || msg.imagePath!.startsWith('https://') || kIsWeb)
                                   ? Image.network(
                                       msg.imagePath!,
                                       width: 220,

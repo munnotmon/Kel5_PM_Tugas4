@@ -50,7 +50,8 @@ class ChatController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'konseling_id' => 'required|exists:konseling,id',
-            'isi_pesan' => 'required|string',
+            'isi_pesan' => 'nullable|string',
+            'gambar' => 'nullable|file|max:20480',
         ]);
 
         if ($validator->fails()) {
@@ -71,12 +72,53 @@ class ChatController extends Controller
             ], 403);
         }
 
+        $path = null;
+        if ($request->hasFile('gambar')) {
+            $file = $request->file('gambar');
+            $fileName = time() . '_' . rand(100, 999) . '_' . $file->getClientOriginalName();
+            $file->storeAs('chat', $fileName, 'public');
+            $path = asset('storage/chat/' . $fileName);
+        }
+
         $message = Pesan::create([
             'konseling_id' => $request->konseling_id,
             'sender_id' => $request->user()->id,
-            'isi_pesan' => $request->isi_pesan,
+            'isi_pesan' => $request->isi_pesan ?? 'Lampiran Gambar',
+            'path_gambar' => $path,
             'status_pesan' => 'Terkirim',
         ]);
+
+        // Create notification for the recipient
+        if ($request->user()->role === 'admin') {
+            // Admin sending to student
+            \App\Models\Notifikasi::create([
+                'user_id' => $session->mahasiswa_id,
+                'judul' => 'Pesan Baru dari Admin',
+                'isi' => $message->isi_pesan ?? 'Mengirim lampiran gambar',
+                'sudah_dibaca' => false,
+            ]);
+        } else {
+            // Student sending to admin
+            if ($session->admin_id) {
+                \App\Models\Notifikasi::create([
+                    'user_id' => $session->admin_id,
+                    'judul' => 'Pesan Baru dari Mahasiswa',
+                    'isi' => $message->isi_pesan ?? 'Mengirim lampiran gambar',
+                    'sudah_dibaca' => false,
+                ]);
+            } else {
+                // Notify all admins if admin_id is null
+                $admins = \App\Models\User::where('role', 'admin')->get();
+                foreach ($admins as $admin) {
+                    \App\Models\Notifikasi::create([
+                        'user_id' => $admin->id,
+                        'judul' => 'Pesan Baru dari Mahasiswa',
+                        'isi' => $message->isi_pesan ?? 'Mengirim lampiran gambar',
+                        'sudah_dibaca' => false,
+                    ]);
+                }
+            }
+        }
 
         return response()->json([
             'success' => true,

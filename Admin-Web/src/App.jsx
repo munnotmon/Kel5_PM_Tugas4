@@ -171,6 +171,22 @@ axios.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Add response interceptor to handle 401 Unauthorized
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      const isLoginRequest = error.config && error.config.url && error.config.url.includes('/login');
+      if (!isLoginRequest) {
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_user');
+        window.location.reload();
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Hari praktik untuk form konselor
 const KONSELOR_DAYS = [
   { v: 1, l: 'Sen' }, { v: 2, l: 'Sel' }, { v: 3, l: 'Rab' },
@@ -205,6 +221,7 @@ function App() {
   const [users, setUsers] = useState([]);
   const [allCounselors, setAllCounselors] = useState([]);
   const [superAdmins, setSuperAdmins] = useState([]);
+  const [loadingChatForReport, setLoadingChatForReport] = useState(false);
   const [newAdminForm, setNewAdminForm] = useState({ nama: '', email: '', password: '', nomor_telepon: '', role: 'admin' });
   const [adminRegistering, setAdminRegistering] = useState(false);
   const [adminRegisterError, setAdminRegisterError] = useState('');
@@ -270,8 +287,6 @@ function App() {
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessageText, setNewMessageText] = useState('');
   const chatEndRef = useRef(null);
-  const chatPollInterval = useRef(null);
-
   // Check Auth & Fetch Initial Data
   useEffect(() => {
     if (token) {
@@ -279,12 +294,29 @@ function App() {
     }
   }, [token]);
 
-  // Clean up chat polling when component unmounts or active chat changes
+  // Polling data dashboard secara silent setiap 10 detik
   useEffect(() => {
+    if (!token) return;
+    const interval = setInterval(() => {
+      fetchDashboardData(true);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [token]);
+
+  // Declarative chat polling effect
+  useEffect(() => {
+    if (!activeChatSession) return;
+
+    // Fetch messages immediately when active chat changes
+    fetchChatMessages(activeChatSession.id);
+
+    // Setup Polling every 3 seconds
+    const interval = setInterval(() => {
+      pollChatMessages(activeChatSession.id);
+    }, 3000);
+
     return () => {
-      if (chatPollInterval.current) {
-        clearInterval(chatPollInterval.current);
-      }
+      clearInterval(interval);
     };
   }, [activeChatSession]);
 
@@ -295,9 +327,9 @@ function App() {
     }
   }, [chatMessages]);
 
-  const fetchDashboardData = async () => {
-    setLoading(true);
-    setError('');
+  const fetchDashboardData = async (silent = false) => {
+    if (!silent) setLoading(true);
+    if (!silent) setError('');
     try {
       const currentUser = user || JSON.parse(localStorage.getItem('admin_user'));
       const isSuper = currentUser && currentUser.role === 'superadmin';
@@ -335,9 +367,9 @@ function App() {
       }
     } catch (err) {
       console.error(err);
-      setError('Gagal memuat data dari server.');
+      if (!silent) setError('Gagal memuat data dari server.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -416,6 +448,28 @@ function App() {
       setError('Gagal memperbarui status laporan.');
     } finally {
       setReportStatusUpdating(null);
+    }
+  };
+
+  const handleStartChatForReport = async (report) => {
+    if (!report?.pelapor_id) return;
+    setLoadingChatForReport(true);
+    setError('');
+    try {
+      const res = await axios.post(`/laporan/${report.id}/chat`);
+      if (res.data.success) {
+        const session = res.data.data;
+        setSelectedReport(null);
+        if (!sessions.some(s => s.id === session.id)) {
+          setSessions(prev => [session, ...prev]);
+        }
+        startChatSession(session);
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || 'Gagal memulai chat dengan pelapor.');
+    } finally {
+      setLoadingChatForReport(false);
     }
   };
 
@@ -640,15 +694,6 @@ function App() {
   const startChatSession = (session) => {
     setActiveChatSession(session);
     setActiveTab('chat');
-    fetchChatMessages(session.id);
-
-    // Setup Polling every 3 seconds
-    if (chatPollInterval.current) {
-      clearInterval(chatPollInterval.current);
-    }
-    chatPollInterval.current = setInterval(() => {
-      pollChatMessages(session.id);
-    }, 3000);
   };
 
   const fetchChatMessages = async (sessionId) => {
@@ -656,6 +701,15 @@ function App() {
       const res = await axios.get(`/chat/${sessionId}`);
       if (res.data.success) {
         setChatMessages(res.data.data);
+        setSessions(prev => prev.map(s => {
+          if (s.id === sessionId) {
+            return {
+              ...s,
+              pesan: s.pesan ? s.pesan.map(m => m.sender_id !== user?.id ? { ...m, status_pesan: 'Dibaca' } : m) : []
+            };
+          }
+          return s;
+        }));
       }
     } catch (err) {
       console.error('Gagal mengambil pesan chat:', err);
@@ -667,6 +721,15 @@ function App() {
       const res = await axios.get(`/chat/${sessionId}`);
       if (res.data.success) {
         setChatMessages(res.data.data);
+        setSessions(prev => prev.map(s => {
+          if (s.id === sessionId) {
+            return {
+              ...s,
+              pesan: s.pesan ? s.pesan.map(m => m.sender_id !== user?.id ? { ...m, status_pesan: 'Dibaca' } : m) : []
+            };
+          }
+          return s;
+        }));
       }
     } catch (err) {
       console.error('Error polling messages:', err);
@@ -707,7 +770,7 @@ function App() {
             <div style={{ margin: '0 auto 1rem', display: 'flex', justifyContent: 'center' }}>
               <LogoIcon size={60} />
             </div>
-            <h1 className="logo-text" style={{ fontSize: '1.75rem', background: 'linear-gradient(to right, #ffffff, #6366f1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Polinema Care+</h1>
+            <h1 className="logo-text" style={{ fontSize: '1.75rem', background: 'linear-gradient(to right, var(--primary), var(--secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Polinema Care+</h1>
             <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Administrator Login Portal</p>
           </div>
 
@@ -743,6 +806,12 @@ function App() {
     );
   }
 
+  const hasNewReports = reports.some(r => r.status === 'Menunggu');
+  const hasUnreadChats = sessions.some(s => 
+    (s.status === 'Diterima' || s.status === 'Berlangsung') &&
+    s.pesan?.some(m => m.sender_id !== user?.id && m.status_pesan === 'Terkirim')
+  );
+
   return (
     <div className="app-container">
       {/* Sidebar */}
@@ -773,8 +842,13 @@ function App() {
                 <li className={`menu-item ${activeTab === 'konselor' ? 'active' : ''}`} onClick={() => { setActiveTab('konselor'); setActiveChatSession(null); }}>
                   <IconCounselor /> Profil Konselor Saya
                 </li>
-                <li className={`menu-item ${activeTab === 'laporan' ? 'active' : ''}`} onClick={() => { setActiveTab('laporan'); setActiveChatSession(null); }}>
-                  <IconReport /> Laporan Perundungan
+                <li className={`menu-item ${activeTab === 'laporan' ? 'active' : ''}`} onClick={() => { setActiveTab('laporan'); setActiveChatSession(null); }} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <IconReport /> Laporan Perundungan
+                  </span>
+                  {hasNewReports && (
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444', marginRight: '8px' }} />
+                  )}
                 </li>
                 <li className={`menu-item ${activeTab === 'jadwal' ? 'active' : ''}`} onClick={() => { setActiveTab('jadwal'); setActiveChatSession(null); }}>
                   <IconSchedule /> Jadwal Konseling
@@ -782,8 +856,13 @@ function App() {
                 <li className={`menu-item ${activeTab === 'konseling' ? 'active' : ''}`} onClick={() => { setActiveTab('konseling'); setActiveChatSession(null); }}>
                   <IconBooking /> Pemesanan Konseling
                 </li>
-                <li className={`menu-item ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => { setActiveTab('chat'); }}>
-                  <IconChat /> Chat Konseling
+                <li className={`menu-item ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => { setActiveTab('chat'); }} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <IconChat /> Chat Konseling
+                  </span>
+                  {hasUnreadChats && (
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444', marginRight: '8px' }} />
+                  )}
                 </li>
                 <li className={`menu-item ${activeTab === 'users' ? 'active' : ''}`} onClick={() => { setActiveTab('users'); setActiveChatSession(null); }}>
                   <IconUsers /> Data Mahasiswa
@@ -1449,7 +1528,7 @@ function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sessions.map(s => (
+                  {sessions.filter(s => s.tipe !== 'laporan').map(s => (
                     <tr key={s.id}>
                       <td style={{ fontWeight: '700', color: 'var(--primary)' }}>Q-{s.nomor_antrian || '0'}</td>
                       <td>
@@ -1495,7 +1574,7 @@ function App() {
                       </td>
                     </tr>
                   ))}
-                  {sessions.length === 0 && (
+                  {sessions.filter(s => s.tipe !== 'laporan').length === 0 && (
                     <tr><td colSpan="7" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada pengajuan konseling.</td></tr>
                   )}
                 </tbody>
@@ -1518,11 +1597,15 @@ function App() {
                       className={`chat-session-item ${activeChatSession?.id === s.id ? 'active' : ''}`}
                       onClick={() => startChatSession(s)}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', alignItems: 'center' }}>
                         <strong>{s.mahasiswa?.nama}</strong>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: '600' }}>Q-{s.nomor_antrian}</span>
+                        {s.tipe === 'laporan' ? (
+                          <span style={{ fontSize: '0.75rem', color: 'var(--warning)', fontWeight: '600', padding: '2px 6px', background: 'rgba(245, 158, 11, 0.15)', borderRadius: '4px' }}>Laporan</span>
+                        ) : (
+                          <span style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: '600' }}>Q-{s.nomor_antrian}</span>
+                        )}
                       </div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{s.keluhan || 'Tidak ada keluhan tertulis'}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{s.keluhan || 'Tidak ada keluhan tertulis'}</div>
                     </div>
                   ))}
                 {sessions.filter(s => s.status === 'Diterima' || s.status === 'Berlangsung').length === 0 && (
@@ -1537,7 +1620,12 @@ function App() {
                   <div className="chat-header">
                     <div>
                       <h3 style={{ fontSize: '1.1rem' }}>{activeChatSession.mahasiswa?.nama}</h3>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>NIM: {activeChatSession.mahasiswa?.profil_mahasiswa?.nim || '-'} | Status: {activeChatSession.status}</p>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        NIM: {activeChatSession.mahasiswa?.profil_mahasiswa?.nim || '-'} | Status: {activeChatSession.status}
+                        {activeChatSession.tipe === 'laporan' && (
+                          <span style={{ marginLeft: '0.5rem', color: 'var(--warning)', fontWeight: '600' }}>(Tindak Lanjut Laporan)</span>
+                        )}
+                      </p>
                     </div>
                     <button className="btn btn-secondary btn-sm" onClick={() => handleUpdateSessionStatus(activeChatSession.id, 'Selesai')}>
                       ✔️ Selesaikan Sesi
@@ -1553,7 +1641,17 @@ function App() {
                         <div style={{ fontWeight: '600', fontSize: '0.8rem', opacity: 0.9, marginBottom: '0.2rem' }}>
                           {msg.sender_id === user.id ? 'Anda' : msg.sender?.nama}
                         </div>
-                        <div>{msg.isi_pesan}</div>
+                        {msg.path_gambar && (
+                          <div style={{ marginBottom: '0.5rem', maxWidth: '240px' }}>
+                            <img 
+                              src={msg.path_gambar} 
+                              alt="Lampiran" 
+                              style={{ width: '100%', borderRadius: '8px', cursor: 'pointer' }} 
+                              onClick={() => window.open(msg.path_gambar, '_blank')}
+                            />
+                          </div>
+                        )}
+                        {msg.isi_pesan && <div>{msg.isi_pesan}</div>}
                         <div className="message-time">
                           {new Date(msg.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                         </div>
@@ -1593,7 +1691,6 @@ function App() {
                   <tr>
                     <th>Nama Lengkap</th>
                     <th>NIM</th>
-                    <th>Program Studi</th>
                     <th>Email</th>
                     <th>Nomor Telepon</th>
                   </tr>
@@ -1603,7 +1700,6 @@ function App() {
                     <tr key={u.id}>
                       <td><strong>{u.nama}</strong></td>
                       <td>{u.profil_mahasiswa?.nim || u.nim || '-'}</td>
-                      <td>{u.profil_mahasiswa?.program_studi || '-'}</td>
                       <td>{u.email}</td>
                       <td>{u.nomor_telepon || '-'}</td>
                     </tr>
@@ -1785,6 +1881,20 @@ function App() {
                         Selesai...
                       </>
                     ) : 'Selesaikan'}
+                  </button>
+
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => handleStartChatForReport(selectedReport)}
+                    disabled={loadingChatForReport}
+                    style={{ background: 'var(--primary)', color: '#fff', border: 'none', position: 'relative', minWidth: '130px' }}
+                  >
+                    {loadingChatForReport ? (
+                      <>
+                        <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite', marginRight: '6px' }}></span>
+                        Menghubungkan...
+                      </>
+                    ) : '💬 Hubungi Pelapor'}
                   </button>
                 </div>
               </div>
