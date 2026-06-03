@@ -23,6 +23,8 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        $this->call(KonselorSeeder::class);
+
         // 1. Seed Admin User
         $admin = User::updateOrCreate(
             ['email' => 'admin@gmail.com'],

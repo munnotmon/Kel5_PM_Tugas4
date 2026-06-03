@@ -210,6 +210,11 @@ function App() {
   const [adminRegisterError, setAdminRegisterError] = useState('');
   const [adminRegisterSuccess, setAdminRegisterSuccess] = useState('');
 
+  // Edit/Delete Counselor States
+  const [editingCounselor, setEditingCounselor] = useState(null);
+  const [editForm, setEditForm] = useState({ nama: '', email: '', password: '', nomor_telepon: '', role: 'admin' });
+  const [showEditModal, setShowEditModal] = useState(false);
+
   // Laporan Search & Pagination States
   const [reportSearchQuery, setReportSearchQuery] = useState('');
   const [reportCurrentPage, setReportCurrentPage] = useState(1);
@@ -525,7 +530,6 @@ function App() {
       jam_tersedia: f.jam_tersedia.split(',').map((s) => s.trim()).filter(Boolean),
       hari_praktik: f.hari_praktik,
       foto_profil: f.foto_profil || null,
-      is_online: f.is_online,
       nomor_telepon: f.nomor_telepon || null,
       pendidikan: f.pendidikan.filter((r) => r.title || r.subtitle),
       pengalaman: f.pengalaman.filter((r) => r.title || r.subtitle),
@@ -568,6 +572,67 @@ function App() {
       setAdminRegisterError(err.response?.data?.message || 'Registrasi admin gagal.');
     } finally {
       setAdminRegistering(false);
+    }
+  };
+
+  const handleOpenEditModal = (counselor) => {
+    setEditingCounselor(counselor);
+    setEditForm({
+      nama: counselor.name || '',
+      email: counselor.email || '',
+      password: '',
+      nomor_telepon: counselor.nomor_telepon || '',
+      role: counselor.role || 'admin'
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEditCounselor = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      const payload = {
+        nama: editForm.nama,
+        email: editForm.email,
+        nomor_telepon: editForm.nomor_telepon,
+        role: editForm.role,
+      };
+      if (editForm.password) {
+        payload.password = editForm.password;
+      }
+      
+      const res = await axios.post(`/konselor/${editingCounselor.id}`, payload);
+      if (res.data.success) {
+        setSuccess('Data admin/konselor berhasil diperbarui.');
+        setShowEditModal(false);
+        fetchDashboardData();
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || 'Gagal memperbarui data.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCounselor = async (id) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus akun admin/konselor ini? Semua data terkait (jadwal, konseling, pesan) juga akan terhapus.')) {
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      const res = await axios.delete(`/konselor/${id}`);
+      if (res.data.success) {
+        setSuccess('Akun berhasil dihapus.');
+        fetchDashboardData();
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || 'Gagal menghapus akun.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -988,15 +1053,16 @@ function App() {
               <div className="card">
                 <h2 style={{ fontSize: '1.2rem', marginBottom: '1.25rem' }}>Daftar Seluruh Admin & Konselor ({allCounselors.length})</h2>
                 <div className="table-container">
-                  <table>
+                  <table style={{ minWidth: '1000px', width: '100%' }}>
                     <thead>
                       <tr>
                         <th>Nama</th>
-                        <th>Spesialisasi</th>
+                        <th>Email</th>
                         <th>Nomor Telepon</th>
-                        <th>Rating</th>
+                        <th>Role</th>
                         <th>Sesi</th>
                         <th>Status</th>
+                        <th>Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1013,19 +1079,29 @@ function App() {
                               <strong>{c.name}</strong>
                             </div>
                           </td>
-                          <td>{c.specialty || '-'}</td>
+                          <td>{c.email}</td>
                           <td>{c.nomor_telepon || '-'}</td>
-                          <td>⭐ {c.rating}</td>
+                          <td>
+                            <span className={`badge ${c.role === 'superadmin' ? 'badge-pending' : 'badge-process'}`}>
+                              {c.role === 'superadmin' ? 'Super Admin' : 'Admin'}
+                            </span>
+                          </td>
                           <td>{c.sessions}</td>
                           <td>
                             <span className={`badge ${c.is_online ? 'badge-success' : 'badge-danger'}`}>
                               {c.is_online ? 'Online' : 'Offline'}
                             </span>
                           </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '0.4rem' }}>
+                              <button className="btn btn-secondary btn-sm" onClick={() => handleOpenEditModal(c)}>Edit</button>
+                              <button className="btn btn-danger btn-sm" onClick={() => handleDeleteCounselor(c.id)}>Hapus</button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                       {allCounselors.length === 0 && (
-                        <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada admin/konselor terdaftar.</td></tr>
+                        <tr><td colSpan="7" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada admin/konselor terdaftar.</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -1070,10 +1146,6 @@ function App() {
                     <div className="form-group">
                       <label>Spesialisasi (Judul) *</label>
                       <input value={konselorForm.spesialisasi} onChange={e => setKonselorField('spesialisasi', e.target.value)} placeholder="cth: Psikolog Klinis" required />
-                    </div>
-                    <div className="form-group">
-                      <label>Rating (0 - 5.0)</label>
-                      <input type="number" step="0.1" min="0" max="5" value={konselorForm.rating} onChange={e => setKonselorField('rating', e.target.value)} />
                     </div>
                     <div className="form-group">
                       <label>Pengalaman</label>
@@ -1138,11 +1210,7 @@ function App() {
                     onChange={(i, key, val) => updateKonselorRow('pengalaman', i, key, val)}
                   />
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={konselorForm.is_online} onChange={e => setKonselorField('is_online', e.target.checked)} style={{ width: 'auto', margin: 0 }} />
-                      <span style={{ fontSize: '0.95rem', fontWeight: '500' }}>Tandai sedang online</span>
-                    </label>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
                     <button type="submit" className="btn btn-primary" disabled={konselorSaving} style={{ padding: '0.6rem 2rem' }}>
                       {konselorSaving ? 'Menyimpan...' : 'Simpan Profil Konselor'}
                     </button>
@@ -1804,6 +1872,77 @@ function App() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT MODAL: ADMIN / KONSELOR */}
+      {showEditModal && editingCounselor && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+              <h2 style={{ fontSize: '1.2rem' }}>Edit Akun Admin / Konselor</h2>
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowEditModal(false)}>✕</button>
+            </div>
+
+            <form onSubmit={handleSaveEditCounselor} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="form-group">
+                <label>Nama Lengkap *</label>
+                <input
+                  type="text"
+                  value={editForm.nama}
+                  onChange={e => setEditForm({ ...editForm, nama: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Email *</label>
+                <input
+                  type="email"
+                  value={editForm.email}
+                  onChange={e => setEditForm({ ...editForm, email: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Password (Kosongkan jika tidak diubah)</label>
+                <input
+                  type="password"
+                  placeholder="Minimal 6 karakter"
+                  value={editForm.password}
+                  onChange={e => setEditForm({ ...editForm, password: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Nomor Telepon</label>
+                <input
+                  type="text"
+                  value={editForm.nomor_telepon}
+                  onChange={e => setEditForm({ ...editForm, nomor_telepon: e.target.value })}
+                  placeholder="cth: 08123456789"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Role *</label>
+                <select
+                  value={editForm.role}
+                  onChange={e => setEditForm({ ...editForm, role: e.target.value })}
+                  required
+                >
+                  <option value="admin">Admin / Konselor</option>
+                  <option value="superadmin">Super Admin</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowEditModal(false)}>Batal</button>
+                <button type="submit" className="btn btn-primary">Simpan Perubahan</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

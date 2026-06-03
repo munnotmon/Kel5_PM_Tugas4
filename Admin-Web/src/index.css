@@ -164,6 +164,7 @@ body {
   margin-left: 260px;
   padding: 2.5rem;
   min-height: 100vh;
+  min-width: 0;
 }
 
 /* Glass Card */
@@ -332,10 +333,7 @@ td {
   border-bottom: 1px solid var(--border-color);
   color: var(--text-primary);
   font-size: 0.95rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 0;
 }
 
 tr:hover td {

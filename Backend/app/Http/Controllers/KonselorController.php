@@ -108,7 +108,7 @@ class KonselorController extends Controller
         $user->fill($request->only([
             'nama', 'spesialisasi', 'rating', 'pengalaman_tahun', 'tentang',
             'spesialisasi_list', 'pendidikan', 'pengalaman', 'hari_praktik',
-            'jam_tersedia', 'is_online', 'foto_profil', 'nomor_telepon',
+            'jam_tersedia', 'foto_profil', 'nomor_telepon',
         ]));
         $user->save();
 
@@ -183,7 +183,7 @@ class KonselorController extends Controller
     }
 
     /**
-     * Update profil konselor (dipakai Admin-Web).
+     * Update profil konselor/admin (dipakai Admin-Web).
      */
     public function update(Request $request, $id)
     {
@@ -191,14 +191,17 @@ class KonselorController extends Controller
             return response()->json(['success' => false, 'message' => 'Akses ditolak'], 403);
         }
 
-        $konselor = User::where('role', 'admin')->find($id);
+        $konselor = User::whereIn('role', ['admin', 'superadmin'])->find($id);
         if (!$konselor) {
-            return response()->json(['success' => false, 'message' => 'Konselor tidak ditemukan'], 404);
+            return response()->json(['success' => false, 'message' => 'User tidak ditemukan'], 404);
         }
 
         $validator = Validator::make($request->all(), [
             'nama' => 'sometimes|string|max:100',
-            'spesialisasi' => 'sometimes|string|max:150',
+            'email' => 'sometimes|email|max:100|unique:users,email,' . $id,
+            'password' => 'nullable|string|min:6',
+            'role' => 'sometimes|in:admin,superadmin',
+            'spesialisasi' => 'nullable|string|max:150',
             'rating' => 'nullable|numeric|min:0|max:5',
             'pengalaman_tahun' => 'nullable|string|max:50',
             'tentang' => 'nullable|string',
@@ -220,17 +223,49 @@ class KonselorController extends Controller
             ], 422);
         }
 
+        // Fill other fields
         $konselor->fill($request->only([
-            'nama', 'spesialisasi', 'rating', 'pengalaman_tahun', 'tentang',
+            'nama', 'email', 'role', 'spesialisasi', 'rating', 'pengalaman_tahun', 'tentang',
             'spesialisasi_list', 'pendidikan', 'pengalaman', 'hari_praktik',
-            'jam_tersedia', 'is_online', 'foto_profil', 'nomor_telepon',
+            'jam_tersedia', 'foto_profil', 'nomor_telepon',
         ]));
+
+        if ($request->filled('password')) {
+            $konselor->password = Hash::make($request->password);
+        }
+
         $konselor->save();
 
         return response()->json([
             'success' => true,
-            'message' => 'Profil konselor berhasil diperbarui',
+            'message' => 'Profil berhasil diperbarui',
             'data' => $this->transform($konselor),
+        ]);
+    }
+
+    /**
+     * Hapus akun admin/konselor/superadmin.
+     */
+    public function destroy(Request $request, $id)
+    {
+        if ($request->user()->role !== 'superadmin') {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak. Hanya Super Admin yang dapat menghapus akun.'], 403);
+        }
+
+        if ($request->user()->id == $id) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak dapat menghapus akun Anda sendiri.'], 400);
+        }
+
+        $user = User::whereIn('role', ['admin', 'superadmin'])->find($id);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User tidak ditemukan.'], 404);
+        }
+
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Akun berhasil dihapus.',
         ]);
     }
 

@@ -36,6 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/konselor/{id}', [KonselorController::class, 'show'])->where('id', '[0-9]+');
     Route::post('/konselor', [KonselorController::class, 'store']);
     Route::post('/konselor/{id}', [KonselorController::class, 'update'])->where('id', '[0-9]+');
+    Route::delete('/konselor/{id}', [KonselorController::class, 'destroy'])->where('id', '[0-9]+');
 
     // Jadwal Konseling
     Route::get('/jadwal', [JadwalKonselingController::class, 'index']);
