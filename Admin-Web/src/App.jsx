@@ -60,6 +60,14 @@ const IconUsers = () => (
   </svg>
 );
 
+const IconShieldUser = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <circle cx="12" cy="10" r="2.2" />
+    <path d="M8.5 16a3.5 3.5 0 0 1 7 0" />
+  </svg>
+);
+
 const IconSignOut = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -177,9 +185,11 @@ const emptyKonselorForm = {
 };
 
 function App() {
+  const storedUser = JSON.parse(localStorage.getItem('admin_user'));
   const [token, setToken] = useState(localStorage.getItem('admin_token'));
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem('admin_user')));
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [user, setUser] = useState(storedUser);
+  // Super Admin hanya mengelola admin/konselor, jadi langsung ke tab tersebut.
+  const [activeTab, setActiveTab] = useState(storedUser?.role === 'superadmin' ? 'konselor' : 'dashboard');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -193,6 +203,12 @@ function App() {
   const [schedules, setSchedules] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [users, setUsers] = useState([]);
+  const [allCounselors, setAllCounselors] = useState([]);
+  const [superAdmins, setSuperAdmins] = useState([]);
+  const [newAdminForm, setNewAdminForm] = useState({ nama: '', email: '', password: '', nomor_telepon: '', role: 'admin' });
+  const [adminRegistering, setAdminRegistering] = useState(false);
+  const [adminRegisterError, setAdminRegisterError] = useState('');
+  const [adminRegisterSuccess, setAdminRegisterSuccess] = useState('');
 
   // Laporan Search & Pagination States
   const [reportSearchQuery, setReportSearchQuery] = useState('');
@@ -278,21 +294,38 @@ function App() {
     setLoading(true);
     setError('');
     try {
-      // Fetch Reports, Schedules, Sessions, Mahasiswa list, dan profil konselor sendiri
-      const [repRes, schedRes, sessRes, mhsRes, konsRes] = await Promise.all([
+      const currentUser = user || JSON.parse(localStorage.getItem('admin_user'));
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+
+      // Super Admin: daftar konselor, data mahasiswa, dan data super admin.
+      if (isSuper) {
+        const [konselorRes, mhsRes, superRes] = await Promise.all([
+          axios.get('/konselor'),
+          axios.get('/mahasiswa'),
+          axios.get('/superadmin'),
+        ]);
+        if (konselorRes.data.success) setAllCounselors(konselorRes.data.data);
+        if (mhsRes.data.success) setUsers(mhsRes.data.data);
+        if (superRes.data.success) setSuperAdmins(superRes.data.data);
+        return;
+      }
+
+      const results = await Promise.all([
         axios.get('/laporan'),
         axios.get('/jadwal'),
         axios.get('/konseling'),
         axios.get('/mahasiswa'),
-        axios.get('/konselor/me')
+        axios.get('/konselor/me'),
       ]);
+      const [repRes, schedRes, sessRes, mhsRes, lastRes] = results;
 
       if (repRes.data.success) setReports(repRes.data.data);
       if (schedRes.data.success) setSchedules(schedRes.data.data);
       if (sessRes.data.success) setSessions(sessRes.data.data);
       if (mhsRes.data.success) setUsers(mhsRes.data.data);
-      if (konsRes.data.success) {
-        applyMyKonselorProfile(konsRes.data.data);
+
+      if (lastRes && lastRes.data.success) {
+        applyMyKonselorProfile(lastRes.data.data);
         setKonselorLoaded(true);
       }
     } catch (err) {
@@ -317,7 +350,7 @@ function App() {
         const loggedInUser = response.data.data.user;
         const userToken = response.data.data.token;
 
-        if (loggedInUser.role !== 'admin') {
+        if (loggedInUser.role !== 'admin' && loggedInUser.role !== 'superadmin') {
           setError('Akses ditolak. Halaman ini hanya untuk Administrator.');
           setLoading(false);
           return;
@@ -327,6 +360,7 @@ function App() {
         localStorage.setItem('admin_user', JSON.stringify(loggedInUser));
         setToken(userToken);
         setUser(loggedInUser);
+        setActiveTab(loggedInUser.role === 'superadmin' ? 'konselor' : 'dashboard');
         setSuccess('Login berhasil!');
       } else {
         setError(response.data.message || 'Login gagal.');
@@ -509,6 +543,34 @@ function App() {
     }
   };
 
+  const handleRegisterAdmin = async (e) => {
+    e.preventDefault();
+    setAdminRegistering(true);
+    setAdminRegisterError('');
+    setAdminRegisterSuccess('');
+    try {
+      // POST /konselor membuat user sesuai role yang dipilih (admin / superadmin).
+      const res = await axios.post('/konselor', {
+        nama: newAdminForm.nama,
+        email: newAdminForm.email,
+        password: newAdminForm.password,
+        nomor_telepon: newAdminForm.nomor_telepon || null,
+        role: newAdminForm.role,
+      });
+
+      if (res.data.success) {
+        setAdminRegisterSuccess(res.data.message || 'Akun baru berhasil didaftarkan!');
+        setNewAdminForm({ nama: '', email: '', password: '', nomor_telepon: '', role: 'admin' });
+        fetchDashboardData();
+      }
+    } catch (err) {
+      console.error(err);
+      setAdminRegisterError(err.response?.data?.message || 'Registrasi admin gagal.');
+    } finally {
+      setAdminRegistering(false);
+    }
+  };
+
   // Live Chat Logic
   const startChatSession = (session) => {
     setActiveChatSession(session);
@@ -626,27 +688,43 @@ function App() {
         </div>
         <nav>
           <ul className="menu-list">
-            <li className={`menu-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveTab('dashboard'); setActiveChatSession(null); }}>
-              <IconDashboard /> Dashboard
-            </li>
-            <li className={`menu-item ${activeTab === 'konselor' ? 'active' : ''}`} onClick={() => { setActiveTab('konselor'); setActiveChatSession(null); }}>
-              <IconCounselor /> Profil Konselor Saya
-            </li>
-            <li className={`menu-item ${activeTab === 'laporan' ? 'active' : ''}`} onClick={() => { setActiveTab('laporan'); setActiveChatSession(null); }}>
-              <IconReport /> Laporan Perundungan
-            </li>
-            <li className={`menu-item ${activeTab === 'jadwal' ? 'active' : ''}`} onClick={() => { setActiveTab('jadwal'); setActiveChatSession(null); }}>
-              <IconSchedule /> Jadwal Konseling
-            </li>
-            <li className={`menu-item ${activeTab === 'konseling' ? 'active' : ''}`} onClick={() => { setActiveTab('konseling'); setActiveChatSession(null); }}>
-              <IconBooking /> Pemesanan Konseling
-            </li>
-            <li className={`menu-item ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => { setActiveTab('chat'); }}>
-              <IconChat /> Chat Konseling
-            </li>
-            <li className={`menu-item ${activeTab === 'users' ? 'active' : ''}`} onClick={() => { setActiveTab('users'); setActiveChatSession(null); }}>
-              <IconUsers /> Data Mahasiswa
-            </li>
+            {user && user.role === 'superadmin' ? (
+              <>
+                <li className={`menu-item ${activeTab === 'konselor' ? 'active' : ''}`} onClick={() => { setActiveTab('konselor'); setActiveChatSession(null); }}>
+                  <IconCounselor /> Kelola Admin & Konselor
+                </li>
+                <li className={`menu-item ${activeTab === 'users' ? 'active' : ''}`} onClick={() => { setActiveTab('users'); setActiveChatSession(null); }}>
+                  <IconUsers /> Data Mahasiswa
+                </li>
+                <li className={`menu-item ${activeTab === 'superadmin' ? 'active' : ''}`} onClick={() => { setActiveTab('superadmin'); setActiveChatSession(null); }}>
+                  <IconShieldUser /> Data Super Admin
+                </li>
+              </>
+            ) : (
+              <>
+                <li className={`menu-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveTab('dashboard'); setActiveChatSession(null); }}>
+                  <IconDashboard /> Dashboard
+                </li>
+                <li className={`menu-item ${activeTab === 'konselor' ? 'active' : ''}`} onClick={() => { setActiveTab('konselor'); setActiveChatSession(null); }}>
+                  <IconCounselor /> Profil Konselor Saya
+                </li>
+                <li className={`menu-item ${activeTab === 'laporan' ? 'active' : ''}`} onClick={() => { setActiveTab('laporan'); setActiveChatSession(null); }}>
+                  <IconReport /> Laporan Perundungan
+                </li>
+                <li className={`menu-item ${activeTab === 'jadwal' ? 'active' : ''}`} onClick={() => { setActiveTab('jadwal'); setActiveChatSession(null); }}>
+                  <IconSchedule /> Jadwal Konseling
+                </li>
+                <li className={`menu-item ${activeTab === 'konseling' ? 'active' : ''}`} onClick={() => { setActiveTab('konseling'); setActiveChatSession(null); }}>
+                  <IconBooking /> Pemesanan Konseling
+                </li>
+                <li className={`menu-item ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => { setActiveTab('chat'); }}>
+                  <IconChat /> Chat Konseling
+                </li>
+                <li className={`menu-item ${activeTab === 'users' ? 'active' : ''}`} onClick={() => { setActiveTab('users'); setActiveChatSession(null); }}>
+                  <IconUsers /> Data Mahasiswa
+                </li>
+              </>
+            )}
             <li className="menu-item logout-btn" onClick={handleLogout} style={{ marginTop: '3rem' }}>
               <IconSignOut /> Sign Out
             </li>
@@ -660,14 +738,15 @@ function App() {
           <div>
             <h1 style={{ fontSize: '1.75rem', fontWeight: '700' }}>
               {activeTab === 'dashboard' && 'Dashboard Overview'}
-              {activeTab === 'konselor' && 'Profil Konselor Saya'}
+              {activeTab === 'konselor' && (user && user.role === 'superadmin' ? 'Kelola Admin & Konselor' : 'Profil Konselor Saya')}
               {activeTab === 'laporan' && 'Laporan Perundungan'}
               {activeTab === 'jadwal' && 'Manajemen Jadwal Konseling'}
               {activeTab === 'konseling' && 'Daftar Pengajuan & Sesi Konseling'}
               {activeTab === 'chat' && 'Ruang Chat Konseling'}
               {activeTab === 'users' && 'Daftar Mahasiswa Terdaftar'}
+              {activeTab === 'superadmin' && 'Data Super Admin'}
             </h1>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Selamat datang kembali, {user.nama} (Admin)</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Selamat datang kembali, {user.nama} ({user && user.role === 'superadmin' ? 'Super Admin' : 'Admin'})</p>
           </div>
           <button className="btn btn-secondary btn-sm" onClick={fetchDashboardData} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <IconRefresh spinning={loading} /> Refresh Data
@@ -809,123 +888,269 @@ function App() {
 
         {/* TAB: PROFIL KONSELOR SAYA */}
         {activeTab === 'konselor' && (
-          <div className="card" style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.5rem' }}>
-              <img
-                src={konselorForm.foto_profil || `https://i.pravatar.cc/120?u=${encodeURIComponent(konselorForm.nama)}`}
-                alt={konselorForm.nama}
-                style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--primary)' }}
-                onError={(e) => { e.target.src = 'https://via.placeholder.com/120?text=Profile'; }}
-              />
-              <div>
-                <h2 style={{ fontSize: '1.4rem', margin: 0 }}>{konselorForm.nama || 'Konselor'}</h2>
-                <p style={{ color: 'var(--text-secondary)', margin: '0.25rem 0 0' }}>{konselorForm.spesialisasi || 'Spesialisasi belum diatur'}</p>
-                <div style={{ marginTop: '0.5rem' }}>
-                  <span className={`badge ${konselorForm.is_online ? 'badge-success' : 'badge-danger'}`}>
-                    {konselorForm.is_online ? 'Online' : 'Offline'}
-                  </span>
+          user && user.role === 'superadmin' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              {/* Ringkasan jumlah konselor terdaftar */}
+              <div className="grid-stats">
+                <div className="card stat-card">
+                  <div className="stat-info">
+                    <h3>Total Admin / Konselor Terdaftar</h3>
+                    <p>{allCounselors.length}</p>
+                  </div>
+                  <div className="stat-icon" style={{ background: 'rgba(99, 102, 241, 0.15)', color: 'var(--secondary)' }}><IconStatKonseling /></div>
+                </div>
+                <div className="card stat-card">
+                  <div className="stat-info">
+                    <h3>Sedang Online</h3>
+                    <p>{allCounselors.filter(c => c.is_online).length}</p>
+                  </div>
+                  <div className="stat-icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--success)' }}><IconCounselor /></div>
+                </div>
+              </div>
+
+              {/* Form Registrasi Admin Baru */}
+              <div className="card" style={{ maxWidth: '600px', margin: '0 auto', width: '100%' }}>
+                <h2 style={{ fontSize: '1.2rem', marginBottom: '1.25rem' }}>Daftarkan Akun Baru (Admin / Super Admin)</h2>
+                <form onSubmit={handleRegisterAdmin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {adminRegisterError && (
+                    <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--danger)', fontSize: '0.95rem' }}>
+                      ⚠️ {adminRegisterError}
+                    </div>
+                  )}
+                  {adminRegisterSuccess && (
+                    <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--success)', fontSize: '0.95rem' }}>
+                      ✅ {adminRegisterSuccess}
+                    </div>
+                  )}
+
+                  <div className="form-group">
+                    <label>Nama Lengkap *</label>
+                    <input
+                      type="text"
+                      value={newAdminForm.nama}
+                      onChange={e => setNewAdminForm({ ...newAdminForm, nama: e.target.value })}
+                      required
+                      placeholder="Nama Lengkap Admin"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Email *</label>
+                    <input
+                      type="email"
+                      value={newAdminForm.email}
+                      onChange={e => setNewAdminForm({ ...newAdminForm, email: e.target.value })}
+                      required
+                      placeholder="email@example.com"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Password *</label>
+                    <input
+                      type="password"
+                      value={newAdminForm.password}
+                      onChange={e => setNewAdminForm({ ...newAdminForm, password: e.target.value })}
+                      required
+                      placeholder="Minimal 6 karakter"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Nomor Telepon (Opsional)</label>
+                    <input
+                      type="text"
+                      value={newAdminForm.nomor_telepon}
+                      onChange={e => setNewAdminForm({ ...newAdminForm, nomor_telepon: e.target.value })}
+                      placeholder="cth: 08123456789"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Role *</label>
+                    <select
+                      value={newAdminForm.role}
+                      onChange={e => setNewAdminForm({ ...newAdminForm, role: e.target.value })}
+                      required
+                    >
+                      <option value="admin">Admin / Konselor</option>
+                      <option value="superadmin">Super Admin</option>
+                    </select>
+                  </div>
+
+                  <button type="submit" className="btn btn-primary" disabled={adminRegistering} style={{ padding: '0.75rem', marginTop: '0.5rem' }}>
+                    {adminRegistering ? 'Mendaftarkan...' : 'Daftarkan Akun Baru'}
+                  </button>
+                </form>
+              </div>
+
+              {/* Tabel Semua Admin/Konselor */}
+              <div className="card">
+                <h2 style={{ fontSize: '1.2rem', marginBottom: '1.25rem' }}>Daftar Seluruh Admin & Konselor ({allCounselors.length})</h2>
+                <div className="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Nama</th>
+                        <th>Spesialisasi</th>
+                        <th>Nomor Telepon</th>
+                        <th>Rating</th>
+                        <th>Sesi</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allCounselors.map(c => (
+                        <tr key={c.id}>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                              <img
+                                src={c.foto_profil || `https://i.pravatar.cc/40?u=${encodeURIComponent(c.name)}`}
+                                alt={c.name}
+                                style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
+                                onError={(e) => { e.target.src = 'https://via.placeholder.com/40?text=P'; }}
+                              />
+                              <strong>{c.name}</strong>
+                            </div>
+                          </td>
+                          <td>{c.specialty || '-'}</td>
+                          <td>{c.nomor_telepon || '-'}</td>
+                          <td>⭐ {c.rating}</td>
+                          <td>{c.sessions}</td>
+                          <td>
+                            <span className={`badge ${c.is_online ? 'badge-success' : 'badge-danger'}`}>
+                              {c.is_online ? 'Online' : 'Offline'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                      {allCounselors.length === 0 && (
+                        <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada admin/konselor terdaftar.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
-
-            {!konselorLoaded ? (
-              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Memuat data profil konselor...</div>
-            ) : (
-              <form onSubmit={handleSaveKonselor} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                {konselorFormError && (
-                  <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--danger)', fontSize: '0.95rem' }}>
-                    ⚠️ {konselorFormError}
-                  </div>
-                )}
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group">
-                    <label>Nama Lengkap *</label>
-                    <input value={konselorForm.nama} onChange={e => setKonselorField('nama', e.target.value)} required />
-                  </div>
-                  <div className="form-group">
-                    <label>Spesialisasi (Judul) *</label>
-                    <input value={konselorForm.spesialisasi} onChange={e => setKonselorField('spesialisasi', e.target.value)} placeholder="cth: Psikolog Klinis" required />
-                  </div>
-                  <div className="form-group">
-                    <label>Rating (0 - 5.0)</label>
-                    <input type="number" step="0.1" min="0" max="5" value={konselorForm.rating} onChange={e => setKonselorField('rating', e.target.value)} />
-                  </div>
-                  <div className="form-group">
-                    <label>Pengalaman</label>
-                    <input value={konselorForm.pengalaman_tahun} onChange={e => setKonselorField('pengalaman_tahun', e.target.value)} placeholder="cth: 3 Tahun" />
-                  </div>
-                  <div className="form-group">
-                    <label>Nomor Telepon</label>
-                    <input value={konselorForm.nomor_telepon} onChange={e => setKonselorField('nomor_telepon', e.target.value)} placeholder="cth: 08123456789" />
-                  </div>
-                  <div className="form-group">
-                    <label>URL Foto Profil</label>
-                    <input value={konselorForm.foto_profil} onChange={e => setKonselorField('foto_profil', e.target.value)} placeholder="https://..." />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Tentang / Deskripsi Diri</label>
-                  <textarea rows={4} value={konselorForm.tentang} onChange={e => setKonselorField('tentang', e.target.value)} placeholder="Tulis deskripsi diri atau latar belakang Anda..." />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group">
-                    <label>Spesialisasi (Chips, pisah dengan koma)</label>
-                    <input value={konselorForm.spesialisasi_list} onChange={e => setKonselorField('spesialisasi_list', e.target.value)} placeholder="cth: Perundungan, Trauma, Cemas" />
-                  </div>
-                  <div className="form-group">
-                    <label>Jam Tersedia (pisah dengan koma)</label>
-                    <input value={konselorForm.jam_tersedia} onChange={e => setKonselorField('jam_tersedia', e.target.value)} placeholder="cth: 09:00 WIB, 13:00 WIB" />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Hari Praktik</label>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
-                    {KONSELOR_DAYS.map(d => (
-                      <button
-                        type="button"
-                        key={d.v}
-                        onClick={() => toggleKonselorDay(d.v)}
-                        className={`btn btn-sm ${konselorForm.hari_praktik.includes(d.v) ? 'btn-primary' : 'btn-secondary'}`}
-                        style={{ padding: '0.4rem 0.85rem' }}
-                      >
-                        {d.l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <KonselorRowEditor
-                  title="Pendidikan"
-                  rows={konselorForm.pendidikan}
-                  onAdd={() => addKonselorRow('pendidikan')}
-                  onRemove={(i) => removeKonselorRow('pendidikan', i)}
-                  onChange={(i, key, val) => updateKonselorRow('pendidikan', i, key, val)}
+          ) : (
+            <div className="card" style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.5rem' }}>
+                <img
+                  src={konselorForm.foto_profil || `https://i.pravatar.cc/120?u=${encodeURIComponent(konselorForm.nama)}`}
+                  alt={konselorForm.nama}
+                  style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--primary)' }}
+                  onError={(e) => { e.target.src = 'https://via.placeholder.com/120?text=Profile'; }}
                 />
-
-                <KonselorRowEditor
-                  title="Pengalaman Kerja"
-                  rows={konselorForm.pengalaman}
-                  onAdd={() => addKonselorRow('pengalaman')}
-                  onRemove={(i) => removeKonselorRow('pengalaman', i)}
-                  onChange={(i, key, val) => updateKonselorRow('pengalaman', i, key, val)}
-                />
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={konselorForm.is_online} onChange={e => setKonselorField('is_online', e.target.checked)} style={{ width: 'auto', margin: 0 }} />
-                    <span style={{ fontSize: '0.95rem', fontWeight: '500' }}>Tandai sedang online</span>
-                  </label>
-                  <button type="submit" className="btn btn-primary" disabled={konselorSaving} style={{ padding: '0.6rem 2rem' }}>
-                    {konselorSaving ? 'Menyimpan...' : 'Simpan Profil Konselor'}
-                  </button>
+                <div>
+                  <h2 style={{ fontSize: '1.4rem', margin: 0 }}>{konselorForm.nama || 'Konselor'}</h2>
+                  <p style={{ color: 'var(--text-secondary)', margin: '0.25rem 0 0' }}>{konselorForm.spesialisasi || 'Spesialisasi belum diatur'}</p>
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <span className={`badge ${konselorForm.is_online ? 'badge-success' : 'badge-danger'}`}>
+                      {konselorForm.is_online ? 'Online' : 'Offline'}
+                    </span>
+                  </div>
                 </div>
-              </form>
-            )}
-          </div>
+              </div>
+
+              {!konselorLoaded ? (
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Memuat data profil konselor...</div>
+              ) : (
+                <form onSubmit={handleSaveKonselor} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  {konselorFormError && (
+                    <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--danger)', fontSize: '0.95rem' }}>
+                      ⚠️ {konselorFormError}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group">
+                      <label>Nama Lengkap *</label>
+                      <input value={konselorForm.nama} onChange={e => setKonselorField('nama', e.target.value)} required />
+                    </div>
+                    <div className="form-group">
+                      <label>Spesialisasi (Judul) *</label>
+                      <input value={konselorForm.spesialisasi} onChange={e => setKonselorField('spesialisasi', e.target.value)} placeholder="cth: Psikolog Klinis" required />
+                    </div>
+                    <div className="form-group">
+                      <label>Rating (0 - 5.0)</label>
+                      <input type="number" step="0.1" min="0" max="5" value={konselorForm.rating} onChange={e => setKonselorField('rating', e.target.value)} />
+                    </div>
+                    <div className="form-group">
+                      <label>Pengalaman</label>
+                      <input value={konselorForm.pengalaman_tahun} onChange={e => setKonselorField('pengalaman_tahun', e.target.value)} placeholder="cth: 3 Tahun" />
+                    </div>
+                    <div className="form-group">
+                      <label>Nomor Telepon</label>
+                      <input value={konselorForm.nomor_telepon} onChange={e => setKonselorField('nomor_telepon', e.target.value)} placeholder="cth: 08123456789" />
+                    </div>
+                    <div className="form-group">
+                      <label>URL Foto Profil</label>
+                      <input value={konselorForm.foto_profil} onChange={e => setKonselorField('foto_profil', e.target.value)} placeholder="https://..." />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Tentang / Deskripsi Diri</label>
+                    <textarea rows={4} value={konselorForm.tentang} onChange={e => setKonselorField('tentang', e.target.value)} placeholder="Tulis deskripsi diri atau latar belakang Anda..." />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group">
+                      <label>Spesialisasi (Chips, pisah dengan koma)</label>
+                      <input value={konselorForm.spesialisasi_list} onChange={e => setKonselorField('spesialisasi_list', e.target.value)} placeholder="cth: Perundungan, Trauma, Cemas" />
+                    </div>
+                    <div className="form-group">
+                      <label>Jam Tersedia (pisah dengan koma)</label>
+                      <input value={konselorForm.jam_tersedia} onChange={e => setKonselorField('jam_tersedia', e.target.value)} placeholder="cth: 09:00 WIB, 13:00 WIB" />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Hari Praktik</label>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                      {KONSELOR_DAYS.map(d => (
+                        <button
+                          type="button"
+                          key={d.v}
+                          onClick={() => toggleKonselorDay(d.v)}
+                          className={`btn btn-sm ${konselorForm.hari_praktik.includes(d.v) ? 'btn-primary' : 'btn-secondary'}`}
+                          style={{ padding: '0.4rem 0.85rem' }}
+                        >
+                          {d.l}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <KonselorRowEditor
+                    title="Pendidikan"
+                    rows={konselorForm.pendidikan}
+                    onAdd={() => addKonselorRow('pendidikan')}
+                    onRemove={(i) => removeKonselorRow('pendidikan', i)}
+                    onChange={(i, key, val) => updateKonselorRow('pendidikan', i, key, val)}
+                  />
+
+                  <KonselorRowEditor
+                    title="Pengalaman Kerja"
+                    rows={konselorForm.pengalaman}
+                    onAdd={() => addKonselorRow('pengalaman')}
+                    onRemove={(i) => removeKonselorRow('pengalaman', i)}
+                    onChange={(i, key, val) => updateKonselorRow('pengalaman', i, key, val)}
+                  />
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={konselorForm.is_online} onChange={e => setKonselorField('is_online', e.target.checked)} style={{ width: 'auto', margin: 0 }} />
+                      <span style={{ fontSize: '0.95rem', fontWeight: '500' }}>Tandai sedang online</span>
+                    </label>
+                    <button type="submit" className="btn btn-primary" disabled={konselorSaving} style={{ padding: '0.6rem 2rem' }}>
+                      {konselorSaving ? 'Menyimpan...' : 'Simpan Profil Konselor'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          )
         )}
 
         {/* TAB 2: LAPORAN PERUNDUNGAN */}
@@ -1317,6 +1542,43 @@ function App() {
                   ))}
                   {users.length === 0 && (
                     <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada mahasiswa yang masuk dalam database.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: DATA SUPER ADMIN */}
+        {activeTab === 'superadmin' && (
+          <div className="card">
+            <h2 style={{ fontSize: '1.2rem', marginBottom: '1.25rem' }}>Daftar Akun Super Admin ({superAdmins.length})</h2>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nama Lengkap</th>
+                    <th>Email</th>
+                    <th>Nomor Telepon</th>
+                    <th>Terdaftar Sejak</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {superAdmins.map(s => (
+                    <tr key={s.id}>
+                      <td>
+                        <strong>{s.nama}</strong>
+                        {user && s.id === user.id && (
+                          <span className="badge badge-success" style={{ marginLeft: '0.5rem' }}>Anda</span>
+                        )}
+                      </td>
+                      <td>{s.email}</td>
+                      <td>{s.nomor_telepon || '-'}</td>
+                      <td>{s.created_at ? new Date(s.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</td>
+                    </tr>
+                  ))}
+                  {superAdmins.length === 0 && (
+                    <tr><td colSpan="4" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada akun super admin.</td></tr>
                   )}
                 </tbody>
               </table>

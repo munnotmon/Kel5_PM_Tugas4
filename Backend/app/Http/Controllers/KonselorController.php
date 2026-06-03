@@ -15,9 +15,12 @@ class KonselorController extends Controller
      */
     public function index(Request $request)
     {
-        $konselor = User::where('role', 'admin')
-            ->whereNotNull('spesialisasi')
-            ->orderByDesc('is_online')
+        $query = User::where('role', 'admin');
+        if ($request->user() && $request->user()->role === 'mahasiswa') {
+            $query->whereNotNull('spesialisasi');
+        }
+
+        $konselor = $query->orderByDesc('is_online')
             ->orderByDesc('rating')
             ->get();
 
@@ -116,12 +119,9 @@ class KonselorController extends Controller
         ]);
     }
 
-    /**
-     * Buat konselor baru (dipakai Admin-Web).
-     */
     public function store(Request $request)
     {
-        if ($request->user()->role !== 'admin') {
+        if ($request->user()->role !== 'admin' && $request->user()->role !== 'superadmin') {
             return response()->json(['success' => false, 'message' => 'Akses ditolak'], 403);
         }
 
@@ -129,7 +129,8 @@ class KonselorController extends Controller
             'nama' => 'required|string|max:100',
             'email' => 'required|email|max:100|unique:users,email',
             'password' => 'required|string|min:6',
-            'spesialisasi' => 'required|string|max:150',
+            'role' => 'nullable|in:admin,superadmin',
+            'spesialisasi' => 'nullable|string|max:150',
             'rating' => 'nullable|numeric|min:0|max:5',
             'pengalaman_tahun' => 'nullable|string|max:50',
             'tentang' => 'nullable|string',
@@ -151,11 +152,13 @@ class KonselorController extends Controller
             ], 422);
         }
 
+        $role = in_array($request->role, ['admin', 'superadmin']) ? $request->role : 'admin';
+
         $konselor = User::create([
             'nama' => $request->nama,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'admin',
+            'role' => $role,
             'nomor_telepon' => $request->nomor_telepon,
             'foto_profil' => $request->foto_profil,
             'spesialisasi' => $request->spesialisasi,
@@ -172,7 +175,9 @@ class KonselorController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Konselor berhasil ditambahkan',
+            'message' => $role === 'superadmin'
+                ? 'Akun Super Admin berhasil ditambahkan'
+                : 'Akun Admin/Konselor berhasil ditambahkan',
             'data' => $this->transform($konselor),
         ], 201);
     }
@@ -182,7 +187,7 @@ class KonselorController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
+        if ($request->user()->role !== 'admin' && $request->user()->role !== 'superadmin') {
             return response()->json(['success' => false, 'message' => 'Akses ditolak'], 403);
         }
 
@@ -241,6 +246,8 @@ class KonselorController extends Controller
         return [
             'id' => $k->id,
             'name' => $k->nama,
+            'email' => $k->email,
+            'role' => $k->role,
             'specialty' => $k->spesialisasi ?? '',
             'rating' => number_format((float) ($k->rating ?? 5.0), 1),
             'experience_years' => $k->pengalaman_tahun ?? '',

@@ -229,7 +229,7 @@ class AuthController extends Controller
 
     public function getMahasiswa(Request $request)
     {
-        if ($request->user()->role !== 'admin') {
+        if (!in_array($request->user()->role, ['admin', 'superadmin'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Akses ditolak. Hanya admin yang dapat mengakses.'
@@ -244,6 +244,28 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'data' => $mahasiswa
+        ]);
+    }
+
+    /**
+     * Daftar akun Super Admin (hanya bisa diakses oleh Super Admin).
+     */
+    public function getSuperadmin(Request $request)
+    {
+        if ($request->user()->role !== 'superadmin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Hanya Super Admin yang dapat mengakses.'
+            ], 403);
+        }
+
+        $superadmin = User::where('role', 'superadmin')
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $superadmin
         ]);
     }
 }

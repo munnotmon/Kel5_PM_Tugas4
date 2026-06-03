@@ -21,6 +21,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/profile/update', [AuthController::class, 'updateProfile']);
     Route::get('/mahasiswa', [AuthController::class, 'getMahasiswa']);
+    Route::get('/superadmin', [AuthController::class, 'getSuperadmin']);
 
     // Laporan Perundungan
     Route::get('/laporan', [LaporanController::class, 'index']);

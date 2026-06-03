@@ -12,31 +12,48 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // 0. Seed Super Admin User
+        User::updateOrCreate(
+            ['email' => 'superadmin@gmail.com'],
+            [
+                'nama' => 'Super Admin Polinema Care',
+                'password' => Hash::make('123456'),
+                'role' => 'superadmin',
+                'nomor_telepon' => '081234567899',
+            ]
+        );
+
         // 1. Seed Admin User
-        $admin = User::create([
-            'nama' => 'Admin Polinema Care',
-            'email' => 'admin@gmail.com',
-            'password' => Hash::make('123456'),
-            'role' => 'admin',
-            'nomor_telepon' => '081234567890',
-        ]);
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@gmail.com'],
+            [
+                'nama' => 'Admin Polinema Care',
+                'password' => Hash::make('123456'),
+                'role' => 'admin',
+                'nomor_telepon' => '081234567890',
+            ]
+        );
 
         // 2. Seed Mahasiswa User
-        $student = User::create([
-            'nama' => 'Kelompok 5',
-            'email' => 'student@gmail.com',
-            'password' => Hash::make('123456'),
-            'role' => 'mahasiswa',
-            'nomor_telepon' => '081234567891',
-        ]);
+        $student = User::updateOrCreate(
+            ['email' => 'student@gmail.com'],
+            [
+                'nama' => 'Kelompok 5',
+                'password' => Hash::make('123456'),
+                'role' => 'mahasiswa',
+                'nomor_telepon' => '081234567891',
+            ]
+        );
 
         // 3. Seed Mahasiswa Profile
-        ProfilMahasiswa::create([
-            'user_id' => $student->id,
-            'nim' => '21090123',
-            'program_studi' => 'Teknologi Informasi',
-            'angkatan' => 2026,
-        ]);
+        ProfilMahasiswa::updateOrCreate(
+            ['user_id' => $student->id],
+            [
+                'nim' => '21090123',
+                'program_studi' => 'Teknologi Informasi',
+                'angkatan' => 2026,
+            ]
+        );
 
         // 4. Seed Jadwal Konseling
         JadwalKonseling::create([
