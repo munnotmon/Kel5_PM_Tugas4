@@ -375,14 +375,14 @@ function App() {
     }
   }, [token]);
 
-  // Polling data dashboard secara silent setiap 10 detik
+  // Polling data dashboard secara silent setiap 10 detik (hanya saat tab dashboard aktif)
   useEffect(() => {
-    if (!token) return;
+    if (!token || activeTab !== 'dashboard') return;
     const interval = setInterval(() => {
       fetchDashboardData(true);
     }, 10000);
     return () => clearInterval(interval);
-  }, [token]);
+  }, [token, activeTab]);
 
   // Declarative chat polling effect
   useEffect(() => {
