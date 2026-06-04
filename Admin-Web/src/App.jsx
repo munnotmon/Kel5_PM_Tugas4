@@ -76,6 +76,14 @@ const IconSignOut = () => (
   </svg>
 );
 
+const IconMenu = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <line x1="4" x2="20" y1="12" y2="12" />
+    <line x1="4" x2="20" y1="6" y2="6" />
+    <line x1="4" x2="20" y1="18" y2="18" />
+  </svg>
+);
+
 const IconRefresh = ({ spinning }) => (
   <svg
     width="14"
@@ -150,9 +158,71 @@ const IconStatJadwal = () => (
     <path d="M8 14h.01" />
     <path d="M12 14h.01" />
     <path d="M16 14h.01" />
-    <path d="M8 18h.01" />
     <path d="M12 18h.01" />
     <path d="M16 18h.01" />
+  </svg>
+);
+
+const IconWarning = ({ size = 16, className, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
+    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+    <line x1="12" y1="9" x2="12" y2="13" />
+    <line x1="12" y1="17" x2="12.01" y2="17" />
+  </svg>
+);
+
+const IconPaperclip = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
+    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+  </svg>
+);
+
+const IconCalendar = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
+
+const IconClock = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
+
+const IconMapPin = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+    <circle cx="12" cy="10" r="3" />
+  </svg>
+);
+
+const IconMessageSquare = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </svg>
+);
+
+const IconCheck = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+const IconX = ({ size = 14, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
+const IconCheckCircle = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+    <polyline points="22 4 12 14.01 9 11.01" />
   </svg>
 );
 
@@ -209,6 +279,17 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('sidebar_collapsed') === 'true');
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(prev => {
+      const newVal = !prev;
+      localStorage.setItem('sidebar_collapsed', String(newVal));
+      return newVal;
+    });
+  };
 
   // Login Form States
   const [loginEmail, setLoginEmail] = useState('');
@@ -410,17 +491,21 @@ function App() {
   };
 
   const handleLogout = async () => {
+    setLogoutLoading(true);
     try {
       await axios.post('/logout');
     } catch (err) {
       console.error('Logout error on server', err);
+    } finally {
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      setToken(null);
+      setUser(null);
+      setActiveChatSession(null);
+      setChatMessages([]);
+      setLogoutLoading(false);
+      setShowLogoutConfirm(false);
     }
-    localStorage.removeItem('admin_token');
-    localStorage.removeItem('admin_user');
-    setToken(null);
-    setUser(null);
-    setActiveChatSession(null);
-    setChatMessages([]);
   };
 
   // Report Moderation Actions
@@ -774,7 +859,7 @@ function App() {
             <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Administrator Login Portal</p>
           </div>
 
-          {error && <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.75rem 1rem', borderRadius: '8px', color: 'var(--danger)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>{error}</div>}
+          {error && <div style={{ background: 'var(--danger-bg)', border: '1px solid var(--danger-border)', padding: '0.75rem 1rem', borderRadius: '8px', color: 'var(--danger)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>{error}</div>}
 
           <form onSubmit={handleLogin}>
             <div className="form-group">
@@ -815,69 +900,109 @@ function App() {
   return (
     <div className="app-container">
       {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="logo-container" style={{ gap: '0.85rem' }}>
-          <LogoIcon size={32} />
-          <span className="logo-text">Polinema Care+</span>
+      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+        <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between', marginBottom: '2rem', width: '100%' }}>
+          {!sidebarCollapsed && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+              <LogoIcon size={32} />
+              <span className="logo-text" style={{ fontSize: '1.2rem', fontWeight: '700', background: 'linear-gradient(to right, var(--primary), var(--secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Polinema Care+</span>
+            </div>
+          )}
+          <button className="sidebar-toggle-btn" onClick={toggleSidebar} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '6px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'var(--transition-fast)' }} title={sidebarCollapsed ? "Buka Menu" : "Tutup Menu"}>
+            <IconMenu />
+          </button>
         </div>
-        <nav>
+        <nav style={{ width: '100%' }}>
           <ul className="menu-list">
             {user && user.role === 'superadmin' ? (
               <>
-                <li className={`menu-item ${activeTab === 'konselor' ? 'active' : ''}`} onClick={() => { setActiveTab('konselor'); setActiveChatSession(null); }}>
-                  <IconCounselor /> Kelola Admin & Konselor
+                <li className={`menu-item ${activeTab === 'konselor' ? 'active' : ''}`} onClick={() => { setActiveTab('konselor'); setActiveChatSession(null); }} title={sidebarCollapsed ? "Kelola Admin & Konselor" : ""}>
+                  <IconCounselor />
+                  {!sidebarCollapsed && <span>Kelola Admin & Konselor</span>}
                 </li>
-                <li className={`menu-item ${activeTab === 'users' ? 'active' : ''}`} onClick={() => { setActiveTab('users'); setActiveChatSession(null); }}>
-                  <IconUsers /> Data Mahasiswa
+                <li className={`menu-item ${activeTab === 'users' ? 'active' : ''}`} onClick={() => { setActiveTab('users'); setActiveChatSession(null); }} title={sidebarCollapsed ? "Data Mahasiswa" : ""}>
+                  <IconUsers />
+                  {!sidebarCollapsed && <span>Data Mahasiswa</span>}
                 </li>
-                <li className={`menu-item ${activeTab === 'superadmin' ? 'active' : ''}`} onClick={() => { setActiveTab('superadmin'); setActiveChatSession(null); }}>
-                  <IconShieldUser /> Data Super Admin
+                <li className={`menu-item ${activeTab === 'superadmin' ? 'active' : ''}`} onClick={() => { setActiveTab('superadmin'); setActiveChatSession(null); }} title={sidebarCollapsed ? "Data Super Admin" : ""}>
+                  <IconShieldUser />
+                  {!sidebarCollapsed && <span>Data Super Admin</span>}
                 </li>
               </>
             ) : (
               <>
-                <li className={`menu-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveTab('dashboard'); setActiveChatSession(null); }}>
-                  <IconDashboard /> Dashboard
+                <li className={`menu-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveTab('dashboard'); setActiveChatSession(null); }} title={sidebarCollapsed ? "Dashboard" : ""}>
+                  <IconDashboard />
+                  {!sidebarCollapsed && <span>Dashboard</span>}
                 </li>
-                <li className={`menu-item ${activeTab === 'konselor' ? 'active' : ''}`} onClick={() => { setActiveTab('konselor'); setActiveChatSession(null); }}>
-                  <IconCounselor /> Profil Konselor Saya
+                <li className={`menu-item ${activeTab === 'konselor' ? 'active' : ''}`} onClick={() => { setActiveTab('konselor'); setActiveChatSession(null); }} title={sidebarCollapsed ? "Profil Konselor Saya" : ""}>
+                  <IconCounselor />
+                  {!sidebarCollapsed && <span>Profil Konselor Saya</span>}
                 </li>
-                <li className={`menu-item ${activeTab === 'laporan' ? 'active' : ''}`} onClick={() => { setActiveTab('laporan'); setActiveChatSession(null); }} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <IconReport /> Laporan Perundungan
-                  </span>
-                  {hasNewReports && (
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444', marginRight: '8px' }} />
+                <li className={`menu-item ${activeTab === 'laporan' ? 'active' : ''}`} onClick={() => { setActiveTab('laporan'); setActiveChatSession(null); }} style={sidebarCollapsed ? { justifyContent: 'center' } : { display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} title={sidebarCollapsed ? "Laporan Perundungan" : ""}>
+                  {sidebarCollapsed ? (
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <IconReport />
+                      {hasNewReports && (
+                        <span style={{ position: 'absolute', top: '-4px', right: '-4px', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <IconReport />
+                        <span>Laporan Perundungan</span>
+                      </span>
+                      {hasNewReports && (
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444', marginRight: '8px' }} />
+                      )}
+                    </>
                   )}
                 </li>
-                <li className={`menu-item ${activeTab === 'jadwal' ? 'active' : ''}`} onClick={() => { setActiveTab('jadwal'); setActiveChatSession(null); }}>
-                  <IconSchedule /> Jadwal Konseling
+                <li className={`menu-item ${activeTab === 'jadwal' ? 'active' : ''}`} onClick={() => { setActiveTab('jadwal'); setActiveChatSession(null); }} title={sidebarCollapsed ? "Jadwal Konseling" : ""}>
+                  <IconSchedule />
+                  {!sidebarCollapsed && <span>Jadwal Konseling</span>}
                 </li>
-                <li className={`menu-item ${activeTab === 'konseling' ? 'active' : ''}`} onClick={() => { setActiveTab('konseling'); setActiveChatSession(null); }}>
-                  <IconBooking /> Pemesanan Konseling
+                <li className={`menu-item ${activeTab === 'konseling' ? 'active' : ''}`} onClick={() => { setActiveTab('konseling'); setActiveChatSession(null); }} title={sidebarCollapsed ? "Pemesanan Konseling" : ""}>
+                  <IconBooking />
+                  {!sidebarCollapsed && <span>Pemesanan Konseling</span>}
                 </li>
-                <li className={`menu-item ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => { setActiveTab('chat'); }} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <IconChat /> Chat Konseling
-                  </span>
-                  {hasUnreadChats && (
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444', marginRight: '8px' }} />
+                <li className={`menu-item ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => { setActiveTab('chat'); }} style={sidebarCollapsed ? { justifyContent: 'center' } : { display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} title={sidebarCollapsed ? "Chat Konseling" : ""}>
+                  {sidebarCollapsed ? (
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <IconChat />
+                      {hasUnreadChats && (
+                        <span style={{ position: 'absolute', top: '-4px', right: '-4px', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <IconChat />
+                        <span>Chat Konseling</span>
+                      </span>
+                      {hasUnreadChats && (
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444', marginRight: '8px' }} />
+                      )}
+                    </>
                   )}
                 </li>
-                <li className={`menu-item ${activeTab === 'users' ? 'active' : ''}`} onClick={() => { setActiveTab('users'); setActiveChatSession(null); }}>
-                  <IconUsers /> Data Mahasiswa
+                <li className={`menu-item ${activeTab === 'users' ? 'active' : ''}`} onClick={() => { setActiveTab('users'); setActiveChatSession(null); }} title={sidebarCollapsed ? "Data Mahasiswa" : ""}>
+                  <IconUsers />
+                  {!sidebarCollapsed && <span>Data Mahasiswa</span>}
                 </li>
               </>
             )}
-            <li className="menu-item logout-btn" onClick={handleLogout} style={{ marginTop: '3rem' }}>
-              <IconSignOut /> Sign Out
+            <li className="menu-item logout-btn" onClick={() => setShowLogoutConfirm(true)} style={{ marginTop: sidebarCollapsed ? '2rem' : '3rem' }} title={sidebarCollapsed ? "Sign Out" : ""}>
+              <IconSignOut />
+              {!sidebarCollapsed && <span>Sign Out</span>}
             </li>
           </ul>
         </nav>
       </aside>
 
       {/* Main Content Area */}
-      <main className="main-content">
+      <main className={`main-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
           <div>
             <h1 style={{ fontSize: '1.75rem', fontWeight: '700' }}>
@@ -892,28 +1017,30 @@ function App() {
             </h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Selamat datang kembali, {user.nama} ({user && user.role === 'superadmin' ? 'Super Admin' : 'Admin'})</p>
           </div>
-          <button className="btn btn-secondary btn-sm" onClick={fetchDashboardData} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <button className="btn btn-secondary btn-sm" onClick={() => fetchDashboardData(false)} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <IconRefresh spinning={loading} /> Refresh Data
           </button>
         </header>
 
         {/* Global Notifications */}
         {success && (
-          <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--success)', marginBottom: '1.5rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>✅</span> {success}
+          <div style={{ background: 'var(--success-bg)', border: '1px solid var(--success-border)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--success)', marginBottom: '1.5rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <IconCheckCircle size={18} /> {success}
           </div>
         )}
         {error && (
-          <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--danger)', marginBottom: '1.5rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>⚠️</span> {error}
+          <div style={{ background: 'var(--danger-bg)', border: '1px solid var(--danger-border)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--danger)', marginBottom: '1.5rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <IconWarning size={18} /> {error}
           </div>
         )}
 
-        {/* LOADING INDICATOR */}
-        {loading && <div style={{ color: 'var(--primary)', fontWeight: '600', marginBottom: '1.5rem' }}>Memuat data terbaru...</div>}
-
-        {/* TAB 1: DASHBOARD */}
-        {activeTab === 'dashboard' && (
+        {/* LOADING INDICATOR / SKELETON WIREFRAME */}
+        {loading ? (
+          <SkeletonWireframe activeTab={activeTab} isSuper={user && user.role === 'superadmin'} />
+        ) : (
+          <>
+            {/* TAB 1: DASHBOARD */}
+            {activeTab === 'dashboard' && (
           <>
             <div className="grid-stats">
               <div className="card stat-card">
@@ -921,28 +1048,28 @@ function App() {
                   <h3>Total Laporan</h3>
                   <p>{reports.length}</p>
                 </div>
-                <div className="stat-icon" style={{ background: 'rgba(99, 102, 241, 0.15)', color: 'var(--secondary)' }}><IconStatLaporan /></div>
+                <div className="stat-icon" style={{ background: 'var(--info-bg)', color: 'var(--info)' }}><IconStatLaporan /></div>
               </div>
               <div className="card stat-card">
                 <div className="stat-info">
                   <h3>Menunggu Verifikasi</h3>
                   <p>{reports.filter(r => r.status === 'Menunggu').length}</p>
                 </div>
-                <div className="stat-icon" style={{ background: 'rgba(245, 158, 11, 0.15)', color: 'var(--warning)' }}><IconStatVerifikasi /></div>
+                <div className="stat-icon" style={{ background: 'var(--warning-bg)', color: 'var(--warning)' }}><IconStatVerifikasi /></div>
               </div>
               <div className="card stat-card">
                 <div className="stat-info">
                   <h3>Konseling Aktif</h3>
                   <p>{sessions.filter(s => s.status === 'Diterima' || s.status === 'Berlangsung').length}</p>
                 </div>
-                <div className="stat-icon" style={{ background: 'rgba(6, 182, 212, 0.15)', color: 'var(--primary)' }}><IconStatKonseling /></div>
+                <div className="stat-icon" style={{ background: 'var(--primary-glow)', color: 'var(--primary)' }}><IconStatKonseling /></div>
               </div>
               <div className="card stat-card">
                 <div className="stat-info">
                   <h3>Slot Jadwal Tersedia</h3>
                   <p>{schedules.filter(s => s.status === 'Tersedia').length}</p>
                 </div>
-                <div className="stat-icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--success)' }}><IconStatJadwal /></div>
+                <div className="stat-icon" style={{ background: 'var(--success-bg)', color: 'var(--success)' }}><IconStatJadwal /></div>
               </div>
             </div>
 
@@ -1041,14 +1168,14 @@ function App() {
                     <h3>Total Admin / Konselor Terdaftar</h3>
                     <p>{allCounselors.length}</p>
                   </div>
-                  <div className="stat-icon" style={{ background: 'rgba(99, 102, 241, 0.15)', color: 'var(--secondary)' }}><IconStatKonseling /></div>
+                  <div className="stat-icon" style={{ background: 'var(--info-bg)', color: 'var(--info)' }}><IconStatKonseling /></div>
                 </div>
                 <div className="card stat-card">
                   <div className="stat-info">
                     <h3>Sedang Online</h3>
                     <p>{allCounselors.filter(c => c.is_online).length}</p>
                   </div>
-                  <div className="stat-icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--success)' }}><IconCounselor /></div>
+                  <div className="stat-icon" style={{ background: 'var(--success-bg)', color: 'var(--success)' }}><IconCounselor /></div>
                 </div>
               </div>
 
@@ -1057,13 +1184,13 @@ function App() {
                 <h2 style={{ fontSize: '1.2rem', marginBottom: '1.25rem' }}>Daftarkan Akun Baru (Admin / Super Admin)</h2>
                 <form onSubmit={handleRegisterAdmin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {adminRegisterError && (
-                    <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--danger)', fontSize: '0.95rem' }}>
-                      ⚠️ {adminRegisterError}
+                    <div style={{ background: 'var(--danger-bg)', border: '1px solid var(--danger-border)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--danger)', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <IconWarning size={16} /> {adminRegisterError}
                     </div>
                   )}
                   {adminRegisterSuccess && (
-                    <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--success)', fontSize: '0.95rem' }}>
-                      ✅ {adminRegisterSuccess}
+                    <div style={{ background: 'var(--success-bg)', border: '1px solid var(--success-border)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--success)', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <IconCheckCircle size={16} /> {adminRegisterSuccess}
                     </div>
                   )}
 
@@ -1212,8 +1339,8 @@ function App() {
               ) : (
                 <form onSubmit={handleSaveKonselor} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   {konselorFormError && (
-                    <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--danger)', fontSize: '0.95rem' }}>
-                      ⚠️ {konselorFormError}
+                    <div style={{ background: 'var(--danger-bg)', border: '1px solid var(--danger-border)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--danger)', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <IconWarning size={16} /> {konselorFormError}
                     </div>
                   )}
 
@@ -1627,8 +1754,8 @@ function App() {
                         )}
                       </p>
                     </div>
-                    <button className="btn btn-secondary btn-sm" onClick={() => handleUpdateSessionStatus(activeChatSession.id, 'Selesai')}>
-                      ✔️ Selesaikan Sesi
+                    <button className="btn btn-secondary btn-sm" onClick={() => handleUpdateSessionStatus(activeChatSession.id, 'Selesai')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <IconCheck size={14} /> Selesaikan Sesi
                     </button>
                   </div>
 
@@ -1673,7 +1800,7 @@ function App() {
                 </>
               ) : (
                 <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: 'var(--text-muted)', gap: '1rem' }}>
-                  <div style={{ fontSize: '3rem' }}>💬</div>
+                  <div style={{ display: 'flex', justifyContent: 'center', opacity: 0.3 }}><IconMessageSquare size={48} /></div>
                   <p>Pilih salah satu sesi konseling aktif dari daftar sebelah kiri untuk mulai chatting.</p>
                 </div>
               )}
@@ -1749,36 +1876,40 @@ function App() {
             </div>
           </div>
         )}
+          </>
+        )}
       </main>
 
       {/* DETAIL MODAL: LAPORAN PERUNDUNGAN */}
       {selectedReport && (
         <div className="modal-overlay" onClick={() => setSelectedReport(null)}>
-          <div className="card modal-content" onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-              <h2 style={{ fontSize: '1.2rem' }}>Detail Laporan Perundungan</h2>
-              <button className="btn btn-secondary btn-sm" onClick={() => setSelectedReport(null)}>✕</button>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: '700', background: 'linear-gradient(135deg, var(--primary), var(--secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 }}>Detail Laporan Perundungan</h2>
+              <button className="modal-close-btn" onClick={() => setSelectedReport(null)}><IconX size={14} /></button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <strong>Judul Pelaporan:</strong>
-                <p style={{ fontSize: '1.1rem', fontWeight: '500', color: 'var(--primary)', marginTop: '0.2rem' }}>{selectedReport.judul_pelaporan}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div className="info-item">
+                <span className="info-label">Judul Pelaporan</span>
+                <span className="info-value-highlight">{selectedReport.judul_pelaporan}</span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div>
-                  <strong>Nama Pelapor:</strong>
-                  <p>{selectedReport.pelapor?.nama || 'Mahasiswa'}</p>
+
+              <div className="info-grid">
+                <div className="info-item">
+                  <span className="info-label">Nama Pelapor</span>
+                  <span className="info-value">{selectedReport.pelapor?.nama || 'Mahasiswa'}</span>
                 </div>
-                <div>
-                  <strong>NIM / Prodi:</strong>
-                  <p>{selectedReport.pelapor?.profil_mahasiswa?.nim || '-'} ({selectedReport.pelapor?.profil_mahasiswa?.program_studi || '-'})</p>
+                <div className="info-item">
+                  <span className="info-label">NIM / Prodi</span>
+                  <span className="info-value">{selectedReport.pelapor?.profil_mahasiswa?.nim || '-'} ({selectedReport.pelapor?.profil_mahasiswa?.program_studi || '-'})</span>
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div>
-                  <strong>Tanggal Kejadian / Waktu :</strong>
-                  <p>
+
+              <div className="info-grid">
+                <div className="info-item">
+                  <span className="info-label">Tanggal Kejadian / Waktu</span>
+                  <span className="info-value">
                     {selectedReport.tanggal_kejadian ? (
                       (() => {
                         const d = new Date(selectedReport.tanggal_kejadian);
@@ -1791,61 +1922,68 @@ function App() {
                         return dateFormatted;
                       })()
                     ) : '-'}
-                  </p>
+                  </span>
                 </div>
-                <div>
-                  <strong>Lokasi:</strong>
-                  <p>{selectedReport.lokasi || '-'}</p>
+                <div className="info-item">
+                  <span className="info-label">Lokasi</span>
+                  <span className="info-value">{selectedReport.lokasi || '-'}</span>
                 </div>
               </div>
-              <div>
-                <strong>Jenis Perundungan:</strong>
-                <p>{selectedReport.jenis_perundungan || '-'}</p>
+
+              <div className="info-item">
+                <span className="info-label">Jenis Perundungan</span>
+                <div style={{ display: 'inline-flex' }}>
+                  <span className="badge badge-pending" style={{ fontSize: '0.8rem', textTransform: 'none', padding: '0.35rem 0.85rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <IconWarning size={14} style={{ color: 'var(--warning)' }} /> {selectedReport.jenis_perundungan || '-'}
+                  </span>
+                </div>
               </div>
-              <div>
-                <strong>Kronologi Kejadian:</strong>
-                <p style={{ background: 'rgba(0,0,0,0.2)', padding: '0.75rem', borderRadius: '8px', whiteSpace: 'pre-wrap', border: '1px solid var(--border-color)', fontSize: '0.95rem' }}>{selectedReport.kronologi}</p>
+
+              <div className="info-item">
+                <span className="info-label">Kronologi Kejadian</span>
+                <div className="premium-text-block">{selectedReport.kronologi}</div>
               </div>
+
               {selectedReport.deskripsi_pelaku && (
-                <div>
-                  <strong>Deskripsi Pelaku:</strong>
-                  <p style={{ background: 'rgba(0,0,0,0.2)', padding: '0.75rem', borderRadius: '8px', whiteSpace: 'pre-wrap', border: '1px solid var(--border-color)', fontSize: '0.95rem' }}>{selectedReport.deskripsi_pelaku}</p>
+                <div className="info-item">
+                  <span className="info-label">Deskripsi Pelaku</span>
+                  <div className="premium-text-block">{selectedReport.deskripsi_pelaku}</div>
                 </div>
               )}
 
-              <div>
-                <strong>Lampiran Bukti:</strong>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+              <div className="info-item">
+                <span className="info-label">Lampiran Bukti</span>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
                   {selectedReport.bukti?.map(b => (
                     <a
                       key={b.id}
                       href={b.path_file}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ padding: '0.5rem 0.85rem', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.85rem', textDecoration: 'none', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                      className="attachment-link"
                     >
-                      📎 {b.nama_file || 'File Bukti'}
+                      <IconPaperclip size={14} /> {b.nama_file || 'File Bukti'}
                     </a>
                   ))}
                   {(!selectedReport.bukti || selectedReport.bukti.length === 0) && (
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Tidak ada lampiran bukti diunggah.</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>Tidak ada lampiran bukti diunggah.</p>
                   )}
                 </div>
               </div>
 
-              <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+              <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
                 <style>{`
                   @keyframes spin {
                     to { transform: rotate(360deg); }
                   }
                 `}</style>
-                <strong>Moderasi Status Laporan:</strong>
-                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <span className="info-label" style={{ marginBottom: '0.75rem', display: 'block' }}>Moderasi Status Laporan</span>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                   <button
                     className="btn btn-secondary btn-sm"
                     onClick={() => handleUpdateReportStatus(selectedReport.id, 'Diproses')}
                     disabled={reportStatusUpdating !== null}
-                    style={{ position: 'relative', minWidth: '90px' }}
+                    style={{ position: 'relative', minWidth: '95px', padding: '0.5rem 1rem' }}
                   >
                     {reportStatusUpdating === 'Diproses' ? (
                       <>
@@ -1856,22 +1994,26 @@ function App() {
                   </button>
 
                   <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleUpdateReportStatus(selectedReport.id, 'Ditolak')}
-                    disabled={reportStatusUpdating !== null}
-                    style={{ position: 'relative', minWidth: '80px' }}
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => handleStartChatForReport(selectedReport)}
+                    disabled={loadingChatForReport}
+                    style={{ background: 'var(--primary)', color: '#fff', border: 'none', position: 'relative', minWidth: '140px', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
                   >
-                    {reportStatusUpdating === 'Ditolak' ? (
+                    {loadingChatForReport ? (
                       <>
                         <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite', marginRight: '6px' }}></span>
-                        Tolak...
+                        Menghubungkan...
                       </>
-                    ) : 'Tolak'}
+                    ) : (
+                      <>
+                        <IconMessageSquare size={16} /> Hubungi Pelapor
+                      </>
+                    )}
                   </button>
 
                   <button
                     className="btn btn-primary btn-sm"
-                    style={{ background: 'var(--success)', position: 'relative', minWidth: '110px' }}
+                    style={{ background: 'var(--success)', position: 'relative', minWidth: '115px', padding: '0.5rem 1rem' }}
                     onClick={() => handleUpdateReportStatus(selectedReport.id, 'Selesai')}
                     disabled={reportStatusUpdating !== null}
                   >
@@ -1884,17 +2026,17 @@ function App() {
                   </button>
 
                   <button
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => handleStartChatForReport(selectedReport)}
-                    disabled={loadingChatForReport}
-                    style={{ background: 'var(--primary)', color: '#fff', border: 'none', position: 'relative', minWidth: '130px' }}
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleUpdateReportStatus(selectedReport.id, 'Ditolak')}
+                    disabled={reportStatusUpdating !== null}
+                    style={{ position: 'relative', minWidth: '85px', padding: '0.5rem 1rem' }}
                   >
-                    {loadingChatForReport ? (
+                    {reportStatusUpdating === 'Ditolak' ? (
                       <>
                         <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite', marginRight: '6px' }}></span>
-                        Menghubungkan...
+                        Tolak...
                       </>
-                    ) : '💬 Hubungi Pelapor'}
+                    ) : 'Tolak'}
                   </button>
                 </div>
               </div>
@@ -1906,78 +2048,93 @@ function App() {
       {/* DETAIL MODAL: PEMESANAN KONSELING */}
       {selectedSession && (
         <div className="modal-overlay" onClick={() => setSelectedSession(null)}>
-          <div className="card modal-content" onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-              <h2 style={{ fontSize: '1.2rem' }}>Detail Sesi Konseling</h2>
-              <button className="btn btn-secondary btn-sm" onClick={() => setSelectedSession(null)}>✕</button>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: '700', background: 'linear-gradient(135deg, var(--primary), var(--secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 }}>Detail Sesi Konseling</h2>
+              <button className="modal-close-btn" onClick={() => setSelectedSession(null)}><IconX size={14} /></button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <strong>Nomor Antrian:</strong>
-                <span style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--primary)' }}>Q-{selectedSession.nomor_antrian}</span>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div>
-                  <strong>Mahasiswa:</strong>
-                  <p>{selectedSession.mahasiswa?.nama}</p>
-                </div>
-                <div>
-                  <strong>NIM / Prodi:</strong>
-                  <p>{selectedSession.mahasiswa?.profil_mahasiswa?.nim || '-'} ({selectedSession.mahasiswa?.profil_mahasiswa?.program_studi || '-'})</p>
-                </div>
-              </div>
-              <div>
-                <strong>Jadwal Konseling:</strong>
-                {selectedSession.jadwal_konseling ? (
-                  <p>
-                    📅 {new Date(selectedSession.jadwal_konseling.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                    <br />
-                    🕒 {selectedSession.jadwal_konseling.jam_mulai.substring(0, 5)} - {selectedSession.jadwal_konseling.jam_selesai.substring(0, 5)}
-                    <br />
-                    📍 {selectedSession.jadwal_konseling.lokasi || 'TBA'}
-                  </p>
-                ) : 'Jadwal dihapus'}
-              </div>
-              <div>
-                <strong>Keluhan Mahasiswa:</strong>
-                <p style={{ background: 'rgba(0,0,0,0.2)', padding: '0.75rem', borderRadius: '8px', whiteSpace: 'pre-wrap', border: '1px solid var(--border-color)', fontSize: '0.95rem' }}>{selectedSession.keluhan || 'Tidak ada keluhan tertulis'}</p>
-              </div>
-              <div>
-                <strong>Konselor (Admin):</strong>
-                <p>{selectedSession.admin?.nama || 'Belum ditugaskan'}</p>
-              </div>
-              <div>
-                <strong>Status Konseling:</strong>
-                <p>
-                  <span className={`badge ${selectedSession.status === 'Diajukan' ? 'badge-pending' :
-                    selectedSession.status === 'Diterima' ? 'badge-process' :
-                      selectedSession.status === 'Berlangsung' ? 'badge-process' :
-                        selectedSession.status === 'Selesai' ? 'badge-success' : 'badge-danger'
-                    }`}>{selectedSession.status}</span>
-                </p>
+                <span className="info-label">Nomor Antrian</span>
+                <span style={{ fontSize: '1.35rem', fontWeight: '800', color: 'var(--primary)' }}>Q-{selectedSession.nomor_antrian}</span>
               </div>
 
-              <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
-                <strong>Tindakan Admin:</strong>
+              <div className="info-grid">
+                <div className="info-item">
+                  <span className="info-label">Mahasiswa</span>
+                  <span className="info-value">{selectedSession.mahasiswa?.nama}</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">NIM / Prodi</span>
+                  <span className="info-value">{selectedSession.mahasiswa?.profil_mahasiswa?.nim || '-'} ({selectedSession.mahasiswa?.profil_mahasiswa?.program_studi || '-'})</span>
+                </div>
+              </div>
+
+              <div className="info-item">
+                <span className="info-label">Jadwal Konseling</span>
+                {selectedSession.jadwal_konseling ? (
+                  <div style={{ padding: '0.85rem', background: 'rgba(16, 104, 163, 0.03)', border: '1px dashed rgba(16, 104, 163, 0.2)', borderRadius: '10px', fontSize: '0.95rem', lineHeight: '1.6', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <IconCalendar size={14} style={{ color: 'var(--primary)' }} />
+                      <span>{new Date(selectedSession.jadwal_konseling.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <IconClock size={14} style={{ color: 'var(--primary)' }} />
+                      <span>{selectedSession.jadwal_konseling.jam_mulai.substring(0, 5)} - {selectedSession.jadwal_konseling.jam_selesai.substring(0, 5)}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <IconMapPin size={14} style={{ color: 'var(--primary)' }} />
+                      <span>{selectedSession.jadwal_konseling.lokasi || 'TBA'}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <span className="info-value" style={{ color: 'var(--text-muted)' }}>Jadwal dihapus</span>
+                )}
+              </div>
+
+              <div className="info-item">
+                <span className="info-label">Keluhan Mahasiswa</span>
+                <div className="premium-text-block">{selectedSession.keluhan || 'Tidak ada keluhan tertulis'}</div>
+              </div>
+
+              <div className="info-grid">
+                <div className="info-item">
+                  <span className="info-label">Konselor (Admin)</span>
+                  <span className="info-value">{selectedSession.admin?.nama || 'Belum ditugaskan'}</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Status Konseling</span>
+                  <div style={{ display: 'inline-flex' }}>
+                    <span className={`badge ${selectedSession.status === 'Diajukan' ? 'badge-pending' :
+                      selectedSession.status === 'Diterima' ? 'badge-process' :
+                        selectedSession.status === 'Berlangsung' ? 'badge-process' :
+                          selectedSession.status === 'Selesai' ? 'badge-success' : 'badge-danger'
+                      }`} style={{ fontSize: '0.75rem', padding: '0.35rem 0.85rem' }}>{selectedSession.status}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
+                <span className="info-label" style={{ marginBottom: '0.75rem', display: 'block' }}>Tindakan Admin</span>
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
                   {selectedSession.status === 'Diajukan' && (
-                    <button className="btn btn-primary btn-sm" onClick={() => handleUpdateSessionStatus(selectedSession.id, 'Diterima')}>Terima Pengajuan</button>
+                    <button className="btn btn-primary btn-sm" style={{ padding: '0.5rem 1rem' }} onClick={() => handleUpdateSessionStatus(selectedSession.id, 'Diterima')}>Terima Pengajuan</button>
                   )}
                   {selectedSession.status === 'Diterima' && (
                     <>
-                      <button className="btn btn-primary btn-sm" onClick={() => handleUpdateSessionStatus(selectedSession.id, 'Berlangsung')}>Mulai Konseling</button>
-                      <button className="btn btn-secondary btn-sm" onClick={() => { setSelectedSession(null); startChatSession(selectedSession); }}>Buka Chat</button>
+                      <button className="btn btn-primary btn-sm" style={{ padding: '0.5rem 1rem' }} onClick={() => handleUpdateSessionStatus(selectedSession.id, 'Berlangsung')}>Mulai Konseling</button>
+                      <button className="btn btn-secondary btn-sm" style={{ padding: '0.5rem 1rem' }} onClick={() => { setSelectedSession(null); startChatSession(selectedSession); }}>Buka Chat</button>
                     </>
                   )}
                   {selectedSession.status === 'Berlangsung' && (
                     <>
-                      <button className="btn btn-primary btn-sm" style={{ background: 'var(--success)' }} onClick={() => handleUpdateSessionStatus(selectedSession.id, 'Selesai')}>Selesaikan Konseling</button>
-                      <button className="btn btn-secondary btn-sm" onClick={() => { setSelectedSession(null); startChatSession(selectedSession); }}>Buka Chat</button>
+                      <button className="btn btn-primary btn-sm" style={{ background: 'var(--success)', padding: '0.5rem 1rem' }} onClick={() => handleUpdateSessionStatus(selectedSession.id, 'Selesai')}>Selesaikan Konseling</button>
+                      <button className="btn btn-secondary btn-sm" style={{ padding: '0.5rem 1rem' }} onClick={() => { setSelectedSession(null); startChatSession(selectedSession); }}>Buka Chat</button>
                     </>
                   )}
                   {selectedSession.status !== 'Selesai' && selectedSession.status !== 'Dibatalkan' && (
-                    <button className="btn btn-danger btn-sm" onClick={() => handleUpdateSessionStatus(selectedSession.id, 'Dibatalkan')}>Batalkan</button>
+                    <button className="btn btn-danger btn-sm" style={{ padding: '0.5rem 1rem' }} onClick={() => handleUpdateSessionStatus(selectedSession.id, 'Dibatalkan')}>Batalkan</button>
                   )}
                 </div>
               </div>
@@ -1992,7 +2149,7 @@ function App() {
           <div className="card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
               <h2 style={{ fontSize: '1.2rem' }}>Edit Akun Admin / Konselor</h2>
-              <button className="btn btn-secondary btn-sm" onClick={() => setShowEditModal(false)}>✕</button>
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowEditModal(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconX size={14} /></button>
             </div>
 
             <form onSubmit={handleSaveEditCounselor} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -2076,12 +2233,11 @@ function App() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '2rem',
               color: 'var(--success)',
               boxShadow: '0 0 15px rgba(16, 185, 129, 0.2)',
               animation: 'scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
             }}>
-              ✓
+              <IconCheck size={28} />
             </div>
             <div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff', marginBottom: '0.5rem' }}>Berhasil!</h3>
@@ -2096,6 +2252,59 @@ function App() {
             >
               Kembali ke Daftar
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* LOGOUT CONFIRMATION MODAL */}
+      {showLogoutConfirm && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="card modal-content modal-logout-card">
+            {logoutLoading ? (
+              <>
+                <div className="logout-spinner" />
+                <div style={{ marginTop: '0.5rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#ef4444', marginBottom: '0.5rem' }}>Sign Out</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                    Sedang memutuskan sesi Anda dengan aman...
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="logout-icon-container">
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#ef4444', marginBottom: '0.5rem' }}>Sign Out</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                    Apakah Anda yakin ingin keluar dari akun <strong>{user?.nama}</strong>? Anda harus masuk kembali untuk mengelola sistem.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-logout-cancel"
+                    onClick={() => setShowLogoutConfirm(false)}
+                    disabled={logoutLoading}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-logout-confirm"
+                    onClick={handleLogout}
+                    disabled={logoutLoading}
+                  >
+                    Ya, Keluar
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -2117,11 +2326,169 @@ function KonselorRowEditor({ title, rows, onAdd, onRemove, onChange }) {
         <div key={i} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
           <input placeholder="Judul" value={r.title || ''} onChange={e => onChange(i, 'title', e.target.value)} />
           <input placeholder="Keterangan" value={r.subtitle || ''} onChange={e => onChange(i, 'subtitle', e.target.value)} />
-          <button type="button" className="btn btn-danger btn-sm" onClick={() => onRemove(i)}>✕</button>
+          <button type="button" className="btn btn-danger btn-sm" onClick={() => onRemove(i)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconX size={12} /></button>
         </div>
       ))}
     </div>
   );
 }
+
+// Skeleton Loading / Wireframe Component
+const SkeletonWireframe = ({ activeTab, isSuper }) => {
+  const renderStatsGrid = (count) => (
+    <div className="grid-stats" style={{ marginBottom: '2.5rem' }}>
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="card stat-card" style={{ height: '98px' }}>
+          <div className="stat-info" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '60%' }}>
+            <div className="skeleton-box" style={{ height: '14px', width: '80%' }} />
+            <div className="skeleton-box" style={{ height: '28px', width: '50%', marginTop: '4px' }} />
+          </div>
+          <div className="skeleton-box" style={{ width: '54px', height: '54px', borderRadius: '14px' }} />
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderTable = (rows = 5, cols = 5) => (
+    <div className="card" style={{ width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', gap: '1rem' }}>
+        <div className="skeleton-box" style={{ height: '38px', width: '250px', borderRadius: '10px' }} />
+        <div className="skeleton-box" style={{ height: '38px', width: '120px', borderRadius: '10px' }} />
+      </div>
+      <div className="table-container">
+        <table style={{ width: '100%' }}>
+          <thead>
+            <tr>
+              {Array.from({ length: cols }).map((_, i) => (
+                <th key={i} style={{ padding: '1rem' }}>
+                  <div className="skeleton-box" style={{ height: '14px', width: '60%' }} />
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: rows }).map((_, r) => (
+              <tr key={r}>
+                {Array.from({ length: cols }).map((_, c) => (
+                  <td key={c} style={{ padding: '1.2rem 1rem' }}>
+                    <div className="skeleton-box" style={{ height: '14px', width: c === 0 ? '75%' : '50%' }} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  const renderProfileForm = () => (
+    <div className="card" style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.5rem' }}>
+        <div className="skeleton-box" style={{ width: '80px', height: '80px', borderRadius: '50%' }} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div className="skeleton-box" style={{ height: '20px', width: '40%' }} />
+          <div className="skeleton-box" style={{ height: '14px', width: '30%' }} />
+          <div className="skeleton-box" style={{ height: '22px', width: '15%', borderRadius: '9999px', marginTop: '4px' }} />
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div className="skeleton-box" style={{ height: '14px', width: '20%' }} />
+            <div className="skeleton-box" style={{ height: '38px', width: '100%', borderRadius: '10px' }} />
+          </div>
+        ))}
+        <div className="skeleton-box" style={{ height: '42px', width: '140px', borderRadius: '10px', marginTop: '0.5rem', alignSelf: 'flex-start' }} />
+      </div>
+    </div>
+  );
+
+  const renderChat = () => (
+    <div className="chat-wrapper">
+      <div className="chat-sidebar card">
+        <div className="skeleton-box" style={{ height: '38px', width: '100%', borderRadius: '10px', marginBottom: '0.5rem' }} />
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'rgba(255,255,255,0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div className="skeleton-box" style={{ height: '14px', width: '50%' }} />
+              <div className="skeleton-box" style={{ height: '10px', width: '20%' }} />
+            </div>
+            <div className="skeleton-box" style={{ height: '12px', width: '80%' }} />
+          </div>
+        ))}
+      </div>
+      <div className="chat-main card" style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', width: '50%' }}>
+            <div className="skeleton-box" style={{ height: '16px', width: '40%' }} />
+            <div className="skeleton-box" style={{ height: '12px', width: '60%' }} />
+          </div>
+          <div className="skeleton-box" style={{ height: '34px', width: '100px', borderRadius: '10px' }} />
+        </div>
+        <div className="chat-messages" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignSelf: 'flex-start', width: '40%' }}>
+            <div className="skeleton-box" style={{ height: '45px', width: '100%', borderRadius: '16px 16px 16px 4px' }} />
+            <div className="skeleton-box" style={{ height: '10px', width: '30%', alignSelf: 'flex-start' }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignSelf: 'flex-end', width: '40%' }}>
+            <div className="skeleton-box" style={{ height: '60px', width: '100%', borderRadius: '16px 16px 4px 16px' }} />
+            <div className="skeleton-box" style={{ height: '10px', width: '30%', alignSelf: 'flex-end' }} />
+          </div>
+        </div>
+        <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '0.75rem' }}>
+          <div className="skeleton-box" style={{ height: '38px', flex: 1, borderRadius: '10px' }} />
+          <div className="skeleton-box" style={{ height: '38px', width: '48px', borderRadius: '10px' }} />
+        </div>
+      </div>
+    </div>
+  );
+
+  switch (activeTab) {
+    case 'dashboard':
+      return (
+        <div>
+          {renderStatsGrid(4)}
+          {renderTable(6, 6)}
+        </div>
+      );
+    case 'konselor':
+      if (isSuper) {
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {renderStatsGrid(2)}
+            <div className="card" style={{ maxWidth: '600px', margin: '0 auto', width: '100%' }}>
+              <div className="skeleton-box" style={{ height: '24px', width: '50%', marginBottom: '1.5rem' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div className="skeleton-box" style={{ height: '14px', width: '20%' }} />
+                    <div className="skeleton-box" style={{ height: '38px', width: '100%', borderRadius: '10px' }} />
+                  </div>
+                ))}
+                <div className="skeleton-box" style={{ height: '42px', width: '100%', borderRadius: '10px', marginTop: '0.5rem' }} />
+              </div>
+            </div>
+            {renderTable(4, 7)}
+          </div>
+        );
+      }
+      return renderProfileForm();
+    case 'chat':
+      return renderChat();
+    case 'laporan':
+      return renderTable(7, 6);
+    case 'jadwal':
+      return renderTable(6, 4);
+    case 'konseling':
+      return renderTable(7, 5);
+    case 'users':
+      return renderTable(8, 5);
+    case 'superadmin':
+      return renderTable(5, 4);
+    default:
+      return renderTable(5, 5);
+  }
+};
 
 export default App;
