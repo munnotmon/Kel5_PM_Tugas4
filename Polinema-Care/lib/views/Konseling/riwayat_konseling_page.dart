@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../controllers/counseling_controller.dart';
 import '../../models/counseling_model.dart';
-import '../../models/counselor_model.dart';
 
 class RiwayatKonselingPage extends StatefulWidget {
   const RiwayatKonselingPage({super.key});

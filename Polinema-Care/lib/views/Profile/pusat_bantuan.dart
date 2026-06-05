@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:go_router/go_router.dart';
 
 class PusatBantuanScreen extends StatefulWidget {
   const PusatBantuanScreen({super.key});
@@ -12,24 +11,212 @@ class PusatBantuanScreen extends StatefulWidget {
 class _PusatBantuanScreenState extends State<PusatBantuanScreen> {
   final TextEditingController _searchController = TextEditingController();
   int? _expandedFaq;
+  String _searchQuery = '';
+  int _selectedKategori = -1; // -1 = semua
 
-  final List<_FaqItem> _faqs = const [
-    _FaqItem(
-      question: 'Bagaimana cara melapor secara anonim?',
-      answer:
-          'Anda dapat melapor secara anonim dengan memilih opsi "Anonim" saat mengisi formulir laporan. Data identitas Anda tidak akan disimpan atau ditampilkan kepada pihak manapun.',
+  final List<_KategoriItem> _kategori = const [
+    _KategoriItem(
+      icon: Icons.shield_outlined,
+      iconColor: Color(0xFF1A6B8A),
+      iconBg: Color(0xFFDEEFF8),
+      label: 'Akun &\nKeamanan',
     ),
-    _FaqItem(
-      question: 'Berapa lama laporan saya diproses?',
-      answer:
-          'Laporan biasanya diproses dalam 1–3 hari kerja. Anda akan menerima notifikasi setiap ada pembaruan status laporan Anda.',
+    _KategoriItem(
+      icon: Icons.campaign_outlined,
+      iconColor: Color(0xFF2A9B6E),
+      iconBg: Color(0xFFDDF5EC),
+      label: 'Cara Melapor',
     ),
-    _FaqItem(
-      question: 'Apakah data saya aman?',
-      answer:
-          'Ya, seluruh data Anda dienkripsi dan disimpan dengan aman. Kami mematuhi standar keamanan data yang ketat dan tidak membagikan informasi Anda kepada pihak ketiga.',
+    _KategoriItem(
+      icon: Icons.spa_outlined,
+      iconColor: Color(0xFF2A9B6E),
+      iconBg: Color(0xFFDDF5EC),
+      label: 'Tentang\nKonseling',
+    ),
+    _KategoriItem(
+      icon: Icons.lock_outline,
+      iconColor: Color(0xFF1A6B8A),
+      iconBg: Color(0xFFDEEFF8),
+      label: 'Privasi',
     ),
   ];
+
+  final List<_FaqItem> _allFaqs = const [
+    // Akun & Keamanan (kategori 0)
+    _FaqItem(
+      kategoriIndex: 0,
+      question: 'Bagaimana cara mengubah kata sandi?',
+      answer:
+          'Buka Profil → Keamanan Akun → Ubah Kata Sandi. Masukkan kata sandi saat ini dan kata sandi baru, lalu tekan Simpan.',
+    ),
+    _FaqItem(
+      kategoriIndex: 0,
+      question: 'Apa yang harus dilakukan jika lupa kata sandi?',
+      answer:
+          'Saat ini fitur lupa kata sandi masih dalam pengembangan. Hubungi admin kampus melalui menu Pesan untuk mendapatkan bantuan reset akun.',
+    ),
+    _FaqItem(
+      kategoriIndex: 0,
+      question: 'Bagaimana cara memperbarui data profil saya?',
+      answer:
+          'Buka Profil → Edit Profil. Anda dapat mengubah nama lengkap, nomor telepon, dan foto profil. NIM dan email tidak dapat diubah.',
+    ),
+    _FaqItem(
+      kategoriIndex: 0,
+      question: 'Mengapa NIM dan email tidak bisa diubah?',
+      answer:
+          'NIM dan email merupakan identitas resmi akademik yang terdaftar di sistem kampus. Perubahan data tersebut hanya dapat dilakukan melalui bagian administrasi kampus.',
+    ),
+    _FaqItem(
+      kategoriIndex: 0,
+      question: 'Bagaimana cara mengganti foto profil?',
+      answer:
+          'Buka Profil → Edit Profil, lalu ketuk ikon kamera pada foto profil Anda. Anda dapat mengambil foto baru menggunakan kamera atau memilih dari galeri.',
+    ),
+    _FaqItem(
+      kategoriIndex: 0,
+      question: 'Apakah akun saya bisa digunakan di beberapa perangkat?',
+      answer:
+          'Ya, akun Anda dapat digunakan di beberapa perangkat menggunakan email dan kata sandi yang sama. Pastikan untuk logout jika menggunakan perangkat bersama.',
+    ),
+
+    // Cara Melapor (kategori 1)
+    _FaqItem(
+      kategoriIndex: 1,
+      question: 'Bagaimana cara melaporkan perundungan?',
+      answer:
+          'Tekan tombol "Laporkan Perundungan" di halaman utama, isi formulir laporan secara lengkap, lalu kirimkan. Laporan Anda akan segera ditindaklanjuti oleh admin.',
+    ),
+    _FaqItem(
+      kategoriIndex: 1,
+      question: 'Berapa lama laporan saya diproses?',
+      answer:
+          'Laporan biasanya diproses dalam 1–3 hari kerja. Anda akan menerima notifikasi setiap ada pembaruan status laporan.',
+    ),
+    _FaqItem(
+      kategoriIndex: 1,
+      question: 'Bisakah saya melacak status laporan saya?',
+      answer:
+          'Ya. Buka menu Activity untuk melihat daftar laporan beserta statusnya: Menunggu, Diproses, Selesai, atau Ditolak.',
+    ),
+    _FaqItem(
+      kategoriIndex: 1,
+      question: 'Apa saja informasi yang perlu disertakan dalam laporan?',
+      answer:
+          'Sertakan judul laporan, jenis perundungan, kronologi kejadian, deskripsi pelaku, lokasi, dan tanggal kejadian. Anda juga dapat melampirkan bukti berupa foto atau dokumen.',
+    ),
+    _FaqItem(
+      kategoriIndex: 1,
+      question: 'Apakah laporan saya bisa dibatalkan setelah dikirim?',
+      answer:
+          'Laporan yang sudah dikirim tidak dapat dibatalkan secara langsung. Jika ada kesalahan informasi, segera hubungi admin melalui menu Pesan untuk koordinasi lebih lanjut.',
+    ),
+    _FaqItem(
+      kategoriIndex: 1,
+      question: 'Apa yang terjadi setelah laporan saya diterima?',
+      answer:
+          'Admin akan meninjau laporan Anda dan memperbarui statusnya. Jika diperlukan, admin dapat menghubungi Anda melalui fitur chat untuk informasi tambahan.',
+    ),
+    _FaqItem(
+      kategoriIndex: 1,
+      question: 'Apakah saya bisa melaporkan atas nama orang lain?',
+      answer:
+          'Ya, Anda dapat melaporkan kejadian perundungan yang dialami orang lain. Pastikan mencantumkan informasi korban dan kronologi kejadian sejelas mungkin pada formulir laporan.',
+    ),
+
+    // Tentang Konseling (kategori 2)
+    _FaqItem(
+      kategoriIndex: 2,
+      question: 'Bagaimana cara memesan sesi konseling?',
+      answer:
+          'Buka menu Counseling, pilih konselor yang tersedia, pilih jadwal yang sesuai, lalu konfirmasi pemesanan. Anda akan mendapat notifikasi konfirmasi.',
+    ),
+    _FaqItem(
+      kategoriIndex: 2,
+      question: 'Apakah sesi konseling bersifat rahasia?',
+      answer:
+          'Ya. Semua percakapan dalam sesi konseling bersifat rahasia dan hanya dapat diakses oleh Anda dan konselor yang bersangkutan.',
+    ),
+    _FaqItem(
+      kategoriIndex: 2,
+      question: 'Bagaimana cara melihat riwayat konseling saya?',
+      answer:
+          'Buka menu Activity lalu pilih tab Konseling untuk melihat seluruh riwayat sesi konseling yang pernah Anda lakukan.',
+    ),
+    _FaqItem(
+      kategoriIndex: 2,
+      question: 'Apakah konseling di aplikasi ini gratis?',
+      answer:
+          'Ya, layanan konseling melalui Polinema Care+ sepenuhnya gratis untuk seluruh mahasiswa Politeknik Negeri Malang.',
+    ),
+    _FaqItem(
+      kategoriIndex: 2,
+      question: 'Bisakah saya memilih konselor sendiri?',
+      answer:
+          'Ya. Anda dapat melihat profil dan spesialisasi setiap konselor yang tersedia, lalu memilih konselor yang paling sesuai dengan kebutuhan Anda.',
+    ),
+    _FaqItem(
+      kategoriIndex: 2,
+      question: 'Apa yang harus dilakukan jika ingin membatalkan sesi konseling?',
+      answer:
+          'Hubungi admin atau konselor melalui menu Pesan untuk membatalkan atau menjadwalkan ulang sesi konseling Anda sebelum waktu yang ditentukan.',
+    ),
+    _FaqItem(
+      kategoriIndex: 2,
+      question: 'Berapa lama durasi satu sesi konseling?',
+      answer:
+          'Durasi sesi konseling biasanya 45–60 menit, tergantung kesepakatan antara Anda dan konselor. Jadwal dan durasi dapat dilihat pada halaman detail konselor.',
+    ),
+
+    // Privasi (kategori 3)
+    _FaqItem(
+      kategoriIndex: 3,
+      question: 'Apakah data saya aman?',
+      answer:
+          'Ya. Seluruh data Anda dienkripsi dan disimpan dengan aman. Kami tidak membagikan informasi Anda kepada pihak ketiga manapun.',
+    ),
+    _FaqItem(
+      kategoriIndex: 3,
+      question: 'Siapa yang dapat melihat laporan saya?',
+      answer:
+          'Laporan Anda hanya dapat dilihat oleh admin kampus yang bertugas menangani kasus perundungan. Identitas pelapor dijaga kerahasiaannya.',
+    ),
+    _FaqItem(
+      kategoriIndex: 3,
+      question: 'Apakah riwayat konseling saya bisa dilihat orang lain?',
+      answer:
+          'Tidak. Riwayat konseling bersifat pribadi dan hanya dapat diakses oleh Anda dan konselor yang menangani sesi tersebut.',
+    ),
+    _FaqItem(
+      kategoriIndex: 3,
+      question: 'Apakah aplikasi ini mengumpulkan data lokasi saya?',
+      answer:
+          'Data lokasi hanya digunakan untuk keperluan pengisian laporan perundungan (lokasi kejadian) dan tidak disimpan atau dipantau secara terus-menerus.',
+    ),
+    _FaqItem(
+      kategoriIndex: 3,
+      question: 'Bagaimana cara menghapus akun saya?',
+      answer:
+          'Penghapusan akun dapat dilakukan dengan menghubungi admin kampus melalui menu Pesan. Seluruh data Anda akan dihapus secara permanen sesuai kebijakan privasi yang berlaku.',
+    ),
+    _FaqItem(
+      kategoriIndex: 3,
+      question: 'Apakah percakapan chat saya disimpan?',
+      answer:
+          'Percakapan dalam sesi konseling dan tindak lanjut laporan disimpan di server kami secara terenkripsi dan hanya dapat diakses oleh pihak yang terlibat dalam sesi tersebut.',
+    ),
+  ];
+
+  List<_FaqItem> get _filteredFaqs {
+    return _allFaqs.where((faq) {
+      final matchKategori =
+          _selectedKategori == -1 || faq.kategoriIndex == _selectedKategori;
+      final matchSearch = _searchQuery.isEmpty ||
+          faq.question.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          faq.answer.toLowerCase().contains(_searchQuery.toLowerCase());
+      return matchKategori && matchSearch;
+    }).toList();
+  }
 
   @override
   void dispose() {
@@ -39,6 +226,8 @@ class _PusatBantuanScreenState extends State<PusatBantuanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final faqs = _filteredFaqs;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF2F4F7),
       appBar: _buildAppBar(context),
@@ -47,7 +236,6 @@ class _PusatBantuanScreenState extends State<PusatBantuanScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Headline
             Text(
               'Ada yang bisa kami\nbantu?',
               style: GoogleFonts.plusJakartaSans(
@@ -59,38 +247,15 @@ class _PusatBantuanScreenState extends State<PusatBantuanScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Search Bar
             _buildSearchBar(),
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
 
-            // Kategori Populer
-            Text(
-              'Kategori Populer',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF1A2D3D),
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildKategoriGrid(),
-            const SizedBox(height: 32),
+            _buildKategoriChips(),
+            const SizedBox(height: 20),
 
-            // FAQ
-            Text(
-              'FAQ Terpopuler',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF1A2D3D),
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildFaqList(),
-            const SizedBox(height: 28),
-
-            // CTA Card
-            _buildCtaCard(),
+            faqs.isEmpty
+                ? _buildEmptyState()
+                : _buildFaqList(faqs),
           ],
         ),
       ),
@@ -129,8 +294,14 @@ class _PusatBantuanScreenState extends State<PusatBantuanScreen> {
           fontSize: 14,
           color: const Color(0xFF1A2D3D),
         ),
+        onChanged: (val) {
+          setState(() {
+            _searchQuery = val;
+            _expandedFaq = null;
+          });
+        },
         decoration: InputDecoration(
-          hintText: 'Cari bantuan...',
+          hintText: 'Cari pertanyaan...',
           hintStyle: GoogleFonts.plusJakartaSans(
             fontSize: 14,
             color: const Color(0xFF9AAAB8),
@@ -140,6 +311,18 @@ class _PusatBantuanScreenState extends State<PusatBantuanScreen> {
             color: Color(0xFF1A6B8A),
             size: 22,
           ),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.close, color: Color(0xFF9AAAB8), size: 20),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() {
+                      _searchQuery = '';
+                      _expandedFaq = null;
+                    });
+                  },
+                )
+              : null,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 15),
         ),
@@ -147,94 +330,79 @@ class _PusatBantuanScreenState extends State<PusatBantuanScreen> {
     );
   }
 
-  Widget _buildKategoriGrid() {
-    final List<_KategoriItem> items = [
-      _KategoriItem(
-        icon: Icons.shield_outlined,
-        iconColor: const Color(0xFF1A6B8A),
-        iconBg: const Color(0xFFDEEFF8),
-        label: 'Akun &\nKeamanan',
+  Widget _buildKategoriChips() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _buildChip('Semua', -1),
+          const SizedBox(width: 8),
+          ...List.generate(_kategori.length, (i) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: _buildChip(
+                _kategori[i].label.replaceAll('\n', ' '),
+                i,
+                icon: _kategori[i].icon,
+                iconColor: _kategori[i].iconColor,
+              ),
+            );
+          }),
+        ],
       ),
-      _KategoriItem(
-        icon: Icons.campaign_outlined,
-        iconColor: const Color(0xFF2A9B6E),
-        iconBg: const Color(0xFFDDF5EC),
-        label: 'Cara Melapor',
-      ),
-      _KategoriItem(
-        icon: Icons.spa_outlined,
-        iconColor: const Color(0xFF2A9B6E),
-        iconBg: const Color(0xFFDDF5EC),
-        label: 'Tentang\nKonseling',
-      ),
-      _KategoriItem(
-        icon: Icons.lock_outline,
-        iconColor: const Color(0xFF1A6B8A),
-        iconBg: const Color(0xFFDEEFF8),
-        label: 'Privasi',
-      ),
-    ];
-
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 0.95,
-      children: items.map((item) => _buildKategoriCard(item)).toList(),
     );
   }
 
-  Widget _buildKategoriCard(_KategoriItem item) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: InkWell(
-        onTap: () {},
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: item.iconBg,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(item.icon, color: item.iconColor, size: 22),
+  Widget _buildChip(String label, int index,
+      {IconData? icon, Color? iconColor}) {
+    final isSelected = _selectedKategori == index;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedKategori = index;
+          _expandedFaq = null;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF1A6B8A) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 14,
+                color: isSelected ? Colors.white : iconColor,
               ),
-              const SizedBox(height: 12),
-              Text(
-                item.label,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1A2D3D),
-                  height: 1.4,
-                ),
-              ),
+              const SizedBox(width: 5),
             ],
-          ),
+            Text(
+              label,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? Colors.white : const Color(0xFF1A2D3D),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildFaqList() {
+  Widget _buildFaqList(List<_FaqItem> faqs) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -248,20 +416,18 @@ class _PusatBantuanScreenState extends State<PusatBantuanScreen> {
         ],
       ),
       child: Column(
-        children: _faqs.asMap().entries.map((entry) {
+        children: faqs.asMap().entries.map((entry) {
           final i = entry.key;
           final faq = entry.value;
-          final isLast = i == _faqs.length - 1;
+          final isLast = i == faqs.length - 1;
           final isExpanded = _expandedFaq == i;
 
           return Column(
             children: [
               InkWell(
-                onTap: () {
-                  setState(() {
-                    _expandedFaq = isExpanded ? null : i;
-                  });
-                },
+                onTap: () => setState(() {
+                  _expandedFaq = isExpanded ? null : i;
+                }),
                 borderRadius: BorderRadius.only(
                   topLeft: i == 0 ? const Radius.circular(20) : Radius.zero,
                   topRight: i == 0 ? const Radius.circular(20) : Radius.zero,
@@ -270,26 +436,33 @@ class _PusatBantuanScreenState extends State<PusatBantuanScreen> {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 18,
-                  ),
+                      horizontal: 18, vertical: 18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            margin: const EdgeInsets.only(right: 10, top: 2),
+                            decoration: BoxDecoration(
+                              color: _kategori[faq.kategoriIndex].iconColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                           Expanded(
                             child: Text(
                               faq.question,
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 14.5,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
                                 color: const Color(0xFF1A2D3D),
                                 height: 1.4,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
                           Icon(
                             isExpanded
                                 ? Icons.keyboard_arrow_up_rounded
@@ -300,13 +473,20 @@ class _PusatBantuanScreenState extends State<PusatBantuanScreen> {
                         ],
                       ),
                       if (isExpanded) ...[
-                        const SizedBox(height: 12),
-                        Text(
-                          faq.answer,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13.5,
-                            color: const Color(0xFF5A7080),
-                            height: 1.6,
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F7FA),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            faq.answer,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13.5,
+                              color: const Color(0xFF5A7080),
+                              height: 1.6,
+                            ),
                           ),
                         ),
                       ],
@@ -326,105 +506,23 @@ class _PusatBantuanScreenState extends State<PusatBantuanScreen> {
     );
   }
 
-  Widget _buildCtaCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1A6B8A), Color(0xFF155C78)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Stack(
-        children: [
-          // Decorative circle
-          Positioned(
-            right: -20,
-            bottom: -30,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.06),
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Column(
+          children: [
+            Icon(Icons.search_off_rounded, size: 48, color: Colors.grey[300]),
+            const SizedBox(height: 12),
+            Text(
+              'Tidak ada hasil untuk "$_searchQuery"',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                color: Colors.grey[400],
               ),
             ),
-          ),
-          Positioned(
-            right: 20,
-            top: -10,
-            child: Container(
-              width: 70,
-              height: 70,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.04),
-              ),
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Butuh Bantuan Lebih Lanjut?',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Tim dukungan kami siap\nmendengarkan 24/7.',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  color: Colors.white.withOpacity(0.75),
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Chat dengan Admin button
-              _buildCtaButton(
-                icon: Icons.chat_bubble_outline_rounded,
-                label: 'Buka Menu Pesan',
-                onTap: () => context.go('/inbox'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCtaButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton.icon(
-        onPressed: onTap,
-        icon: Icon(icon, size: 18, color: const Color(0xFF1A6B8A)),
-        label: Text(
-          label,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 14.5,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF1A6B8A),
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
+          ],
         ),
       ),
     );
@@ -446,8 +544,13 @@ class _KategoriItem {
 }
 
 class _FaqItem {
+  final int kategoriIndex;
   final String question;
   final String answer;
 
-  const _FaqItem({required this.question, required this.answer});
+  const _FaqItem({
+    required this.kategoriIndex,
+    required this.question,
+    required this.answer,
+  });
 }

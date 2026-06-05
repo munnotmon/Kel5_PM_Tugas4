@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import '../../services/api_service.dart';
+import 'dart:convert';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -17,11 +19,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   bool _showCurrent = false;
   bool _showNew = false;
   bool _showConfirm = false;
+  bool _isSaving = false;
 
   bool get _hasMinLength => _newPasswordController.text.length >= 8;
   bool get _hasNumber => RegExp(r'\d').hasMatch(_newPasswordController.text);
   bool get _hasSpecial =>
-      RegExp(r'[@#$%^&*!]_').hasMatch(_newPasswordController.text);
+      RegExp(r'[@#$%^&*!_]').hasMatch(_newPasswordController.text);
 
   int get _strengthScore =>
       (_hasMinLength ? 1 : 0) + (_hasNumber ? 1 : 0) + (_hasSpecial ? 1 : 0);
@@ -265,7 +268,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           const SizedBox(height: 8),
           _buildCheckItem('Mengandung setidaknya satu angka', _hasNumber),
           const SizedBox(height: 8),
-          _buildCheckItem(r'Mengandung karakter khusus (@, #, $)', _hasSpecial),
+          _buildCheckItem(r'Mengandung karakter khusus (@, #, $, _)', _hasSpecial),
           const SizedBox(height: 20),
           const Divider(color: Color(0xFFF0F2F5), thickness: 1),
           const SizedBox(height: 16),
@@ -472,6 +475,57 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     );
   }
 
+  Future<void> _savePassword() async {
+    final current = _currentPasswordController.text.trim();
+    final newPass = _newPasswordController.text.trim();
+    final confirm = _confirmPasswordController.text.trim();
+
+    if (current.isEmpty || newPass.isEmpty || confirm.isEmpty) {
+      _showSnackBar('Semua field wajib diisi.', isError: true);
+      return;
+    }
+    if (newPass != confirm) {
+      _showSnackBar('Konfirmasi kata sandi tidak cocok.', isError: true);
+      return;
+    }
+    if (newPass.length < 6) {
+      _showSnackBar('Kata sandi baru minimal 6 karakter.', isError: true);
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      final response = await ApiService.post('/profile/change-password', {
+        'current_password': current,
+        'new_password': newPass,
+      });
+      final body = jsonDecode(response.body);
+      if (!mounted) return;
+      if (response.statusCode == 200 && body['success'] == true) {
+        if (mounted) context.pushReplacement('/profile/password-updated');
+      } else {
+        _showSnackBar(body['message'] ?? 'Gagal mengubah kata sandi.', isError: true);
+      }
+    } catch (e) {
+      if (mounted) _showSnackBar('Koneksi gagal. Coba lagi.', isError: true);
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 13)),
+        backgroundColor: isError ? const Color(0xFFD32F2F) : const Color(0xFF4CAF82),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   Widget _buildSaveButton() {
     return SizedBox(
       width: double.infinity,
@@ -493,7 +547,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           ],
         ),
         child: ElevatedButton.icon(
-          onPressed: () => context.push('/profile/password-updated'),
+          onPressed: _isSaving ? null : _savePassword,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
@@ -501,9 +555,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               borderRadius: BorderRadius.circular(16),
             ),
           ),
-          icon: const Icon(Icons.save_rounded, color: Colors.white, size: 20),
+          icon: _isSaving
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                )
+              : const Icon(Icons.save_rounded, color: Colors.white, size: 20),
           label: Text(
-            'Simpan Kata Sandi',
+            _isSaving ? 'Menyimpan...' : 'Simpan Kata Sandi',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 16,
               fontWeight: FontWeight.bold,

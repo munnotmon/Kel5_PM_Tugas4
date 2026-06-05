@@ -302,21 +302,23 @@ class _RoomChatPageState extends State<RoomChatPage> {
               children: [
                 CircleAvatar(
                   radius: 18,
-                  backgroundColor: isSystem
-                      ? _session.color.withOpacity(0.2)
-                      : Colors.grey[200],
-                  backgroundImage: isSystem
-                      ? null
-                      : NetworkImage(
-                          "https://i.pravatar.cc/150?u=${_session.name}",
-                        ),
+                  backgroundColor: _session.color.withOpacity(0.15),
                   child: isSystem && _session.icon != null
                       ? Icon(
                           _session.icon,
                           color: _session.color,
                           size: 20,
                         )
-                      : null,
+                      : Text(
+                          _session.name.isNotEmpty
+                              ? _session.name[0].toUpperCase()
+                              : '?',
+                          style: TextStyle(
+                            color: _session.color,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
                 ),
                 Positioned(
                   bottom: 0,

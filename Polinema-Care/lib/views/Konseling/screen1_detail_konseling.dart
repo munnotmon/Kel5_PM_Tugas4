@@ -683,7 +683,7 @@ class _Screen1DetailKonselingState extends State<Screen1DetailKonseling> {
               width: 70,
               height: 80,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+              errorBuilder: (_, _, _) => Container(
                 width: 70,
                 height: 80,
                 color: Colors.grey[200],

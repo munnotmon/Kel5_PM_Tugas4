@@ -168,13 +168,19 @@ class _InboxPageState extends State<InboxPage> {
           children: [
             CircleAvatar(
               radius: 24,
-              backgroundColor: color.withOpacity(0.1),
-              backgroundImage: isSystem
-                  ? null
-                  : NetworkImage("https://i.pravatar.cc/150?u=${chat.name}"),
+              backgroundColor: color.withOpacity(0.15),
               child: isSystem && chat.icon != null
                   ? Icon(chat.icon, color: color, size: 22)
-                  : null,
+                  : Text(
+                      chat.name.isNotEmpty
+                          ? chat.name[0].toUpperCase()
+                          : '?',
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
             ),
             const SizedBox(width: 14),
             Expanded(

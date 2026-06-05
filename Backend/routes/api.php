@@ -20,6 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/profile/update', [AuthController::class, 'updateProfile']);
+    Route::post('/profile/change-password', [AuthController::class, 'changePassword']);
     Route::get('/mahasiswa', [AuthController::class, 'getMahasiswa']);
     Route::get('/superadmin', [AuthController::class, 'getSuperadmin']);
 

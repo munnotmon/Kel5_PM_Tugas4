@@ -48,6 +48,7 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
   // Lampiran
   final List<XFile> _attachments = [];
   final ImagePicker _imagePicker = ImagePicker();
+  bool _lampiranError = false;
 
   @override
   void initState() {
@@ -130,11 +131,12 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
   // DATE TIME PICKER
   // =====================================================================
   Future<void> _pickDateTime() async {
+    final now = DateTime.now();
     final date = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _selectedDateTime ?? now,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+      lastDate: now.add(const Duration(days: 4)),
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: const ColorScheme.light(primary: Color(0xFF1A6B8A)),

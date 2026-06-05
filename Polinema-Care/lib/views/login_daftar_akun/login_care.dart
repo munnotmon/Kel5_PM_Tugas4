@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'input_decoration_helper.dart';
 import '../../controllers/auth_controller.dart';
-//  ini adalah halaman Login dari aplikasi Polinema Care+. 
+//  ini adalah halaman Login dari aplikasi Polinema Care+.
 //Di sinilah user memasukkan email dan password untuk masuk ke aplikasi."
 
 class LoginCare extends StatefulWidget {
@@ -304,10 +304,10 @@ class _LoginCareState extends State<LoginCare> {
                                   borderRadius: BorderRadius.circular(30),
                                 ),
                               ),
-                              child: _isLoading 
+                              child: _isLoading
                                 ? const SizedBox(
-                                    width: 20, 
-                                    height: 20, 
+                                    width: 20,
+                                    height: 20,
                                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                                   )
                                 : Text(
