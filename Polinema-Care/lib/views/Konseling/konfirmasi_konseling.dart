@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../controllers/counseling_controller.dart';
-import '../../models/counselor_model.dart';
 
 class ConfirmAppointmentPage extends StatefulWidget {
   final Map<String, dynamic>? counselorData;

@@ -303,9 +303,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow('NIM', nim),
-          _buildDivider(),
           _buildInfoRow('NAMA LENGKAP', nama),
+          _buildDivider(),
+          _buildInfoRow('NIM', nim),
           _buildDivider(),
           _buildInfoRow('EMAIL', email),
           _buildDivider(),

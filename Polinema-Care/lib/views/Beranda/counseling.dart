@@ -460,7 +460,7 @@ class _CounselingScreenState extends State<CounselingScreen> {
 class _KonselorGridCard extends StatelessWidget {
   final Konselor data;
 
-  const _KonselorGridCard({required this.data, super.key});
+  const _KonselorGridCard({required this.data});
 
   @override
   Widget build(BuildContext context) {

@@ -3,11 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import 'activity.dart';
 import 'counseling.dart';
-import '../../controllers/chat_controller.dart';
-import '../../models/chat_model.dart';
 import '../../controllers/laporan_controller.dart';
+import '../../controllers/auth_controller.dart';
 import '../../services/api_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,13 +19,11 @@ class _HomeScreenState extends State<HomeScreen> {
   int _unreadCount = 0;
   Timer? _timer;
   Future<List<Map<String, dynamic>>>? _reportsFuture;
-  Future<List<ChatSession>>? _chatsFuture;
 
   @override
   void initState() {
     super.initState();
-    _reportsFuture = LaporanController.ambilDaftarLaporan();
-    _chatsFuture = ChatController.fetchChats();
+    _reportsFuture = LaporanController.fetchReports();
     _fetchUnreadCount();
     _timer = Timer.periodic(const Duration(seconds: 15), (timer) {
       _fetchUnreadCount();
@@ -39,8 +35,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!ApiService.isAuthenticated) return;
     if (mounted) {
       setState(() {
-        _reportsFuture = LaporanController.ambilDaftarLaporan();
-        _chatsFuture = ChatController.fetchChats();
+
+        _reportsFuture = LaporanController.fetchReports();
       });
     }
   }
@@ -179,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 22),
 
                 Text(
-                  'Halo, Kelompok 5',
+                  'Halo, ${AuthController.currentUserName}',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 18,
                     color: Colors.grey[600],
@@ -219,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       size: 32,
                     ),
                     label: Text(
-                      'Laporkan Perundungan',
+                      'Menu Laporkan Perundungan',
                       style: GoogleFonts.plusJakartaSans(
                         color: Colors.white,
                         fontSize: 18,
@@ -251,14 +247,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
                 const SizedBox(height: 32),
-
-                // --- SECTION INBOX ---
-                InboxSection(
-                  onNavigate: () => context.go('/inbox'),
-                  future: _chatsFuture,
-                ),
-
-                const SizedBox(height: 100),
               ],
             ),
           ),
@@ -439,178 +427,29 @@ class ActivitySection extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right, color: Colors.grey),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-}
-
-// =====================================================================
-// WIDGET COMPONENT: INBOX SECTION
-// =====================================================================
-class InboxSection extends StatelessWidget {
-  final VoidCallback? onNavigate;
-  final Future<List<ChatSession>>? future;
-
-  const InboxSection({super.key, this.onNavigate, this.future});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Inbox",
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF1A1A1A),
-          ),
-        ),
-        const SizedBox(height: 16),
-        FutureBuilder<List<ChatSession>>(
-          future: future,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            }
-            final chats = (snapshot.data ?? [])
-                .where((c) => !c.isSystem)
-                .toList();
-
-            if (chats.isEmpty) {
-              return Container(
-                padding: const EdgeInsets.all(16),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                ),
-                child: Text(
-                  "Belum ada pesan masuk.",
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    color: Colors.grey,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              );
-            }
-
-            final displayed = chats.take(2).toList();
-            return Column(
-              children: displayed.map((chat) {
-                final messages = chat.messages;
-                final lastMessage = messages.isNotEmpty ? messages.last : null;
-                final previewText =
-                    lastMessage != null ? lastMessage.text : 'Tidak ada pesan';
-                final timeText = lastMessage != null ? lastMessage.time : '';
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _buildInboxCard(
-                    title: chat.name,
-                    time: timeText.toUpperCase(),
-                    message: previewText,
-                    isUnread: chat.unread > 0,
-                    onTap: () {
-                      ChatController.markAsRead(chat.name);
-                      context.push('/inbox/room-chat', extra: chat.toMap());
-                    },
-                  ),
-                );
-              }).toList(),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInboxCard({
-    required String title,
-    required String time,
-    required String message,
-    required bool isUnread,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(25),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FBFB),
-          borderRadius: BorderRadius.circular(25),
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    if (isUnread) ...[
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF1068A3),
-                          shape: BoxShape.circle,
-                        ),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.15),
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(width: 8),
-                    ],
-                    Text(
-                      title,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF2D3142),
+                      child: Icon(
+                        statusStr.toLowerCase() == 'selesai'
+                            ? Icons.check_circle
+                            : statusStr.toLowerCase() == 'ditolak'
+                                ? Icons.cancel
+                                : Icons.check_circle_outline,
+                        color: statusColor,
+                        size: 24,
                       ),
                     ),
                   ],
                 ),
-                Text(
-                  time,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[500],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: EdgeInsets.only(left: isUnread ? 16.0 : 0),
-              child: Text(
-                message,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  color: Colors.grey[600],
-                ),
               ),
-            ),
-          ],
+            );
+          },
         ),
-      ),
+      ],
     );
   }
 }

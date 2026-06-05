@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -48,14 +47,14 @@ class ApiService {
   }
 
   static Future<http.Response> postMultipart(
-    String endpoint, 
-    Map<String, String> fields, 
+    String endpoint,
+    Map<String, String> fields,
     List<http.MultipartFile> files
   ) async {
     final url = Uri.parse('$baseUrl$endpoint');
     try {
       final request = http.MultipartRequest('POST', url);
-      
+
       if (_token != null) {
         request.headers['Authorization'] = 'Bearer $_token';
       }

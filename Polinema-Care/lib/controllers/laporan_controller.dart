@@ -68,9 +68,7 @@ class LaporanController {
       final Map<String, String> fields = {
         'judul_pelaporan': 'Laporan perundungan ${data['jenis'] ?? ''}',
         'jenis_perundungan': (data['jenis'] ?? 'Lainnya').toString(),
-        'kronologi': (data['deskripsi'] ?? '').toString() + 
-            '\n\nKorban: ' + (data['korban'] ?? '-').toString() + 
-            '\nSaksi: ' + (data['saksi'] ?? '-').toString(),
+        'kronologi': '${data['deskripsi'] ?? ''}\n\nKorban: ${data['korban'] ?? '-'}\nSaksi: ${data['saksi'] ?? '-'}',
         'deskripsi_pelaku': (data['pelaku'] ?? '').toString(),
         'lokasi': (data['lokasi'] ?? '').toString(),
         'tanggal_kejadian': (data['tanggal_kejadian_raw'] ?? DateTime.now().toIso8601String()).toString(),
