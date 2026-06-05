@@ -1,8 +1,14 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'https://gleeful-geek-unwashed.ngrok-free.dev/api';
+  // Set true jika ingin memakai ngrok, set false jika memakai local
+  static const bool useNgrok = false;
+
+  static const String baseUrl = useNgrok
+      ? 'https://gleeful-geek-unwashed.ngrok-free.dev/api'
+      : (kIsWeb ? 'http://localhost:8000/api' : 'http://127.0.0.1:8000/api');
 
   static String? _token;
 

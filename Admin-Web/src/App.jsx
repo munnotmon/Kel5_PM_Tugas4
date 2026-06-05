@@ -233,7 +233,10 @@ const IconCheckCircle = ({ size = 16, style }) => (
 );
 
 // Configure Axios defaults
-axios.defaults.baseURL = 'https://gleeful-geek-unwashed.ngrok-free.dev/api';
+const useNgrok = false;
+axios.defaults.baseURL = useNgrok 
+  ? 'https://gleeful-geek-unwashed.ngrok-free.dev/api'
+  : 'http://localhost:8000/api';
 
 // Add request interceptor to attach bearer token
 axios.interceptors.request.use(
