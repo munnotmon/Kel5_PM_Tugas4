@@ -39,8 +39,15 @@ class AuthController {
 
     final body = jsonDecode(response.body);
     if (response.statusCode == 200 && body['success'] == true) {
+      final user = body['data']['user'];
+      if (user['role'] != 'mahasiswa') {
+        return {
+          'success': false,
+          'message': 'Akses ditolak. Aplikasi ini hanya untuk Mahasiswa.'
+        };
+      }
       final token = body['data']['token'];
-      _currentUser = body['data']['user'];
+      _currentUser = user;
       ApiService.setToken(token);
       _syncStore();
       CounselingController.fetchKonselor(); // prefetch cache konselor
@@ -64,8 +71,15 @@ class AuthController {
 
     final body = jsonDecode(response.body);
     if (response.statusCode == 200 && body['success'] == true) {
+      final user = body['data']['user'];
+      if (user['role'] != 'mahasiswa') {
+        return {
+          'success': false,
+          'message': 'Akses ditolak. Aplikasi ini hanya untuk Mahasiswa.'
+        };
+      }
       final token = body['data']['token'];
-      _currentUser = body['data']['user'];
+      _currentUser = user;
       ApiService.setToken(token);
       _syncStore();
       CounselingController.fetchKonselor(); // prefetch cache konselor

@@ -376,14 +376,14 @@ function App() {
     }
   }, [token]);
 
-  // Polling data dashboard secara silent setiap 10 detik (hanya saat tab dashboard aktif)
+  // Polling data dashboard secara silent setiap 10 detik (saat user login)
   useEffect(() => {
-    if (!token || activeTab !== 'dashboard') return;
+    if (!token) return;
     const interval = setInterval(() => {
       fetchDashboardData(true);
     }, 10000);
     return () => clearInterval(interval);
-  }, [token, activeTab]);
+  }, [token]);
 
   // Declarative chat polling effect
   useEffect(() => {
@@ -1767,7 +1767,21 @@ function App() {
                       onClick={() => startChatSession(s)}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', alignItems: 'center' }}>
-                        <strong>{s.mahasiswa?.nama}</strong>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <strong>{s.mahasiswa?.nama}</strong>
+                          {s.pesan?.some(m => m.sender_id !== user?.id && m.status_pesan === 'Terkirim') && (
+                            <span 
+                              style={{ 
+                                width: '8px', 
+                                height: '8px', 
+                                borderRadius: '50%', 
+                                backgroundColor: '#ef4444', 
+                                display: 'inline-block' 
+                              }} 
+                              title="Pesan baru" 
+                            />
+                          )}
+                        </div>
                         {s.tipe === 'laporan' ? (
                           <span style={{ fontSize: '0.75rem', color: 'var(--warning)', fontWeight: '600', padding: '2px 6px', background: 'rgba(245, 158, 11, 0.15)', borderRadius: '4px' }}>Laporan</span>
                         ) : (

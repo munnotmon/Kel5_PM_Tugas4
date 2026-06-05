@@ -110,6 +110,17 @@ class ChatController {
     return list;
   }
 
+  static ChatSession? getChatByIdOrName(int? id, String name) {
+    try {
+      if (id != null) {
+        return _allChats.firstWhere((c) => c.konselingId == id);
+      }
+      return _allChats.firstWhere((c) => c.name.toLowerCase() == name.toLowerCase());
+    } catch (_) {
+      return null;
+    }
+  }
+
   static ChatSession? getChatByName(String name) {
     try {
       return _allChats.firstWhere((c) => c.name.toLowerCase() == name.toLowerCase());
@@ -121,12 +132,24 @@ class ChatController {
   static Future<bool> sendMessage(
     String sessionName, 
     String text, 
-    {String? imagePath, 
+    {int? konselingId,
+     String? imagePath, 
      Uint8List? imageBytes, 
      String? imageName}
   ) async {
-    final session = getChatByName(sessionName);
+    final session = getChatByIdOrName(konselingId, sessionName);
     if (session == null) return false;
+
+    // Optimistic Update: Tambah pesan ke list lokal secara instan
+    final now = DateTime.now();
+    final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final tempMsg = ChatMessage(
+      text: text,
+      isMe: true,
+      time: timeStr,
+      imagePath: imagePath,
+    );
+    session.messages.add(tempMsg);
 
     if (session.konselingId != null) {
       try {
@@ -158,41 +181,36 @@ class ChatController {
           });
         }
         final body = jsonDecode(response.body);
-        if (response.statusCode == 201 && body['success'] == true) {
-          final now = DateTime.now();
-          final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+        if ((response.statusCode == 201 || response.statusCode == 200) && body['success'] == true) {
           final returnedPath = body['data']?['path_gambar'] as String?;
-          session.messages.add(
-            ChatMessage(
-              text: text,
-              isMe: true,
-              time: timeStr,
-              imagePath: returnedPath ?? imagePath,
-            ),
-          );
+          if (returnedPath != null) {
+            final idx = session.messages.indexOf(tempMsg);
+            if (idx != -1) {
+              session.messages[idx] = ChatMessage(
+                text: text,
+                isMe: true,
+                time: timeStr,
+                imagePath: returnedPath,
+              );
+            }
+          }
           return true;
+        } else {
+          print('sendMessage failed. Status: ${response.statusCode}, Body: ${response.body}');
         }
       } catch (e) {
         print('Error sending message: $e');
       }
+      // Rollback: Hapus pesan jika pengiriman gagal
+      session.messages.remove(tempMsg);
       return false;
     } else {
-      final now = DateTime.now();
-      final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-      session.messages.add(
-        ChatMessage(
-          text: text,
-          isMe: true,
-          time: timeStr,
-          imagePath: imagePath,
-        ),
-      );
       return true;
     }
   }
 
-  static void markAsRead(String sessionName) {
-    final session = getChatByName(sessionName);
+  static void markAsRead(int? id, String sessionName) {
+    final session = getChatByIdOrName(id, sessionName);
     if (session != null) {
       session.unread = 0;
     }

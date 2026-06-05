@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _reportsFuture = LaporanController.fetchReports();
+    _reportsFuture = LaporanController.ambilDaftarLaporan();
     _fetchUnreadCount();
     _timer = Timer.periodic(const Duration(seconds: 15), (timer) {
       _fetchUnreadCount();
@@ -35,8 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!ApiService.isAuthenticated) return;
     if (mounted) {
       setState(() {
-
-        _reportsFuture = LaporanController.fetchReports();
+        _reportsFuture = LaporanController.ambilDaftarLaporan();
       });
     }
   }

@@ -29,9 +29,10 @@ class _RoomChatPageState extends State<RoomChatPage> {
   void initState() {
     super.initState();
     final name = widget.counselorData['name'] ?? 'Konselor';
+    final int? konselingId = widget.counselorData['konselingId'];
     
     // Temukan session dari ChatController, jika belum ada buat session baru
-    ChatSession? found = ChatController.getChatByName(name);
+    ChatSession? found = ChatController.getChatByIdOrName(konselingId, name);
     if (found == null) {
       found = ChatSession.fromMap(widget.counselorData);
       ChatController.allChats.add(found);
@@ -70,14 +71,26 @@ class _RoomChatPageState extends State<RoomChatPage> {
     if (text.isEmpty) return;
     _msgController.clear();
 
-    final success = await ChatController.sendMessage(_session.name, text);
-    if (success) {
-      if (mounted) {
-        setState(() {
-          widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
-        });
-        _scrollToBottom();
-      }
+    // Panggil sendMessage secara synchronous untuk men-trigger optimistic update secara lokal
+    final future = ChatController.sendMessage(_session.name, text, konselingId: _session.konselingId);
+
+    // Rebuild UI secara instan agar bubble chat langsung muncul
+    if (mounted) {
+      setState(() {
+        widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
+      });
+      _scrollToBottom();
+    }
+
+    // Tunggu respon API selesai di background
+    final success = await future;
+    
+    // Rebuild lagi untuk sinkronisasi (bila gagal terkirim, pesan akan di-rollback/dihapus otomatis)
+    if (mounted) {
+      setState(() {
+        widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
+      });
+      _scrollToBottom();
     }
   }
 
@@ -169,31 +182,43 @@ class _RoomChatPageState extends State<RoomChatPage> {
           final caption = captionController.text.trim();
           final textToSend = caption.isNotEmpty ? caption : 'Lampiran Gambar';
           
-          bool success;
+          Future<bool> future;
           if (kIsWeb) {
             final bytes = await image.readAsBytes();
-            success = await ChatController.sendMessage(
+            future = ChatController.sendMessage(
               _session.name,
               textToSend,
+              konselingId: _session.konselingId,
               imageBytes: bytes,
               imageName: image.name,
               imagePath: image.path,
             );
           } else {
-            success = await ChatController.sendMessage(
+            future = ChatController.sendMessage(
               _session.name,
               textToSend,
+              konselingId: _session.konselingId,
               imagePath: image.path,
             );
           }
           
-          if (success) {
-            if (mounted) {
-              setState(() {
-                widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
-              });
-              _scrollToBottom();
-            }
+          // Rebuild UI secara instan
+          if (mounted) {
+            setState(() {
+              widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
+            });
+            _scrollToBottom();
+          }
+
+          // Tunggu respon API di background
+          final success = await future;
+          
+          // Rebuild lagi untuk update path gambar atau rollback bila gagal
+          if (mounted) {
+            setState(() {
+              widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
+            });
+            _scrollToBottom();
           }
         }
         captionController.dispose();
