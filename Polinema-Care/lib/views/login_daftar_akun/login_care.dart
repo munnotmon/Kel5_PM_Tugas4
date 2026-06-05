@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'input_decoration_helper.dart';
@@ -20,6 +21,7 @@ class _LoginCareState extends State<LoginCare> {
 
   bool _isObscure = true;
   bool _isSubmitted = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -52,14 +54,39 @@ class _LoginCareState extends State<LoginCare> {
       });
 
       if (result['success'] == true) {
+        setState(() {
+          _errorMessage = null;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Login Berhasil!',
-              style: GoogleFonts.plusJakartaSans(),
+            content: Row(
+              children: [
+                const Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Login Berhasil!',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: const Color(0xFF10B981),
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            margin: const EdgeInsets.only(bottom: 120, left: 24, right: 24),
+            elevation: 4,
+            duration: const Duration(seconds: 2),
           ),
         );
 
@@ -68,16 +95,9 @@ class _LoginCareState extends State<LoginCare> {
           context.go('/home');
         });
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              result['message'] ?? 'Login Gagal',
-              style: GoogleFonts.plusJakartaSans(),
-            ),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        setState(() {
+          _errorMessage = result['message'] ?? 'Login Gagal';
+        });
       }
     }
   }
@@ -166,6 +186,37 @@ class _LoginCareState extends State<LoginCare> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          if (_errorMessage != null) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEE2E2),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: const Color(0xFFFCA5A5)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.error_outline,
+                                    color: Color(0xFFDC2626),
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      _errorMessage!,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        color: const Color(0xFFB91C1C),
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                           Text(
                             "Email",
                             style: GoogleFonts.plusJakartaSans(
@@ -178,10 +229,10 @@ class _LoginCareState extends State<LoginCare> {
                           TextFormField(
                             controller: _emailController,
                             onChanged: (value) {
-                              if (_isSubmitted) {
+                              if (_isSubmitted || _errorMessage != null) {
                                 setState(() {
-                                  _isSubmitted =
-                                      false; // Reset status agar error hilang saat user mengetik kembali
+                                  _isSubmitted = false;
+                                  _errorMessage = null;
                                 });
                               }
                             },
@@ -222,8 +273,11 @@ class _LoginCareState extends State<LoginCare> {
                             obscureText:
                                 _isObscure, // Mengontrol sembunyi/lihat teks
                             onChanged: (value) {
-                              if (_isSubmitted) {
-                                setState(() => _isSubmitted = false);
+                              if (_isSubmitted || _errorMessage != null) {
+                                setState(() {
+                                  _isSubmitted = false;
+                                  _errorMessage = null;
+                                });
                               }
                             },
                             style: GoogleFonts.plusJakartaSans(),
@@ -264,7 +318,7 @@ class _LoginCareState extends State<LoginCare> {
                           const SizedBox(height: 12),
 
                           GestureDetector(
-                            onTap: () {},
+                            onTap: () => _showForgotPasswordBottomSheet(context),
                             child: Text(
                               "Lupa Kata Sandi?",
                               style: GoogleFonts.plusJakartaSans(
@@ -399,6 +453,234 @@ class _LoginCareState extends State<LoginCare> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showForgotPasswordBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                24,
+                20,
+                24,
+                24 + MediaQuery.of(context).padding.bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFE0F2F8),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.lock_reset,
+                          color: Color(0xFF1068A3),
+                          size: 26,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        'Lupa Kata Sandi?',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF1A2D3D),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Untuk mereset kata sandi akun Mahasiswa Anda, silakan hubungi unit layanan admin Polinema Care+ melalui kontak resmi di bawah ini:',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      color: const Color(0xFF4B5563),
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF9FAFB),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade100),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.phone_android, color: Color(0xFF10B981), size: 20),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'WhatsApp Layanan',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      color: Colors.grey[500],
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    '+62 851-5612-3490',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF1A2D3D),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.copy, color: Color(0xFF1068A3), size: 18),
+                              onPressed: () {
+                                Clipboard.setData(const ClipboardData(text: '+6285156123490')).then((_) {
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Row(
+                                        children: [
+                                          const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            'Nomor WhatsApp berhasil disalin!',
+                                            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                      backgroundColor: const Color(0xFF10B981),
+                                      behavior: SnackBarBehavior.floating,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                      margin: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
+                                    ),
+                                  );
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                          child: Divider(height: 1),
+                        ),
+                        Row(
+                          children: [
+                            const Icon(Icons.mail_outline, color: Colors.orangeAccent, size: 20),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Email Support',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      color: Colors.grey[500],
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    'support@polinemacare.ac.id',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF1A2D3D),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.copy, color: Color(0xFF1068A3), size: 18),
+                              onPressed: () {
+                                Clipboard.setData(const ClipboardData(text: 'support@polinemacare.ac.id')).then((_) {
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Row(
+                                        children: [
+                                          const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            'Email berhasil disalin!',
+                                            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                      backgroundColor: const Color(0xFF10B981),
+                                      behavior: SnackBarBehavior.floating,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                      margin: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
+                                    ),
+                                  );
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFE5E7EB)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                      child: Text(
+                        'Tutup',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF4B5563),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

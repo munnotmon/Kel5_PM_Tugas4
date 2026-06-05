@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Gunakan 127.0.0.1 agar mendukung perintah `adb reverse tcp:8000 tcp:8000` baik untuk HP fisik maupun emulator.
-  static const String baseUrl = 'http://127.0.0.1:8000/api';
+  static const String baseUrl = 'https://gleeful-geek-unwashed.ngrok-free.dev/api';
 
   static String? _token;
 

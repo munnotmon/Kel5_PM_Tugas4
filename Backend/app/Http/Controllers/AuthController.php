@@ -82,7 +82,7 @@ class AuthController extends Controller
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Kredensial salah'
+                'message' => 'Email atau Password salah'
             ], 401);
         }
 
@@ -285,6 +285,44 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'data' => $mahasiswa
+        ]);
+    }
+
+    public function resetMahasiswaPassword(Request $request, $id)
+    {
+        if (!in_array($request->user()->role, ['admin', 'superadmin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Hanya admin yang dapat mereset sandi.'
+            ], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'password' => 'required|string|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => implode(' ', $validator->errors()->all()),
+            ], 422);
+        }
+
+        $mahasiswa = Mahasiswa::find($id);
+
+        if (!$mahasiswa) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Mahasiswa tidak ditemukan.'
+            ], 404);
+        }
+
+        $mahasiswa->password = Hash::make($request->password);
+        $mahasiswa->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kata sandi mahasiswa berhasil direset.'
         ]);
     }
 

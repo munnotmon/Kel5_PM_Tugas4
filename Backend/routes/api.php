@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile/update', [AuthController::class, 'updateProfile']);
     Route::post('/profile/change-password', [AuthController::class, 'changePassword']);
     Route::get('/mahasiswa', [AuthController::class, 'getMahasiswa']);
+    Route::post('/mahasiswa/{id}/reset-password', [AuthController::class, 'resetMahasiswaPassword']);
     Route::get('/superadmin', [AuthController::class, 'getSuperadmin']);
 
     // Laporan Perundungan

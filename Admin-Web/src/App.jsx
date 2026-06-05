@@ -76,6 +76,12 @@ const IconSignOut = () => (
   </svg>
 );
 
+const IconKey = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
+    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+  </svg>
+);
+
 const IconMenu = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
     <line x1="4" x2="20" y1="12" y2="12" />
@@ -227,7 +233,7 @@ const IconCheckCircle = ({ size = 16, style }) => (
 );
 
 // Configure Axios defaults
-axios.defaults.baseURL = 'http://127.0.0.1:8000/api';
+axios.defaults.baseURL = 'https://gleeful-geek-unwashed.ngrok-free.dev/api';
 
 // Add request interceptor to attach bearer token
 axios.interceptors.request.use(
@@ -236,6 +242,7 @@ axios.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    config.headers['ngrok-skip-browser-warning'] = 'true';
     return config;
   },
   (error) => Promise.reject(error)
@@ -312,6 +319,11 @@ function App() {
   const [editingCounselor, setEditingCounselor] = useState(null);
   const [editForm, setEditForm] = useState({ nama: '', email: '', password: '', nomor_telepon: '', role: 'admin' });
   const [showEditModal, setShowEditModal] = useState(false);
+
+  // Reset Password Mahasiswa States
+  const [resettingUser, setResettingUser] = useState(null);
+  const [resetPasswordForm, setResetPasswordForm] = useState({ password: '' });
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
 
   // Laporan Search & Pagination States
   const [reportSearchQuery, setReportSearchQuery] = useState('');
@@ -781,6 +793,37 @@ function App() {
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || 'Gagal menghapus akun.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPasswordPrompt = (u) => {
+    setResettingUser(u);
+    setResetPasswordForm({ password: '' });
+    setShowResetPasswordModal(true);
+  };
+
+  const handleSaveResetPassword = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      const res = await axios.post(`/mahasiswa/${resettingUser.id}/reset-password`, {
+        password: resetPasswordForm.password,
+      });
+      if (res.data.success) {
+        setSuccessAlertMsg(`Kata sandi mahasiswa "${resettingUser.nama}" berhasil direset.`);
+        setShowSuccessAlert(true);
+        setShowResetPasswordModal(false);
+        fetchDashboardData();
+        setTimeout(() => {
+          setShowSuccessAlert(false);
+        }, 2500);
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || 'Gagal mereset kata sandi.');
     } finally {
       setLoading(false);
     }
@@ -1908,6 +1951,7 @@ function App() {
                     <th>NIM</th>
                     <th>Email</th>
                     <th>Nomor Telepon</th>
+                    <th style={{ textAlign: 'center' }}>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1917,6 +1961,16 @@ function App() {
                       <td>{u.profil_mahasiswa?.nim || u.nim || '-'}</td>
                       <td>{u.email}</td>
                       <td>{u.nomor_telepon || '-'}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => handleResetPasswordPrompt(u)}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
+                        >
+                          <IconKey size={12} />
+                          <span>Reset Sandi</span>
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {users.length === 0 && (
@@ -2384,6 +2438,45 @@ function App() {
             >
               Kembali ke Daftar
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* RESET PASSWORD MODAL: MAHASISWA */}
+      {showResetPasswordModal && resettingUser && (
+        <div className="modal-overlay" onClick={() => setShowResetPasswordModal(false)} style={{ zIndex: 1100 }}>
+          <div className="card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+              <h2 style={{ fontSize: '1.2rem' }}>Reset Kata Sandi Mahasiswa</h2>
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowResetPasswordModal(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconX size={14} /></button>
+            </div>
+
+            <form onSubmit={handleSaveResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', padding: '0.75rem', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Mahasiswa:</span>
+                <strong style={{ color: 'var(--text-primary)' }}>{resettingUser.nama}</strong>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>NIM: {resettingUser.profil_mahasiswa?.nim || resettingUser.nim || '-'}</span>
+              </div>
+
+              <div className="form-group">
+                <label>Kata Sandi Baru *</label>
+                <input
+                  type="password"
+                  placeholder="Masukkan minimal 6 karakter"
+                  value={resetPasswordForm.password}
+                  onChange={e => setResetPasswordForm({ password: e.target.value })}
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowResetPasswordModal(false)}>Batal</button>
+                <button type="submit" className="btn btn-primary" disabled={loading}>
+                  {loading ? 'Menyimpan...' : 'Reset Kata Sandi'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
