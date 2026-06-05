@@ -35,7 +35,7 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
   // =====================================================================
   Future<void> _handleKirim() async {
     setState(() => _isSending = true);
-    final success = await LaporanController.submitReport(_data);
+    final success = await LaporanController.kirimLaporan(_data);
     if (!mounted) return;
     setState(() => _isSending = false);
 

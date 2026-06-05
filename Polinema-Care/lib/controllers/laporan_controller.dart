@@ -11,12 +11,12 @@ class LaporanController {
   static LaporanModel activeReport = LaporanModel();
   static List<XFile> rawFiles = [];
 
-  static void resetActiveReport() {
+  static void resetDraftLaporan() {
     activeReport = LaporanModel();
     rawFiles.clear();
   }
 
-  static void updateStep1({
+  static void simpanTahap1({
     required String nama,
     required String nim,
     required String telepon,
@@ -30,7 +30,7 @@ class LaporanController {
     );
   }
 
-  static void updateStep2({
+  static void simpanTahap2({
     required String waktu,
     required String lokasi,
     required String jenis,
@@ -46,7 +46,7 @@ class LaporanController {
     );
   }
 
-  static void updateStep3({
+  static void simpanTahap3({
     required String korban,
     required String pelaku,
     required String saksi,
@@ -58,7 +58,7 @@ class LaporanController {
     );
   }
 
-  static Future<bool> submitReport(Map<String, dynamic> data) async {
+  static Future<bool> kirimLaporan(Map<String, dynamic> data) async {
     if (!ApiService.isAuthenticated) {
       print('Submit Report failed: User is not authenticated. Please log in first.');
       return false;
@@ -114,7 +114,7 @@ class LaporanController {
     }
   }
 
-  static Future<List<Map<String, dynamic>>> fetchReports() async {
+  static Future<List<Map<String, dynamic>>> ambilDaftarLaporan() async {
     try {
       final response = await ApiService.get('/laporan');
       final body = jsonDecode(response.body);
@@ -128,7 +128,7 @@ class LaporanController {
     return [];
   }
 
-  static String formatDateTime(String? rawStr) {
+  static String formatWaktu(String? rawStr) {
     if (rawStr == null || rawStr == '-') return '-';
     try {
       final dt = DateTime.parse(rawStr).toLocal();

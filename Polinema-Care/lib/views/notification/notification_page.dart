@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/api_service.dart';
+import '../../controllers/chat_controller.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -18,8 +19,12 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   void initState() {
     super.initState();
-    _fetchNotifications();
-    _markAllAsRead();
+    _loadNotifications();
+  }
+
+  Future<void> _loadNotifications() async {
+    await _fetchNotifications();
+    await _markAllAsRead();
   }
 
   Future<void> _fetchNotifications() async {
@@ -142,9 +147,13 @@ class _NotificationPageState extends State<NotificationPage> {
                         icon: icon,
                         color: color,
                         isRead: isRead,
-                        onTap: () {
+                        onTap: () async {
                           if (title.toLowerCase().contains('pesan') || title.toLowerCase().contains('chat')) {
-                            context.go('/inbox');
+                            // Fetch chats first so the inbox has the new conversation immediately
+                            await ChatController.fetchChats();
+                            if (context.mounted) {
+                              context.go('/inbox');
+                            }
                           } else if (title.toLowerCase().contains('laporan')) {
                             context.go('/activity', extra: 0);
                           } else if (title.toLowerCase().contains('konseling')) {

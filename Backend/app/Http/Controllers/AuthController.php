@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Mahasiswa;
+use App\Models\SuperAdmin;
 use App\Models\ProfilMahasiswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -32,11 +34,10 @@ class AuthController extends Controller
         }
 
         // Create user with student role
-        $user = User::create([
+        $user = Mahasiswa::create([
             'nama' => $request->nama,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'mahasiswa',
             'nomor_telepon' => $request->nomor_telepon,
         ]);
 
@@ -121,11 +122,10 @@ class AuthController extends Controller
 
         if (!$user) {
             // Generate a random password for social login users
-            $user = User::create([
+            $user = Mahasiswa::create([
                 'nama' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make(bin2hex(random_bytes(8))),
-                'role' => 'mahasiswa',
                 'nomor_telepon' => '081234567' . rand(100, 999),
             ]);
 
@@ -211,7 +211,7 @@ class AuthController extends Controller
         if ($request->hasFile('foto_profil')) {
             $file = $request->file('foto_profil');
             $fileName = time() . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('public/foto_profil', $fileName);
+            $path = $file->storeAs('foto_profil', $fileName, 'public');
             $user->foto_profil = asset('storage/foto_profil/' . $fileName);
         }
 
@@ -278,8 +278,7 @@ class AuthController extends Controller
             ], 403);
         }
 
-        $mahasiswa = User::with('profilMahasiswa')
-            ->where('role', 'mahasiswa')
+        $mahasiswa = Mahasiswa::with('profilMahasiswa')
             ->latest()
             ->get();
 
@@ -301,8 +300,7 @@ class AuthController extends Controller
             ], 403);
         }
 
-        $superadmin = User::where('role', 'superadmin')
-            ->latest()
+        $superadmin = SuperAdmin::latest()
             ->get();
 
         return response()->json([

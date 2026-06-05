@@ -6,6 +6,7 @@ use App\Models\Konseling;
 use App\Models\JadwalKonseling;
 use App\Models\Notifikasi;
 use App\Models\User;
+use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -72,7 +73,7 @@ class KonselingController extends Controller
         $schedule->save();
 
         // Notify admins
-        $admins = User::where('role', 'admin')->get();
+        $admins = Admin::get();
         foreach ($admins as $admin) {
             Notifikasi::create([
                 'user_id' => $admin->id,

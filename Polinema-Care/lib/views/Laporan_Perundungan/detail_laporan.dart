@@ -192,17 +192,19 @@ class HalamanDetailLaporan extends StatelessWidget {
           ),
           _buildTimelineItem(
             'Verifikasi Berkas & Bukti',
-            statusLabel != 'Menunggu'
+            statusLabel.toLowerCase() != 'menunggu'
                 ? tanggal
                 : 'Menunggu verifikasi admin',
-            statusLabel != 'Menunggu',
+            statusLabel.toLowerCase() != 'menunggu',
           ),
           _buildTimelineItem(
             'Tindakan & Investigasi',
-            statusLabel == 'Selesai'
+            statusLabel.toLowerCase() == 'selesai'
                 ? 'Kasus telah ditutup/diselesaikan'
-                : 'Sedang dalam proses',
-            statusLabel == 'Selesai',
+                : (statusLabel.toLowerCase() == 'diproses'
+                    ? 'Sedang dalam proses investigasi'
+                    : 'Menunggu proses investigasi'),
+            statusLabel.toLowerCase() == 'diproses' || statusLabel.toLowerCase() == 'selesai',
           ),
         ],
       ),

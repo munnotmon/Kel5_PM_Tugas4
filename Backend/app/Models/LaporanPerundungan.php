@@ -28,7 +28,7 @@ class LaporanPerundungan extends Model
 
     public function pelapor()
     {
-        return $this->belongsTo(User::class, 'pelapor_id');
+        return $this->belongsTo(Mahasiswa::class, 'pelapor_id');
     }
 
     public function bukti()

@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _reportsFuture = LaporanController.fetchReports();
+    _reportsFuture = LaporanController.ambilDaftarLaporan();
     _fetchUnreadCount();
     _timer = Timer.periodic(const Duration(seconds: 15), (timer) {
       _fetchUnreadCount();
@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!ApiService.isAuthenticated) return;
     if (mounted) {
       setState(() {
-        _reportsFuture = LaporanController.fetchReports();
+        _reportsFuture = LaporanController.ambilDaftarLaporan();
       });
     }
   }
@@ -348,6 +348,9 @@ class ActivitySection extends StatelessWidget {
               case 'menunggu':
                 statusColor = Colors.orange;
                 break;
+              case 'diterima':
+                statusColor = Colors.lightBlue;
+                break;
               case 'diproses':
                 statusColor = Colors.blue;
                 break;
@@ -368,7 +371,7 @@ class ActivitySection extends StatelessWidget {
                   extra: {
                     'id': 'RPT-$id',
                     'judul': title,
-                    'tanggal': LaporanController.formatDateTime(latest['tanggal_kejadian'] ?? latest['created_at']?.toString()),
+                    'tanggal': LaporanController.formatWaktu(latest['tanggal_kejadian'] ?? latest['created_at']?.toString()),
                     'deskripsi': kronologi,
                     'statusLabel': statusStr,
                     'statusColor': statusColor,

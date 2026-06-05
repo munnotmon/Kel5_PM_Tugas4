@@ -9,7 +9,7 @@ import '../../controllers/laporan_controller.dart';
 // =====================================================================
 // MODEL & DATA LAPORAN
 // =====================================================================
-enum StatusLaporan { menunggu, diproses, selesai, ditolak }
+enum StatusLaporan { menunggu, diterima, diproses, selesai, ditolak }
 
 class LaporanItem {
   final String id;
@@ -42,6 +42,8 @@ StatusLaporan laporanStatusFromString(String statusStr) {
   switch (statusStr.toLowerCase()) {
     case 'menunggu':
       return StatusLaporan.menunggu;
+    case 'diterima':
+      return StatusLaporan.diterima;
     case 'diproses':
       return StatusLaporan.diproses;
     case 'selesai':
@@ -80,7 +82,7 @@ LaporanItem laporanItemFromMap(Map<String, dynamic> lap) {
   return LaporanItem(
     id: 'RPT-${lap['id']}',
     judul: lap['judul_pelaporan'] ?? 'Laporan',
-    tanggal: LaporanController.formatDateTime(rawTanggal),
+    tanggal: LaporanController.formatWaktu(rawTanggal),
     status: laporanStatusFromString(lap['status'] ?? 'Menunggu'),
     deskripsi: kronologi,
     jenisPerundungan: lap['jenis_perundungan'] ?? '-',
@@ -205,7 +207,7 @@ class _TabLaporanState extends State<_TabLaporan> {
 
   Future<void> _loadReports() async {
     setState(() => _isLoading = true);
-    final reports = await LaporanController.fetchReports();
+    final reports = await LaporanController.ambilDaftarLaporan();
     if (mounted) {
       setState(() {
         _reports = reports;
@@ -416,6 +418,8 @@ class _LaporanCard extends StatelessWidget {
     switch (status) {
       case StatusLaporan.menunggu:
         return {'label': 'Menunggu', 'color': const Color(0xFFF59E0B)};
+      case StatusLaporan.diterima:
+        return {'label': 'Diterima', 'color': const Color(0xFF0284C7)};
       case StatusLaporan.diproses:
         return {'label': 'Diproses', 'color': const Color(0xFF3B82F6)};
       case StatusLaporan.selesai:
@@ -437,6 +441,9 @@ class _StatusProgress extends StatelessWidget {
     switch (status) {
       case StatusLaporan.menunggu:
         activeIndex = 0;
+        break;
+      case StatusLaporan.diterima:
+        activeIndex = 1;
         break;
       case StatusLaporan.diproses:
         activeIndex = 2;
@@ -1059,7 +1066,7 @@ class ActivitySection extends StatelessWidget {
         const SizedBox(height: 16),
         // Ambil laporan terbaru langsung dari API.
         FutureBuilder<List<Map<String, dynamic>>>(
-          future: LaporanController.fetchReports(),
+          future: LaporanController.ambilDaftarLaporan(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(
@@ -1090,12 +1097,14 @@ class ActivitySection extends StatelessWidget {
   Widget _buildLaporanPreview(BuildContext context, LaporanItem item) {
     final statusColors = {
       StatusLaporan.menunggu: const Color(0xFFF59E0B),
+      StatusLaporan.diterima: const Color(0xFF0284C7),
       StatusLaporan.diproses: const Color(0xFF3B82F6),
       StatusLaporan.selesai: const Color(0xFF10B981),
       StatusLaporan.ditolak: const Color(0xFFEF4444),
     };
     final statusLabels = {
       StatusLaporan.menunggu: 'Menunggu',
+      StatusLaporan.diterima: 'Diterima',
       StatusLaporan.diproses: 'Diproses',
       StatusLaporan.selesai: 'Selesai',
       StatusLaporan.ditolak: 'Ditolak',

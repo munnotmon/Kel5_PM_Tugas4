@@ -6,13 +6,14 @@ use App\Models\LaporanPerundungan;
 use App\Models\Bukti;
 use App\Models\Notifikasi;
 use App\Models\User;
+use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 
 class LaporanController extends Controller
 {
-    public function index(Request $request)
+    public function tampilkanSemua(Request $request)
     {
         $user = $request->user();
 
@@ -31,7 +32,7 @@ class LaporanController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function simpanLaporan(Request $request)
     {
         \Illuminate\Support\Facades\Log::info('LaporanController@store request data: ', $request->all());
 
@@ -82,7 +83,7 @@ class LaporanController extends Controller
             foreach ($request->file('bukti_files') as $file) {
                 $originalName = $file->getClientOriginalName();
                 $fileName = time() . '_' . rand(100, 999) . '_' . $originalName;
-                $path = $file->storeAs('public/bukti', $fileName);
+                $path = $file->storeAs('bukti', $fileName, 'public');
 
                 Bukti::create([
                     'laporan_id' => $report->id,
@@ -93,7 +94,7 @@ class LaporanController extends Controller
         }
 
         // Notify admins about new report
-        $admins = User::where('role', 'admin')->get();
+        $admins = Admin::get();
         foreach ($admins as $admin) {
             Notifikasi::create([
                 'user_id' => $admin->id,
@@ -110,7 +111,7 @@ class LaporanController extends Controller
         ], 201);
     }
 
-    public function show(Request $request, $id)
+    public function tampilkanDetail(Request $request, $id)
     {
         $user = $request->user();
         $report = LaporanPerundungan::with(['pelapor.profilMahasiswa', 'bukti'])->find($id);
@@ -136,7 +137,7 @@ class LaporanController extends Controller
         ]);
     }
 
-    public function updateStatus(Request $request, $id)
+    public function perbaruiStatus(Request $request, $id)
     {
         $user = $request->user();
 
@@ -148,7 +149,7 @@ class LaporanController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:Menunggu,Diproses,Ditolak,Selesai',
+            'status' => 'required|in:Menunggu,Diterima,Diproses,Ditolak,Selesai',
         ]);
 
         if ($validator->fails()) {
@@ -186,7 +187,7 @@ class LaporanController extends Controller
         ]);
     }
 
-    public function getOrCreateChatForReport(Request $request, $id)
+    public function buatAtauBukaChat(Request $request, $id)
     {
         $user = $request->user();
 

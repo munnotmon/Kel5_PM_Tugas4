@@ -29,9 +29,10 @@ class _RoomChatPageState extends State<RoomChatPage> {
   void initState() {
     super.initState();
     final name = widget.counselorData['name'] ?? 'Konselor';
+    final int? konselingId = widget.counselorData['konselingId'];
     
     // Temukan session dari ChatController, jika belum ada buat session baru
-    ChatSession? found = ChatController.getChatByName(name);
+    ChatSession? found = ChatController.getChatByIdOrName(konselingId, name);
     if (found == null) {
       found = ChatSession.fromMap(widget.counselorData);
       ChatController.allChats.add(found);
@@ -70,14 +71,26 @@ class _RoomChatPageState extends State<RoomChatPage> {
     if (text.isEmpty) return;
     _msgController.clear();
 
-    final success = await ChatController.sendMessage(_session.name, text);
-    if (success) {
-      if (mounted) {
-        setState(() {
-          widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
-        });
-        _scrollToBottom();
-      }
+    // Panggil sendMessage secara synchronous untuk men-trigger optimistic update secara lokal
+    final future = ChatController.sendMessage(_session.name, text, konselingId: _session.konselingId);
+
+    // Rebuild UI secara instan agar bubble chat langsung muncul
+    if (mounted) {
+      setState(() {
+        widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
+      });
+      _scrollToBottom();
+    }
+
+    // Tunggu respon API selesai di background
+    final success = await future;
+    
+    // Rebuild lagi untuk sinkronisasi (bila gagal terkirim, pesan akan di-rollback/dihapus otomatis)
+    if (mounted) {
+      setState(() {
+        widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
+      });
+      _scrollToBottom();
     }
   }
 
@@ -169,31 +182,43 @@ class _RoomChatPageState extends State<RoomChatPage> {
           final caption = captionController.text.trim();
           final textToSend = caption.isNotEmpty ? caption : 'Lampiran Gambar';
           
-          bool success;
+          Future<bool> future;
           if (kIsWeb) {
             final bytes = await image.readAsBytes();
-            success = await ChatController.sendMessage(
+            future = ChatController.sendMessage(
               _session.name,
               textToSend,
+              konselingId: _session.konselingId,
               imageBytes: bytes,
               imageName: image.name,
               imagePath: image.path,
             );
           } else {
-            success = await ChatController.sendMessage(
+            future = ChatController.sendMessage(
               _session.name,
               textToSend,
+              konselingId: _session.konselingId,
               imagePath: image.path,
             );
           }
           
-          if (success) {
-            if (mounted) {
-              setState(() {
-                widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
-              });
-              _scrollToBottom();
-            }
+          // Rebuild UI secara instan
+          if (mounted) {
+            setState(() {
+              widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
+            });
+            _scrollToBottom();
+          }
+
+          // Tunggu respon API di background
+          final success = await future;
+          
+          // Rebuild lagi untuk update path gambar atau rollback bila gagal
+          if (mounted) {
+            setState(() {
+              widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
+            });
+            _scrollToBottom();
           }
         }
         captionController.dispose();
@@ -443,49 +468,76 @@ class _RoomChatPageState extends State<RoomChatPage> {
               },
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: Colors.white,
-            child: Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: const Color(0xFFF5F7FA),
-                  child: IconButton(
-                    icon: const Icon(Icons.add, color: Color(0xFF1068A3)),
-                    onPressed: _showAttachmentOptions,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F7FA),
-                      borderRadius: BorderRadius.circular(24),
+          _session.specialty.toLowerCase().contains('(selesai)') ||
+                  _session.specialty.toLowerCase().contains('(dibatalkan)')
+              ? Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    border: Border(
+                      top: BorderSide(color: Colors.grey.withOpacity(0.15)),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextField(
-                      controller: _msgController,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13),
-                      decoration: InputDecoration(
-                        hintText: 'Tulis pesan Anda...',
-                        hintStyle: TextStyle(color: Colors.grey[400]),
-                        border: InputBorder.none,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.lock_outline, color: Colors.grey, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Sesi konseling telah selesai.',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.grey[500],
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      onSubmitted: (_) => _sendMessage(),
-                    ),
+                    ],
+                  ),
+                )
+              : Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  color: Colors.white,
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: const Color(0xFFF5F7FA),
+                        child: IconButton(
+                          icon: const Icon(Icons.add, color: Color(0xFF1068A3)),
+                          onPressed: _showAttachmentOptions,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F7FA),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: TextField(
+                            controller: _msgController,
+                            style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                            decoration: InputDecoration(
+                              hintText: 'Tulis pesan Anda...',
+                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              border: InputBorder.none,
+                            ),
+                            onSubmitted: (_) => _sendMessage(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      CircleAvatar(
+                        backgroundColor: const Color(0xFF1068A3),
+                        child: IconButton(
+                          icon: const Icon(Icons.send, color: Colors.white, size: 18),
+                          onPressed: _sendMessage,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                CircleAvatar(
-                  backgroundColor: const Color(0xFF1068A3),
-                  child: IconButton(
-                    icon: const Icon(Icons.send, color: Colors.white, size: 18),
-                    onPressed: _sendMessage,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );

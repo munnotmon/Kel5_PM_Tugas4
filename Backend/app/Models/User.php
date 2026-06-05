@@ -80,4 +80,25 @@ class User extends Authenticatable
     {
         return $this->hasMany(Notifikasi::class, 'user_id');
     }
+
+    public function ubahKeRoleSpesifik()
+    {
+        switch ($this->role) {
+            case 'mahasiswa':
+                $instance = new Mahasiswa();
+                break;
+            case 'admin':
+                $instance = new Admin();
+                break;
+            case 'superadmin':
+                $instance = new SuperAdmin();
+                break;
+            default:
+                return $this;
+        }
+
+        $instance->setRawAttributes($this->getAttributes(), true);
+        $instance->exists = true;
+        return $instance;
+    }
 }

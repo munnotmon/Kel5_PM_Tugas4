@@ -15,12 +15,17 @@ class InboxPage extends StatefulWidget {
 class _InboxPageState extends State<InboxPage> {
   String _searchQuery = "";
   Timer? _debounce;
+  Timer? _refreshTimer;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadChats();
+    // Refresh chats every 10 seconds to keep the list fresh
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      _silentRefreshChats();
+    });
   }
 
   Future<void> _loadChats() async {
@@ -33,9 +38,18 @@ class _InboxPageState extends State<InboxPage> {
     }
   }
 
+  Future<void> _silentRefreshChats() async {
+    if (!mounted) return;
+    await ChatController.fetchChats();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   void dispose() {
     _debounce?.cancel();
+    _refreshTimer?.cancel();
     super.dispose();
   }
 
@@ -144,7 +158,7 @@ class _InboxPageState extends State<InboxPage> {
 
     return GestureDetector(
       onTap: () {
-        ChatController.markAsRead(chat.name);
+        ChatController.markAsRead(chat.konselingId, chat.name);
         context.push('/inbox/room-chat', extra: chat.toMap()).then((_) {
           setState(() {});
         });
