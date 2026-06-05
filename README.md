@@ -1,4 +1,4 @@
-# Polinema Care+ 🛡️❤️
+# Polinema Care+
 > **Platform Layanan Konseling & Pelaporan Tindakan Perundungan Mahasiswa Politeknik Negeri Malang**
 
 Polinema Care+ adalah platform terintegrasi (Multi-tier Application) yang dirancang untuk menyediakan ruang aman bagi mahasiswa dalam melaporkan insiden perundungan (bullying) secara rahasia dan melakukan konseling secara langsung dengan konselor/admin profesional.
@@ -7,7 +7,7 @@ Project ini dikembangkan untuk tugas Semester 3 (Kelompok 5) dengan membagi sist
 
 ---
 
-## 🛠️ Tech Stack & Arsitektur
+## Tech Stack & Arsitektur
 
 ### 1. Backend REST API (`/Backend`)
 * **Framework**: Laravel 10+ (PHP 8.x)
@@ -37,7 +37,7 @@ Project ini dikembangkan untuk tugas Semester 3 (Kelompok 5) dengan membagi sist
 
 ---
 
-## 📁 Struktur Proyek
+## Struktur Proyek
 ```text
 Kel5_PM_Tugas4/
 ├── Backend/                 # Source Code Laravel REST API
@@ -57,7 +57,7 @@ Kel5_PM_Tugas4/
 
 ---
 
-## 🚀 Panduan Menjalankan Project (Local Development)
+## Panduan Menjalankan Project (Local Development)
 
 ### Prasyarat:
 * PHP >= 8.1 dan Composer installed
@@ -142,7 +142,7 @@ Kel5_PM_Tugas4/
 
 ---
 
-## ⚙️ Cara Mengganti Mode Koneksi (Local vs Ngrok)
+## Cara Mengganti Mode Koneksi (Local vs Ngrok)
 Kami telah menyediakan konfigurasi sakelar pintar (*toggle switch*) agar Anda dapat berganti antara server lokal offline dan server online publik (Ngrok) dengan satu langkah mudah:
 
 * **Di Flutter (`Polinema-Care/lib/services/api_service.dart`)**:
@@ -157,10 +157,4 @@ Kami telah menyediakan konfigurasi sakelar pintar (*toggle switch*) agar Anda da
   ```
 
 ---
-
-## 👥 Kelompok 5 - Pemrograman Mobile (Semester 3)
-* **Anggota Kelompok**: (Tulis nama anggota kelompok di sini)
-* **Jurusan**: Teknologi Informasi, Politeknik Negeri Malang
-
----
-*Keamanan data, privasi pengguna, dan ruang obrolan aman merupakan prioritas utama dari pengembangan Polinema Care+.*
+uang obrolan aman merupakan prioritas utama dari pengembangan Polinema Care+.*
