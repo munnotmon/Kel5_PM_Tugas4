@@ -361,6 +361,9 @@ class ActivitySection extends StatelessWidget {
               case 'menunggu':
                 statusColor = Colors.orange;
                 break;
+              case 'diterima':
+                statusColor = Colors.lightBlue;
+                break;
               case 'diproses':
                 statusColor = Colors.blue;
                 break;

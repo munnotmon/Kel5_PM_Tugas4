@@ -441,49 +441,76 @@ class _RoomChatPageState extends State<RoomChatPage> {
               },
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: Colors.white,
-            child: Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: const Color(0xFFF5F7FA),
-                  child: IconButton(
-                    icon: const Icon(Icons.add, color: Color(0xFF1068A3)),
-                    onPressed: _showAttachmentOptions,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F7FA),
-                      borderRadius: BorderRadius.circular(24),
+          _session.specialty.toLowerCase().contains('(selesai)') ||
+                  _session.specialty.toLowerCase().contains('(dibatalkan)')
+              ? Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    border: Border(
+                      top: BorderSide(color: Colors.grey.withOpacity(0.15)),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextField(
-                      controller: _msgController,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13),
-                      decoration: InputDecoration(
-                        hintText: 'Tulis pesan Anda...',
-                        hintStyle: TextStyle(color: Colors.grey[400]),
-                        border: InputBorder.none,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.lock_outline, color: Colors.grey, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Sesi konseling telah selesai.',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.grey[500],
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      onSubmitted: (_) => _sendMessage(),
-                    ),
+                    ],
+                  ),
+                )
+              : Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  color: Colors.white,
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: const Color(0xFFF5F7FA),
+                        child: IconButton(
+                          icon: const Icon(Icons.add, color: Color(0xFF1068A3)),
+                          onPressed: _showAttachmentOptions,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F7FA),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: TextField(
+                            controller: _msgController,
+                            style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                            decoration: InputDecoration(
+                              hintText: 'Tulis pesan Anda...',
+                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              border: InputBorder.none,
+                            ),
+                            onSubmitted: (_) => _sendMessage(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      CircleAvatar(
+                        backgroundColor: const Color(0xFF1068A3),
+                        child: IconButton(
+                          icon: const Icon(Icons.send, color: Colors.white, size: 18),
+                          onPressed: _sendMessage,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                CircleAvatar(
-                  backgroundColor: const Color(0xFF1068A3),
-                  child: IconButton(
-                    icon: const Icon(Icons.send, color: Colors.white, size: 18),
-                    onPressed: _sendMessage,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );

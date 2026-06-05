@@ -6,6 +6,7 @@ use App\Models\LaporanPerundungan;
 use App\Models\Bukti;
 use App\Models\Notifikasi;
 use App\Models\User;
+use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -82,7 +83,7 @@ class LaporanController extends Controller
             foreach ($request->file('bukti_files') as $file) {
                 $originalName = $file->getClientOriginalName();
                 $fileName = time() . '_' . rand(100, 999) . '_' . $originalName;
-                $path = $file->storeAs('public/bukti', $fileName);
+                $path = $file->storeAs('bukti', $fileName, 'public');
 
                 Bukti::create([
                     'laporan_id' => $report->id,
@@ -93,7 +94,7 @@ class LaporanController extends Controller
         }
 
         // Notify admins about new report
-        $admins = User::where('role', 'admin')->get();
+        $admins = Admin::get();
         foreach ($admins as $admin) {
             Notifikasi::create([
                 'user_id' => $admin->id,
@@ -148,7 +149,7 @@ class LaporanController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:Menunggu,Diproses,Ditolak,Selesai',
+            'status' => 'required|in:Menunggu,Diterima,Diproses,Ditolak,Selesai',
         ]);
 
         if ($validator->fails()) {

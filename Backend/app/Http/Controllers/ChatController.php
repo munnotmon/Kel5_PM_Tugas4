@@ -72,6 +72,14 @@ class ChatController extends Controller
             ], 403);
         }
 
+        // Block sending message if session is finished or cancelled
+        if (in_array(strtolower($session->status), ['selesai', 'dibatalkan'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sesi konseling telah selesai. Tidak dapat mengirim pesan baru.'
+            ], 403);
+        }
+
         $path = null;
         if ($request->hasFile('gambar')) {
             $file = $request->file('gambar');

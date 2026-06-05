@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Admin;
+use App\Models\SuperAdmin;
 use App\Models\Konseling;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -15,7 +17,7 @@ class KonselorController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::where('role', 'admin');
+        $query = Admin::query();
         if ($request->user() && $request->user()->role === 'mahasiswa') {
             $query->whereNotNull('spesialisasi');
         }
@@ -38,7 +40,7 @@ class KonselorController extends Controller
      */
     public function show($id)
     {
-        $konselor = User::where('role', 'admin')->find($id);
+        $konselor = Admin::find($id);
 
         if (!$konselor) {
             return response()->json([
@@ -154,11 +156,10 @@ class KonselorController extends Controller
 
         $role = in_array($request->role, ['admin', 'superadmin']) ? $request->role : 'admin';
 
-        $konselor = User::create([
+        $data = [
             'nama' => $request->nama,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => $role,
             'nomor_telepon' => $request->nomor_telepon,
             'foto_profil' => $request->foto_profil,
             'spesialisasi' => $request->spesialisasi,
@@ -171,7 +172,13 @@ class KonselorController extends Controller
             'hari_praktik' => $request->hari_praktik ?? [],
             'jam_tersedia' => $request->jam_tersedia ?? [],
             'is_online' => $request->is_online ?? false,
-        ]);
+        ];
+
+        if ($role === 'superadmin') {
+            $konselor = SuperAdmin::create($data);
+        } else {
+            $konselor = Admin::create($data);
+        }
 
         return response()->json([
             'success' => true,

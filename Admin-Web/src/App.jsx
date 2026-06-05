@@ -365,6 +365,7 @@ function App() {
 
   // Chat Room States
   const [activeChatSession, setActiveChatSession] = useState(null);
+  const [chatFilter, setChatFilter] = useState('aktif'); // 'aktif' or 'history'
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessageText, setNewMessageText] = useState('');
   const chatEndRef = useRef(null);
@@ -386,7 +387,13 @@ function App() {
 
   // Declarative chat polling effect
   useEffect(() => {
-    if (!activeChatSession) return;
+    if (!activeChatSession) {
+      setChatMessages([]);
+      return;
+    }
+
+    // Clear messages immediately when switching to avoid showing old/stuck messages
+    setChatMessages([]);
 
     // Fetch messages immediately when active chat changes
     fetchChatMessages(activeChatSession.id);
@@ -604,6 +611,10 @@ function App() {
         if (selectedSession && selectedSession.id === sessionId) {
           setSelectedSession({ ...selectedSession, status: newStatus, admin_id: user.id, admin: user });
         }
+        if (activeChatSession && activeChatSession.id === sessionId && (newStatus === 'Selesai' || newStatus === 'Dibatalkan')) {
+          setActiveChatSession(null);
+          setChatMessages([]);
+        }
       }
     } catch (err) {
       setError('Gagal memperbarui status sesi konseling.');
@@ -777,6 +788,7 @@ function App() {
 
   // Live Chat Logic
   const startChatSession = (session) => {
+    setChatMessages([]);
     setActiveChatSession(session);
     setActiveTab('chat');
   };
@@ -1109,7 +1121,7 @@ function App() {
                           <td>{new Date(r.created_at).toLocaleDateString('id-ID')}</td>
                           <td>
                             <span className={`badge ${r.status === 'Menunggu' ? 'badge-pending' :
-                              r.status === 'Diproses' ? 'badge-process' :
+                              (r.status === 'Diterima' || r.status === 'Diproses') ? 'badge-process' :
                                 r.status === 'Selesai' ? 'badge-success' : 'badge-danger'
                               }`}>{r.status}</span>
                           </td>
@@ -1502,7 +1514,7 @@ function App() {
                       <td>{new Date(r.created_at).toLocaleDateString('id-ID')}</td>
                       <td>
                         <span className={`badge ${r.status === 'Menunggu' ? 'badge-pending' :
-                          r.status === 'Diproses' ? 'badge-process' :
+                          (r.status === 'Diterima' || r.status === 'Diproses') ? 'badge-process' :
                             r.status === 'Selesai' ? 'badge-success' : 'badge-danger'
                           }`}>{r.status}</span>
                       </td>
@@ -1714,10 +1726,40 @@ function App() {
         {activeTab === 'chat' && (
           <div className="chat-wrapper">
             <div className="card chat-sidebar">
-              <h2 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Sesi Chat Aktif</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', gap: '0.5rem' }}>
+                <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Sesi Chat</h2>
+                <select
+                  value={chatFilter}
+                  onChange={e => {
+                    setChatFilter(e.target.value);
+                    setActiveChatSession(null);
+                    setChatMessages([]);
+                  }}
+                  style={{
+                    padding: '0.4rem 0.6rem',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-color)',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.85rem',
+                    fontWeight: '600',
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value="aktif" style={{ background: '#1e293b', color: '#fff' }}>Sesi Aktif</option>
+                  <option value="history" style={{ background: '#1e293b', color: '#fff' }}>Riwayat Selesai</option>
+                </select>
+              </div>
               <div className="chat-sessions-list">
                 {sessions
-                  .filter(s => s.status === 'Diterima' || s.status === 'Berlangsung')
+                  .filter(s => {
+                    if (chatFilter === 'aktif') {
+                      return s.status === 'Diterima' || s.status === 'Berlangsung';
+                    } else {
+                      return s.status === 'Selesai' || s.status === 'Dibatalkan';
+                    }
+                  })
                   .map(s => (
                     <div
                       key={s.id}
@@ -1735,8 +1777,16 @@ function App() {
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{s.keluhan || 'Tidak ada keluhan tertulis'}</div>
                     </div>
                   ))}
-                {sessions.filter(s => s.status === 'Diterima' || s.status === 'Berlangsung').length === 0 && (
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', marginTop: '2rem' }}>Tidak ada sesi konseling aktif saat ini.</div>
+                {sessions.filter(s => {
+                  if (chatFilter === 'aktif') {
+                    return s.status === 'Diterima' || s.status === 'Berlangsung';
+                  } else {
+                    return s.status === 'Selesai' || s.status === 'Dibatalkan';
+                  }
+                }).length === 0 && (
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', marginTop: '2rem' }}>
+                    {chatFilter === 'aktif' ? 'Tidak ada sesi konseling aktif saat ini.' : 'Tidak ada riwayat sesi konseling.'}
+                  </div>
                 )}
               </div>
             </div>
@@ -1754,9 +1804,11 @@ function App() {
                         )}
                       </p>
                     </div>
-                    <button className="btn btn-secondary btn-sm" onClick={() => handleUpdateSessionStatus(activeChatSession.id, 'Selesai')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <IconCheck size={14} /> Selesaikan Sesi
-                    </button>
+                    {activeChatSession.status !== 'Selesai' && activeChatSession.status !== 'Dibatalkan' && (
+                      <button className="btn btn-secondary btn-sm" onClick={() => handleUpdateSessionStatus(activeChatSession.id, 'Selesai')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <IconCheck size={14} /> Selesaikan Sesi
+                      </button>
+                    )}
                   </div>
 
                   <div className="chat-messages">
@@ -1787,16 +1839,38 @@ function App() {
                     <div ref={chatEndRef} />
                   </div>
 
-                  <form className="chat-input-area" onSubmit={handleSendChatMessage}>
-                    <input
-                      type="text"
-                      placeholder="Tulis pesan konseling di sini..."
-                      value={newMessageText}
-                      onChange={e => setNewMessageText(e.target.value)}
-                      required
-                    />
-                    <button type="submit" className="btn btn-primary">Kirim</button>
-                  </form>
+                  {activeChatSession.status === 'Selesai' || activeChatSession.status === 'Dibatalkan' ? (
+                    <div style={{
+                      padding: '1.25rem',
+                      background: 'rgba(255, 255, 255, 0.02)',
+                      borderTop: '1px solid var(--border-color)',
+                      textAlign: 'center',
+                      color: 'var(--text-secondary)',
+                      fontSize: '0.9rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      fontWeight: '600'
+                    }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ opacity: 0.6 }}>
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                      Sesi konseling telah selesai (Arsip / Read-Only)
+                    </div>
+                  ) : (
+                    <form className="chat-input-area" onSubmit={handleSendChatMessage}>
+                      <input
+                        type="text"
+                        placeholder="Tulis pesan konseling di sini..."
+                        value={newMessageText}
+                        onChange={e => setNewMessageText(e.target.value)}
+                        required
+                      />
+                      <button type="submit" className="btn btn-primary">Kirim</button>
+                    </form>
+                  )}
                 </>
               ) : (
                 <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: 'var(--text-muted)', gap: '1rem' }}>
@@ -1979,65 +2053,109 @@ function App() {
                 `}</style>
                 <span className="info-label" style={{ marginBottom: '0.75rem', display: 'block' }}>Moderasi Status Laporan</span>
                 <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <button
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => handleUpdateReportStatus(selectedReport.id, 'Diproses')}
-                    disabled={reportStatusUpdating !== null}
-                    style={{ position: 'relative', minWidth: '95px', padding: '0.5rem 1rem' }}
-                  >
-                    {reportStatusUpdating === 'Diproses' ? (
-                      <>
-                        <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite', marginRight: '6px' }}></span>
-                        Proses...
-                      </>
-                    ) : 'Diproses'}
-                  </button>
+                  {selectedReport.status === 'Menunggu' && (
+                    <>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => handleUpdateReportStatus(selectedReport.id, 'Diterima')}
+                        disabled={reportStatusUpdating !== null}
+                        style={{ background: 'var(--primary)', color: '#fff', border: 'none', position: 'relative', minWidth: '95px', padding: '0.5rem 1rem' }}
+                      >
+                        {reportStatusUpdating === 'Diterima' ? (
+                          <>
+                            <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite', marginRight: '6px' }}></span>
+                            Terima...
+                          </>
+                        ) : 'Terima'}
+                      </button>
 
-                  <button
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => handleStartChatForReport(selectedReport)}
-                    disabled={loadingChatForReport}
-                    style={{ background: 'var(--primary)', color: '#fff', border: 'none', position: 'relative', minWidth: '140px', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
-                  >
-                    {loadingChatForReport ? (
-                      <>
-                        <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite', marginRight: '6px' }}></span>
-                        Menghubungkan...
-                      </>
-                    ) : (
-                      <>
-                        <IconMessageSquare size={16} /> Hubungi Pelapor
-                      </>
-                    )}
-                  </button>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleUpdateReportStatus(selectedReport.id, 'Ditolak')}
+                        disabled={reportStatusUpdating !== null}
+                        style={{ position: 'relative', minWidth: '85px', padding: '0.5rem 1rem' }}
+                      >
+                        {reportStatusUpdating === 'Ditolak' ? (
+                          <>
+                            <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite', marginRight: '6px' }}></span>
+                            Tolak...
+                          </>
+                        ) : 'Tolak'}
+                      </button>
+                    </>
+                  )}
 
-                  <button
-                    className="btn btn-primary btn-sm"
-                    style={{ background: 'var(--success)', position: 'relative', minWidth: '115px', padding: '0.5rem 1rem' }}
-                    onClick={() => handleUpdateReportStatus(selectedReport.id, 'Selesai')}
-                    disabled={reportStatusUpdating !== null}
-                  >
-                    {reportStatusUpdating === 'Selesai' ? (
-                      <>
-                        <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite', marginRight: '6px' }}></span>
-                        Selesai...
-                      </>
-                    ) : 'Selesaikan'}
-                  </button>
+                  {(selectedReport.status === 'Diterima' || selectedReport.status === 'Diproses') && (
+                    <>
+                      {selectedReport.status === 'Diterima' && (
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => handleUpdateReportStatus(selectedReport.id, 'Diproses')}
+                          disabled={reportStatusUpdating !== null}
+                          style={{ position: 'relative', minWidth: '95px', padding: '0.5rem 1rem' }}
+                        >
+                          {reportStatusUpdating === 'Diproses' ? (
+                            <>
+                              <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite', marginRight: '6px' }}></span>
+                              Proses...
+                            </>
+                          ) : 'Proses'}
+                        </button>
+                      )}
 
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleUpdateReportStatus(selectedReport.id, 'Ditolak')}
-                    disabled={reportStatusUpdating !== null}
-                    style={{ position: 'relative', minWidth: '85px', padding: '0.5rem 1rem' }}
-                  >
-                    {reportStatusUpdating === 'Ditolak' ? (
-                      <>
-                        <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite', marginRight: '6px' }}></span>
-                        Tolak...
-                      </>
-                    ) : 'Tolak'}
-                  </button>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => handleStartChatForReport(selectedReport)}
+                        disabled={loadingChatForReport}
+                        style={{ background: 'var(--primary)', color: '#fff', border: 'none', position: 'relative', minWidth: '140px', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
+                      >
+                        {loadingChatForReport ? (
+                          <>
+                            <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite', marginRight: '6px' }}></span>
+                            Menghubungkan...
+                          </>
+                        ) : (
+                          <>
+                            <IconMessageSquare size={16} /> Hubungi Pelapor
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        className="btn btn-primary btn-sm"
+                        style={{ background: 'var(--success)', position: 'relative', minWidth: '115px', padding: '0.5rem 1rem' }}
+                        onClick={() => handleUpdateReportStatus(selectedReport.id, 'Selesai')}
+                        disabled={reportStatusUpdating !== null}
+                      >
+                        {reportStatusUpdating === 'Selesai' ? (
+                          <>
+                            <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite', marginRight: '6px' }}></span>
+                            Selesai...
+                          </>
+                        ) : 'Selesaikan'}
+                      </button>
+
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleUpdateReportStatus(selectedReport.id, 'Ditolak')}
+                        disabled={reportStatusUpdating !== null}
+                        style={{ position: 'relative', minWidth: '85px', padding: '0.5rem 1rem' }}
+                      >
+                        {reportStatusUpdating === 'Ditolak' ? (
+                          <>
+                            <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite', marginRight: '6px' }}></span>
+                            Tolak...
+                          </>
+                        ) : 'Tolak'}
+                      </button>
+                    </>
+                  )}
+
+                  {(selectedReport.status === 'Selesai' || selectedReport.status === 'Ditolak') && (
+                    <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic', fontSize: '0.9rem' }}>
+                      Laporan ini telah selesai/ditutup.
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

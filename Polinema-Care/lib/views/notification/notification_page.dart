@@ -18,8 +18,12 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   void initState() {
     super.initState();
-    _fetchNotifications();
-    _markAllAsRead();
+    _loadNotifications();
+  }
+
+  Future<void> _loadNotifications() async {
+    await _fetchNotifications();
+    await _markAllAsRead();
   }
 
   Future<void> _fetchNotifications() async {
