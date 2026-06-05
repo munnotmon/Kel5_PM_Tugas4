@@ -24,11 +24,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/superadmin', [AuthController::class, 'getSuperadmin']);
 
     // Laporan Perundungan
-    Route::get('/laporan', [LaporanController::class, 'index']);
-    Route::post('/laporan', [LaporanController::class, 'store']);
-    Route::get('/laporan/{id}', [LaporanController::class, 'show']);
-    Route::post('/laporan/{id}/status', [LaporanController::class, 'updateStatus']);
-    Route::post('/laporan/{id}/chat', [LaporanController::class, 'getOrCreateChatForReport']);
+    Route::get('/laporan', [LaporanController::class, 'tampilkanSemua']);
+    Route::post('/laporan', [LaporanController::class, 'simpanLaporan']);
+    Route::get('/laporan/{id}', [LaporanController::class, 'tampilkanDetail']);
+    Route::post('/laporan/{id}/status', [LaporanController::class, 'perbaruiStatus']);
+    Route::post('/laporan/{id}/chat', [LaporanController::class, 'buatAtauBukaChat']);
 
     // Konselor (Profil Konselor)
     Route::get('/konselor', [KonselorController::class, 'index']);

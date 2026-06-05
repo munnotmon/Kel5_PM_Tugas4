@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 
 class LaporanController extends Controller
 {
-    public function index(Request $request)
+    public function tampilkanSemua(Request $request)
     {
         $user = $request->user();
 
@@ -31,7 +31,7 @@ class LaporanController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function simpanLaporan(Request $request)
     {
         \Illuminate\Support\Facades\Log::info('LaporanController@store request data: ', $request->all());
 
@@ -110,7 +110,7 @@ class LaporanController extends Controller
         ], 201);
     }
 
-    public function show(Request $request, $id)
+    public function tampilkanDetail(Request $request, $id)
     {
         $user = $request->user();
         $report = LaporanPerundungan::with(['pelapor.profilMahasiswa', 'bukti'])->find($id);
@@ -136,7 +136,7 @@ class LaporanController extends Controller
         ]);
     }
 
-    public function updateStatus(Request $request, $id)
+    public function perbaruiStatus(Request $request, $id)
     {
         $user = $request->user();
 
@@ -186,7 +186,7 @@ class LaporanController extends Controller
         ]);
     }
 
-    public function getOrCreateChatForReport(Request $request, $id)
+    public function buatAtauBukaChat(Request $request, $id)
     {
         $user = $request->user();
 

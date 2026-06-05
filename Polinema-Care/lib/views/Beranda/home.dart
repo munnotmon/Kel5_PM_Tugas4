@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _reportsFuture = LaporanController.fetchReports();
+    _reportsFuture = LaporanController.ambilDaftarLaporan();
     _chatsFuture = ChatController.fetchChats();
     _fetchUnreadCount();
     _timer = Timer.periodic(const Duration(seconds: 15), (timer) {
@@ -39,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!ApiService.isAuthenticated) return;
     if (mounted) {
       setState(() {
-        _reportsFuture = LaporanController.fetchReports();
+        _reportsFuture = LaporanController.ambilDaftarLaporan();
         _chatsFuture = ChatController.fetchChats();
       });
     }
@@ -381,7 +381,7 @@ class ActivitySection extends StatelessWidget {
                   extra: {
                     'id': 'RPT-$id',
                     'judul': title,
-                    'tanggal': LaporanController.formatDateTime(latest['tanggal_kejadian'] ?? latest['created_at']?.toString()),
+                    'tanggal': LaporanController.formatWaktu(latest['tanggal_kejadian'] ?? latest['created_at']?.toString()),
                     'deskripsi': kronologi,
                     'statusLabel': statusStr,
                     'statusColor': statusColor,

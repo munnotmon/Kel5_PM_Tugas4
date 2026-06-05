@@ -80,7 +80,7 @@ LaporanItem laporanItemFromMap(Map<String, dynamic> lap) {
   return LaporanItem(
     id: 'RPT-${lap['id']}',
     judul: lap['judul_pelaporan'] ?? 'Laporan',
-    tanggal: LaporanController.formatDateTime(rawTanggal),
+    tanggal: LaporanController.formatWaktu(rawTanggal),
     status: laporanStatusFromString(lap['status'] ?? 'Menunggu'),
     deskripsi: kronologi,
     jenisPerundungan: lap['jenis_perundungan'] ?? '-',
@@ -205,7 +205,7 @@ class _TabLaporanState extends State<_TabLaporan> {
 
   Future<void> _loadReports() async {
     setState(() => _isLoading = true);
-    final reports = await LaporanController.fetchReports();
+    final reports = await LaporanController.ambilDaftarLaporan();
     if (mounted) {
       setState(() {
         _reports = reports;
@@ -1059,7 +1059,7 @@ class ActivitySection extends StatelessWidget {
         const SizedBox(height: 16),
         // Ambil laporan terbaru langsung dari API.
         FutureBuilder<List<Map<String, dynamic>>>(
-          future: LaporanController.fetchReports(),
+          future: LaporanController.ambilDaftarLaporan(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(
