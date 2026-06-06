@@ -3,7 +3,7 @@
 
 Polinema Care+ adalah platform terintegrasi (Multi-tier Application) yang dirancang untuk menyediakan ruang aman bagi mahasiswa dalam melaporkan insiden perundungan (bullying) secara rahasia dan melakukan konseling secara langsung dengan konselor/admin profesional.
 
-Project ini dikembangkan untuk tugas Semester 3 (Kelompok 5) dengan membagi sistem menjadi tiga platform terintegrasi: **Backend REST API (Laravel)**, **Web Dashboard Admin (React)**, dan **Aplikasi Mobile Mahasiswa (Flutter)**.
+Project ini dikembangkan untuk tugas PBL (Kelompok 5) dengan membagi sistem menjadi tiga platform terintegrasi: **Backend REST API (Laravel)**, **Web Dashboard Admin (React)**, dan **Aplikasi Mobile Mahasiswa (Flutter)**.
 
 ---
 
@@ -60,7 +60,7 @@ Kel5_PM_Tugas4/
 ## Panduan Menjalankan Project (Local Development)
 
 ### Prasyarat:
-* PHP >= 8.1 dan Composer installed
+* PHP >= 8.3 dan Composer installed
 * Node.js >= 18 dan npm installed
 * Flutter SDK (Channel Stable) dan Dart installed
 * XAMPP / MySQL Server running
@@ -157,4 +157,4 @@ Kami telah menyediakan konfigurasi sakelar pintar (*toggle switch*) agar Anda da
   ```
 
 ---
-uang obrolan aman merupakan prioritas utama dari pengembangan Polinema Care+.*
+
