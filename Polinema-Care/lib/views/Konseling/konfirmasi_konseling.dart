@@ -23,6 +23,14 @@ class ConfirmAppointmentPage extends StatefulWidget {
 
 class _ConfirmAppointmentPageState extends State<ConfirmAppointmentPage> {
   bool _isSubmitting = false;
+  final TextEditingController _keluhanController = TextEditingController();
+  String? _keluhanErrorText;
+
+  @override
+  void dispose() {
+    _keluhanController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +102,9 @@ class _ConfirmAppointmentPageState extends State<ConfirmAppointmentPage> {
                     _detailRow(Icons.access_time, "WAKTU", wkt),
                     const SizedBox(height: 32),
 
+                    _buildKeluhanInput(),
+                    const SizedBox(height: 32),
+
                     _buildGreenBanner(),
                     const SizedBox(height: 16),
                     _buildGreyBanner(),
@@ -131,20 +142,32 @@ class _ConfirmAppointmentPageState extends State<ConfirmAppointmentPage> {
                         return;
                       }
 
-                      setState(() => _isSubmitting = true);
-                      final success = await CounselingController.createBooking(
+                      final keluhan = _keluhanController.text.trim();
+                      if (keluhan.isEmpty) {
+                        setState(() {
+                          _keluhanErrorText = "Keluhan wajib diisi";
+                        });
+                        return;
+                      }
+
+                      setState(() {
+                        _isSubmitting = true;
+                        _keluhanErrorText = null;
+                      });
+                      final errorMessage = await CounselingController.createBooking(
                         scheduleId,
-                        'Konseling via $md',
+                        keluhan,
+                        adminId: data['id'],
                       );
                       
                       if (mounted) {
                         setState(() => _isSubmitting = false);
                       }
 
-                      if (!success) {
+                      if (errorMessage != null) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Gagal membuat janji temu. Slot jadwal mungkin sudah dipesan."),
+                          SnackBar(
+                            content: Text(errorMessage),
                             backgroundColor: Colors.redAccent,
                           ),
                         );
@@ -158,6 +181,7 @@ class _ConfirmAppointmentPageState extends State<ConfirmAppointmentPage> {
                           'tanggal': widget.tanggal,
                           'waktu': widget.waktu,
                           'mode': widget.mode,
+                          'keluhan': keluhan,
                         },
                       );
                     },
@@ -213,7 +237,9 @@ class _ConfirmAppointmentPageState extends State<ConfirmAppointmentPage> {
                 radius: 30,
                 backgroundColor: Colors.blueGrey[100],
                 backgroundImage: NetworkImage(
-                  "https://i.pravatar.cc/150?u=${data['name']}",
+                  (data['foto_profil'] != null && data['foto_profil'].toString().isNotEmpty)
+                      ? data['foto_profil']
+                      : "https://i.pravatar.cc/150?u=${data['name']}",
                 ),
               ),
               Positioned(
@@ -350,6 +376,84 @@ class _ConfirmAppointmentPageState extends State<ConfirmAppointmentPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildKeluhanInput() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text.rich(
+          TextSpan(
+            text: "Keluhan / Deskripsi Masalah ",
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF1068A3),
+            ),
+            children: const [
+              TextSpan(
+                text: "*",
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _keluhanController,
+          maxLines: 4,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            color: Colors.black87,
+          ),
+          onChanged: (val) {
+            if (_keluhanErrorText != null && val.trim().isNotEmpty) {
+              setState(() {
+                _keluhanErrorText = null;
+              });
+            }
+          },
+          decoration: InputDecoration(
+            hintText: "Silakan ceritakan kendala atau keluhan yang sedang Anda hadapi secara singkat...",
+            hintStyle: GoogleFonts.plusJakartaSans(
+              color: Colors.black38,
+              fontSize: 13,
+            ),
+            filled: true,
+            fillColor: const Color(0xFFF8F9FA),
+            contentPadding: const EdgeInsets.all(16),
+            errorText: _keluhanErrorText,
+            errorStyle: GoogleFonts.plusJakartaSans(
+              color: const Color(0xFFD32F2F),
+              fontSize: 12,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.0),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.0),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.0),
+              borderSide: const BorderSide(color: Color(0xFF1068A3), width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.0),
+              borderSide: const BorderSide(color: Color(0xFFD32F2F), width: 1.5),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.0),
+              borderSide: const BorderSide(color: Color(0xFFD32F2F), width: 2.0),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

@@ -26,6 +26,7 @@ import 'views/Konseling/screen1_detail_konseling.dart';
 import 'views/Konseling/screen3_detail_history.dart';
 import 'views/Konseling/screen4_reschedule.dart';
 import 'views/Konseling/screen_detail_sesi.dart';
+import 'views/Konseling/counselor_notes_page.dart';
 import 'views/Profile/notification_settings.dart';
 import 'views/Profile/account_security.dart';
 import 'views/Profile/change_password.dart';
@@ -122,7 +123,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/counseling/detail-sesi',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => Screen1DetailKonseling(
+      builder: (context, state) => ScreenDetailSesi(
         sessionData: state.extra as Map<String, dynamic>?,
       ),
     ),
@@ -143,6 +144,13 @@ final GoRouter appRouter = GoRouter(
       path: '/counseling/detail-history',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => Screen3DetailHistory(
+        sessionData: state.extra as Map<String, dynamic>?,
+      ),
+    ),
+    GoRoute(
+      path: '/counseling/catatan-sesi',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => CounselorNotesPage(
         sessionData: state.extra as Map<String, dynamic>?,
       ),
     ),

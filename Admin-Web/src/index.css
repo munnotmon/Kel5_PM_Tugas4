@@ -522,7 +522,7 @@ tr:hover td {
 
 .message-sent {
   align-self: flex-end;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  background: linear-gradient(135deg, #09456c, var(--primary));
   border-bottom-right-radius: 4px;
   color: #fff;
 }

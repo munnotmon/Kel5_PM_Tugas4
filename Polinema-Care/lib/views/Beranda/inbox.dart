@@ -160,7 +160,7 @@ class _InboxPageState extends State<InboxPage> {
       onTap: () {
         ChatController.markAsRead(chat.konselingId, chat.name);
         context.push('/inbox/room-chat', extra: chat.toMap()).then((_) {
-          setState(() {});
+          _silentRefreshChats();
         });
       },
       child: Container(

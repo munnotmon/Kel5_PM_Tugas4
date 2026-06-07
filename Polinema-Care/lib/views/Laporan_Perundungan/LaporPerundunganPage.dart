@@ -123,16 +123,6 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
           fontSize: 18,
         ),
       ),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: CircleAvatar(
-            radius: 18,
-            backgroundColor: const Color(0xFFE8D5C4),
-            child: ClipOval(child: Container(color: const Color(0xFFE8D5C4))),
-          ),
-        ),
-      ],
     );
   }
 

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 class ChatMessage {
@@ -5,12 +6,16 @@ class ChatMessage {
   final bool isMe;
   final String time;
   final String? imagePath;
+  final Uint8List? imageBytes;
+  final String status;
 
   ChatMessage({
     required this.text,
     required this.isMe,
     required this.time,
     this.imagePath,
+    this.imageBytes,
+    this.status = 'Terkirim',
   });
 
   factory ChatMessage.fromMap(Map<String, dynamic> map) {
@@ -19,6 +24,7 @@ class ChatMessage {
       isMe: map['isMe'] == true,
       time: map['time'] ?? '',
       imagePath: map['imagePath'],
+      status: map['status'] ?? 'Terkirim',
     );
   }
 
@@ -28,13 +34,14 @@ class ChatMessage {
       'isMe': isMe,
       'time': time,
       if (imagePath != null) 'imagePath': imagePath,
+      'status': status,
     };
   }
 }
 
 class ChatSession {
   final String name;
-  final String specialty;
+  String specialty;
   final bool isSystem;
   final IconData? icon;
   final Color color;

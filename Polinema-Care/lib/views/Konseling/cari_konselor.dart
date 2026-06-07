@@ -20,14 +20,7 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
   List<Konselor> _allKonselor = [];
   bool _isLoading = true;
 
-  final List<String> _filters = [
-    'Semua',
-    'Perundungan',
-    'Trauma',
-    'Depresi',
-    'Kecemasan',
-    'Karir',
-  ];
+  List<String> _filters = ['Semua'];
 
   @override
   void initState() {
@@ -39,8 +32,20 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
     setState(() => _isLoading = true);
     final data = await CounselingController.fetchKonselor();
     if (!mounted) return;
+
+    final Set<String> uniqueSpecs = {};
+    for (final k in data) {
+      for (final spec in k.specialties) {
+        if (spec.trim().isNotEmpty) {
+          final cleaned = spec.trim();
+          uniqueSpecs.add(cleaned[0].toUpperCase() + cleaned.substring(1));
+        }
+      }
+    }
+
     setState(() {
       _allKonselor = data;
+      _filters = ['Semua', ...uniqueSpecs.toList()..sort()];
       _isLoading = false;
     });
   }
@@ -64,151 +69,153 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Konselor> filteredKonselor = _allKonselor.where((konselor) {
-      // 1. Cek Pencarian Text
-      final String name = konselor.name.toLowerCase();
-      final String specialty = konselor.specialty.toLowerCase();
-      final bool matchesSearch =
-          name.contains(_searchQuery.toLowerCase()) ||
-          specialty.contains(_searchQuery.toLowerCase());
+  List<Konselor> filteredKonselor = _allKonselor.where((konselor) {
+    // 1. Cek Pencarian Text
+    final String name = konselor.name.toLowerCase();
+    final String specialty = konselor.specialty.toLowerCase();
+    final bool matchesSearch =
+        name.contains(_searchQuery.toLowerCase()) ||
+        specialty.contains(_searchQuery.toLowerCase());
 
-      // 2. Cek Filter Kategori (Chips)
-      bool matchesFilter = true;
-      if (_selectedFilter != 'Semua') {
-        final List<String> specialties = konselor.specialties
-            .map((e) => e.toLowerCase())
-            .toList();
-        matchesFilter = specialties.contains(_selectedFilter.toLowerCase());
-      }
+    // 2. Cek Filter Kategori (Chips)
+    bool matchesFilter = true;
+    if (_selectedFilter != 'Semua') {
+      final List<String> specialties =
+          konselor.specialties.map((e) => e.toLowerCase()).toList();
+      matchesFilter = specialties.contains(_selectedFilter.toLowerCase());
+    }
 
-      return matchesSearch && matchesFilter;
-    }).toList();
+    return matchesSearch && matchesFilter;
+  }).toList();
 
-    return Scaffold(
+  return Scaffold(
+    backgroundColor: const Color(0xFFF5F7FA),
+    appBar: AppBar(
       backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF5F7FA),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A6B8A)),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          "Find Support",
-          style: GoogleFonts.plusJakartaSans(
-            color: const Color(0xFF1A6B8A),
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        actions: const [],
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Color(0xFF1A6B8A)),
+        onPressed: () => context.pop(),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // --- SEARCH BAR ---
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: TextField(
-              onChanged: _onSearchChanged,
-              decoration: InputDecoration(
-                hintText: "Cari nama atau spesialisasi...",
-                hintStyle: GoogleFonts.plusJakartaSans(
-                  color: Colors.grey[400],
-                  fontSize: 14,
-                ),
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+      title: Text(
+        "Find Support",
+        style: GoogleFonts.plusJakartaSans(
+          color: const Color(0xFF1A6B8A),
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+      ),
+      actions: const [],
+    ),
+    body: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // --- SEARCH BAR ---
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: TextField(
+            onChanged: _onSearchChanged,
+            decoration: InputDecoration(
+              hintText: "Cari nama atau spesialisasi...",
+              hintStyle: GoogleFonts.plusJakartaSans(
+                color: Colors.grey[400],
+                fontSize: 14,
               ),
+              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 0),
             ),
           ),
+        ),
 
-          // --- CHIPS FILTER ---
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Row(
-              children: _filters.map((filter) {
-                return _buildChip(filter, _selectedFilter == filter);
-              }).toList(),
-            ),
+        // --- CHIPS FILTER ---
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Row(
+            children: _filters.map((filter) {
+              return _buildChip(filter, _selectedFilter == filter);
+            }).toList(),
           ),
+        ),
 
-          const SizedBox(height: 10),
+        const SizedBox(height: 10),
 
-          // --- HEADER: KONSELOR TERSEDIA ---
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Konselor Tersedia",
-                      style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: const Color(0xFF1A2D3D),
-                      ),
-                    ),
-                    Text(
-                      "${CounselingController.onlineCount} ONLINE",
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF10B981),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "Pilih teman bicara yang tepat untukmu",
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // --- LIST DATA KONSELOR ---
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : filteredKonselor.isEmpty
-                ? _buildEmptyState()
-                : RefreshIndicator(
-                    onRefresh: _loadKonselor,
-                    child: ListView(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      children: [
-                        ...filteredKonselor.map((konselor) {
-                          return _buildCounselorTile(context, konselor);
-                        }),
-                        const SizedBox(height: 20),
-                        _buildAssessmentPrompt(),
-                        const SizedBox(height: 40),
-                      ],
+        // --- HEADER: KONSELOR TERSEDIA ---
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Konselor Tersedia",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: const Color(0xFF1A2D3D),
                     ),
                   ),
+                  Text(
+                    "${CounselingController.onlineCount} ONLINE",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF10B981),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "Pilih teman bicara yang tepat untukmu",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+
+        const SizedBox(height: 16),
+
+        // --- LIST DATA KONSELOR ---
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : filteredKonselor.isEmpty
+                  ? _buildEmptyState()
+                  : RefreshIndicator(
+                      onRefresh: _loadKonselor,
+                      // PERBAIKAN 2: Menggunakan ListView.builder untuk performa yang lebih baik
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: filteredKonselor.length,
+                        itemBuilder: (context, index) {
+                          return _buildCounselorTile(
+                            context,
+                            filteredKonselor[index],
+                          );
+                        },
+                      ),
+                    ),
+        ),
+        const SizedBox(height: 16), 
+      ],
+    ),
+  );
+}
+
+
 
   Widget _buildChip(String label, bool active) {
     return GestureDetector(
@@ -242,7 +249,28 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
 
   Widget _buildCounselorTile(BuildContext context, Konselor data) {
     return GestureDetector(
-      onTap: () => context.push('/counseling/profil', extra: data.toMap()),
+      onTap: () {
+        if (data.isQuotaFull) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "Sesi ${data.name} hari ini sudah penuh",
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              backgroundColor: Colors.red[700],
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+          return;
+        }
+        context.push('/counseling/profil', extra: data.toMap());
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
@@ -257,194 +285,138 @@ class _FindCounselorPageState extends State<FindCounselorPage> {
             ),
           ],
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 35,
-                  backgroundColor: Colors.blueGrey[100],
-                  backgroundImage: NetworkImage(
-                    (data.fotoProfil != null && data.fotoProfil!.isNotEmpty)
-                        ? data.fotoProfil!
-                        : "https://i.pravatar.cc/150?u=${data.name}",
-                  ),
-                ),
-                if (data.isOnline)
-                  Positioned(
-                    bottom: 0,
-                    right: 4,
-                    child: Container(
-                      width: 14,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF10B981),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        child: Opacity(
+          opacity: data.isQuotaFull ? 0.55 : 1.0,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          data.name,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: const Color(0xFF1A2D3D),
-                            height: 1.2,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE8F5E9),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              color: Color(0xFF059669),
-                              size: 12,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              data.rating,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF059669),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    data.specialty,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      color: const Color(0xFF1A6B8A),
-                      fontWeight: FontWeight.w600,
+                  CircleAvatar(
+                    radius: 35,
+                    backgroundColor: Colors.blueGrey[100],
+                    backgroundImage: NetworkImage(
+                      (data.fotoProfil != null && data.fotoProfil!.isNotEmpty)
+                          ? data.fotoProfil!
+                          : "https://i.pravatar.cc/150?u=${data.name}",
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.chat_bubble_outline,
-                        color: Colors.grey[500],
-                        size: 14,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        data.sessions.replaceAll(' Sesi', ''),
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        " Sesi",
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Icon(
-                        Icons.verified,
-                        color: Color(0xFF10B981),
-                        size: 14,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        "Verified",
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
+                  if (data.isOnline)
+                    Positioned(
+                      bottom: 0,
+                      right: 4,
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
                           color: const Color(0xFF10B981),
-                          fontWeight: FontWeight.bold,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
                         ),
                       ),
-                      const Spacer(),
-                      Text(
-                        "Lihat Profil",
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1A6B8A),
-                        ),
-                      ),
-                      const Icon(
-                        Icons.chevron_right,
-                        color: Color(0xFF1A6B8A),
-                        size: 16,
-                      ),
-                    ],
-                  ),
+                    ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            data.name,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: const Color(0xFF1A2D3D),
+                              height: 1.2,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      data.specialty,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        color: const Color(0xFF1A6B8A),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.chat_bubble_outline,
+                          color: Colors.grey[500],
+                          size: 14,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          data.sessions.replaceAll(' Sesi', ''),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          " Sesi",
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Spacer(),
+                        if (data.isQuotaFull)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red[50],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.red.shade200),
+                            ),
+                            child: Text(
+                              "Sesi Penuh",
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red[700],
+                              ),
+                            ),
+                          )
+                        else ...[
+                          Text(
+                            "Lihat Profil",
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF1A6B8A),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.chevron_right,
+                            color: Color(0xFF1A6B8A),
+                            size: 16,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    );
-  }
-
-  Widget _buildAssessmentPrompt() {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: const BoxDecoration(
-            color: Color(0xFFE0F2F8),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.support_agent,
-            color: Color(0xFF1A6B8A),
-            size: 28,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          "Belum menemukan yang cocok? Kami\nbisa rekomendasikan konselor sesuai\nmasalahmu.",
-          textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13,
-            color: Colors.grey[600],
-            height: 1.5,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          "Coba Assessment Cepat",
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF1A6B8A),
-          ),
-        ),
-      ],
     );
   }
 

@@ -37,7 +37,14 @@ class ChatController {
             final createdAt = m['created_at']?.toString() ?? '';
             final timeStr = _formatTime(createdAt);
             final imagePath = m['path_gambar'] as String?;
-            return ChatMessage(text: text, isMe: isMe, time: timeStr, imagePath: imagePath);
+            final status = m['status_pesan'] ?? 'Terkirim';
+            return ChatMessage(
+              text: text,
+              isMe: isMe,
+              time: timeStr,
+              imagePath: imagePath,
+              status: status,
+            );
           }).toList();
 
           int unreadCount = 0;
@@ -77,6 +84,13 @@ class ChatController {
       final response = await ApiService.get('/chat/${session.konselingId}');
       final body = jsonDecode(response.body);
       if (response.statusCode == 200 && body['success'] == true) {
+        final String? status = body['status'];
+        final String tipe = body['tipe'] ?? 'konseling';
+        if (status != null) {
+          final label = tipe == 'laporan' ? 'Tindak Lanjut Laporan' : 'Sesi Konseling #KSL-${session.konselingId}';
+          session.specialty = '$label ($status)';
+        }
+
         final List msgList = body['data'] ?? [];
         final messages = msgList.map((m) {
           final text = m['isi_pesan'] ?? '';
@@ -84,7 +98,14 @@ class ChatController {
           final createdAt = m['created_at']?.toString() ?? '';
           final timeStr = _formatTime(createdAt);
           final imagePath = m['path_gambar'] as String?;
-          return ChatMessage(text: text, isMe: isMe, time: timeStr, imagePath: imagePath);
+          final status = m['status_pesan'] ?? 'Terkirim';
+          return ChatMessage(
+            text: text,
+            isMe: isMe,
+            time: timeStr,
+            imagePath: imagePath,
+            status: status,
+          );
         }).toList();
 
         session.messages.clear();
@@ -148,6 +169,7 @@ class ChatController {
       isMe: true,
       time: timeStr,
       imagePath: imagePath,
+      imageBytes: imageBytes,
     );
     session.messages.add(tempMsg);
 

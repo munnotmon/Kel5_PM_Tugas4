@@ -173,7 +173,7 @@ class _ActivityScreenState extends State<ActivityScreen>
           unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 14),
           tabs: const [
             Tab(text: 'Status Laporan'),
-            Tab(text: 'Konseling'),
+            Tab(text: 'Status Konseling'),
           ],
         ),
       ),
@@ -198,11 +198,21 @@ class _TabLaporan extends StatefulWidget {
 class _TabLaporanState extends State<_TabLaporan> {
   List<Map<String, dynamic>> _reports = [];
   bool _isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  int _selectedFilter = 0;
+  final List<String> _filters = ['Semua', 'Menunggu', 'Diterima', 'Diproses', 'Selesai', 'Ditolak'];
 
   @override
   void initState() {
     super.initState();
     _loadReports();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadReports() async {
@@ -216,105 +226,255 @@ class _TabLaporanState extends State<_TabLaporan> {
     }
   }
 
+  List<LaporanItem> get _filteredReports {
+    List<LaporanItem> list = _reports.map((lap) => laporanItemFromMap(lap)).toList();
+
+    // Filter by status chip
+    if (_selectedFilter > 0) {
+      final targetStatus = _statusFromFilterIndex(_selectedFilter);
+      list = list.where((item) => item.status == targetStatus).toList();
+    }
+
+    // Filter by search query
+    if (_searchQuery.isNotEmpty) {
+      final query = _searchQuery.toLowerCase();
+      list = list.where((item) =>
+          item.judul.toLowerCase().contains(query) ||
+          item.deskripsi.toLowerCase().contains(query) ||
+          item.jenisPerundungan.toLowerCase().contains(query)).toList();
+    }
+
+    return list;
+  }
+
+  StatusLaporan _statusFromFilterIndex(int index) {
+    switch (index) {
+      case 1:
+        return StatusLaporan.menunggu;
+      case 2:
+        return StatusLaporan.diterima;
+      case 3:
+        return StatusLaporan.diproses;
+      case 4:
+        return StatusLaporan.selesai;
+      case 5:
+        return StatusLaporan.ditolak;
+      default:
+        return StatusLaporan.menunggu;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filtered = _filteredReports;
+
     return RefreshIndicator(
       onRefresh: _loadReports,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
         children: [
-          _BuatLaporanButton(),
-          const SizedBox(height: 20),
-          Text(
-            'Riwayat Laporan',
-            style: GoogleFonts.plusJakartaSans(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: const Color(0xFF1A2D3D),
+          // Banner Top
+          _buildBuatLaporanBanner(context),
+          const SizedBox(height: 24),
+
+          // Search Bar
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (val) {
+                setState(() {
+                  _searchQuery = val;
+                });
+              },
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                color: const Color(0xFF1A2D3D),
+              ),
+              decoration: InputDecoration(
+                hintText: 'Cari laporan berdasarkan judul atau kategori...',
+                hintStyle: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  color: Colors.grey[400],
+                ),
+                prefixIcon: const Icon(
+                  Icons.search_rounded,
+                  color: Color(0xFF1E3A8A),
+                ),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear_rounded, color: Colors.grey),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {
+                            _searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 15,
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
+
+          // Scrollable Kategori Filter Chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: List.generate(_filters.length, (i) {
+                final isActive = _selectedFilter == i;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedFilter = i),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 9,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isActive ? const Color(0xFF1E3A8A) : Colors.white,
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: isActive
+                              ? const Color(0xFF1E3A8A)
+                              : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Text(
+                        _filters[i],
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isActive ? Colors.white : Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // List Laporan
           if (_isLoading)
             const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
-          else if (_reports.isEmpty)
+          else if (filtered.isEmpty)
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 40),
                 child: Text(
-                  'Belum ada laporan diajukan.',
+                  'Tidak ada laporan yang sesuai.',
                   style: GoogleFonts.plusJakartaSans(color: Colors.grey),
                 ),
               ),
             )
           else
-            ..._reports.map((lap) {
-              return _LaporanCard(item: laporanItemFromMap(lap));
+            ...filtered.map((item) {
+              return _LaporanCard(item: item);
             }),
         ],
       ),
     );
   }
-}
 
-class _BuatLaporanButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.push('/activity/laporan'),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-        decoration: BoxDecoration(
-          color: const Color(0xFFC7E6F0),
-          borderRadius: BorderRadius.circular(40),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFC7E6F0).withOpacity(0.5),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
+  Widget _buildBuatLaporanBanner(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFE0F2FE), // Soft sky blue
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Stack(
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.5),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.campaign,
-                color: Color(0xFF1A6B8A),
-                size: 26,
-              ),
-            ),
-            const SizedBox(width: 15),
-            Expanded(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 120, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Buat Laporan Baru",
+                    'Alami atau Lihat Perundungan?',
                     style: GoogleFonts.plusJakartaSans(
-                      color: const Color(0xFF124C63),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF1E3A8A), // Dark blue
                     ),
                   ),
+                  const SizedBox(height: 6),
                   Text(
-                    "Laporkan kejadian perundungan sekarang",
+                    'Jangan diam. Laporkan kejadian secara aman, rahasia, dan terpercaya di sini.',
                     style: GoogleFonts.plusJakartaSans(
-                      color: const Color(0xFF124C63).withOpacity(0.8),
-                      fontSize: 11,
+                      fontSize: 12,
+                      color: const Color(0xFF1E40AF).withOpacity(0.8),
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => context.push('/activity/laporan'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1E3A8A),
+                      elevation: 3,
+                      shadowColor: const Color(0xFF1E3A8A).withOpacity(0.4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 22,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: Text(
+                      'Buat Laporan Baru',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              color: Color(0xFF124C63),
-              size: 16,
+            Positioned(
+              right: -15,
+              bottom: -20,
+              child: Container(
+                width: 105,
+                height: 105,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFF93C5FD).withOpacity(0.5),
+                    width: 7,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.campaign_outlined,
+                  color: Color(0xFF60A5FA),
+                  size: 56,
+                ),
+              ),
             ),
           ],
         ),
@@ -330,6 +490,7 @@ class _LaporanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusInfo = _statusInfo(item.status);
+    final color = statusInfo['color']! as Color;
 
     return GestureDetector(
       onTap: () {
@@ -351,62 +512,130 @@ class _LaporanCard extends StatelessWidget {
         );
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(18),
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // --- ROW ATAS: ICON & KATEGORI ---
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   child: Text(
-                    item.judul,
+                    item.jenisPerundungan.toUpperCase(),
                     style: GoogleFonts.plusJakartaSans(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: const Color(0xFF1A2D3D),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF64748B),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
                 _StatusChip(
                   label: statusInfo['label']!,
-                  color: statusInfo['color']! as Color,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Divider(height: 1, color: Color(0xFFF0F2F5)),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 12,
-                  color: Colors.grey,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  item.tanggal,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    color: Colors.grey,
-                  ),
+                  color: color,
                 ),
               ],
             ),
             const SizedBox(height: 14),
+
+            // --- JUDUL LAPORAN ---
+            Text(
+              item.judul,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF1A2D3D),
+                height: 1.3,
+              ),
+            ),
+            const SizedBox(height: 6),
+
+            // --- DESKRIPSI SINGKAT ---
+            Text(
+              item.deskripsi,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // --- TANGGAL & LOKASI INFO BOX ---
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today_outlined,
+                        size: 14,
+                        color: Color(0xFF1E3A8A),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        item.tanggal,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          color: const Color(0xFF1A2D3D),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 14,
+                        color: Color(0xFF1E3A8A),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          item.lokasi,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            color: const Color(0xFF1A2D3D),
+                            fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // --- STATUS PROGRESS STEPPER ---
             _StatusProgress(status: item.status),
           ],
         ),
@@ -499,11 +728,11 @@ class _StatusProgress extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: isDone
-                          ? const Color(0xFF1A6B8A)
+                          ? const Color(0xFF1E3A8A)
                           : Colors.grey[200],
                       border: Border.all(
                         color: isDone
-                            ? const Color(0xFF1A6B8A)
+                            ? const Color(0xFF1E3A8A)
                             : Colors.grey[300]!,
                         width: 2,
                       ),
@@ -518,7 +747,7 @@ class _StatusProgress extends StatelessWidget {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 9,
                       color: isDone
-                          ? const Color(0xFF1A6B8A)
+                          ? const Color(0xFF1E3A8A)
                           : Colors.grey[400],
                       fontWeight: isDone ? FontWeight.w600 : FontWeight.normal,
                     ),
@@ -531,7 +760,7 @@ class _StatusProgress extends StatelessWidget {
                     height: 2,
                     margin: const EdgeInsets.only(bottom: 14),
                     color: i < activeIndex
-                        ? const Color(0xFF1A6B8A)
+                        ? const Color(0xFF1E3A8A)
                         : Colors.grey[200],
                   ),
                 ),
@@ -555,13 +784,21 @@ class _TabKonseling extends StatefulWidget {
 
 class _TabKonselingState extends State<_TabKonseling> {
   int _selectedFilter = 0;
-  final List<String> _filters = ['Semua', 'Bulan Ini', 'Selesai'];
+  final List<String> _filters = ['Semua', 'Diajukan', 'Diterima', 'Berlangsung', 'Selesai', 'Dibatalkan'];
   bool _isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _loadSessions();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadSessions() async {
@@ -575,7 +812,12 @@ class _TabKonselingState extends State<_TabKonseling> {
   }
 
   List<KonselingItem> get _filteredList {
-    return CounselingController.getFilteredSessions(_selectedFilter);
+    final list = CounselingController.getFilteredSessions(_selectedFilter);
+    if (_searchQuery.isEmpty) return list;
+    return list
+        .where((item) =>
+            item.konselor.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
   }
 
   String _getSpecialty(String namaKonselor) {
@@ -593,41 +835,100 @@ class _TabKonselingState extends State<_TabKonseling> {
           _buildBottomBanner(context),
           const SizedBox(height: 24),
 
+          // --- SEARCH BAR ---
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (val) {
+                setState(() {
+                  _searchQuery = val;
+                });
+              },
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                color: const Color(0xFF1A2D3D),
+              ),
+              decoration: InputDecoration(
+                hintText: 'Cari berdasarkan nama konselor...',
+                hintStyle: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  color: Colors.grey[400],
+                ),
+                prefixIcon: const Icon(
+                  Icons.search_rounded,
+                  color: Color(0xFF1068A3),
+                ),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear_rounded, color: Colors.grey),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {
+                            _searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 15,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
           // --- FILTER CHIPS DIPINDAH KE BAWAH BANNER ---
-          Row(
-            children: List.generate(_filters.length, (i) {
-              final isActive = _selectedFilter == i;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: GestureDetector(
-                  onTap: () => setState(() => _selectedFilter = i),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 9,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isActive ? const Color(0xFF4CAF50) : Colors.white,
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(
-                        color: isActive
-                            ? const Color(0xFF4CAF50)
-                            : Colors.grey.shade300,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: List.generate(_filters.length, (i) {
+                final isActive = _selectedFilter == i;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedFilter = i),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 9,
                       ),
-                    ),
-                    child: Text(
-                      _filters[i],
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: isActive ? Colors.white : Colors.grey[600],
+                      decoration: BoxDecoration(
+                        color: isActive ? const Color(0xFF4CAF50) : Colors.white,
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: isActive
+                              ? const Color(0xFF4CAF50)
+                              : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Text(
+                        _filters[i],
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isActive ? Colors.white : Colors.grey[600],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
+            ),
           ),
           const SizedBox(height: 24),
 
@@ -758,7 +1059,9 @@ class _KonselingCard extends StatelessWidget {
     final Color statusColor = statusInfo['color'] as Color;
     final String statusLabel = (statusInfo['label'] as String).toUpperCase();
     final bool isSelesai = item.status == StatusKonseling.selesai;
-    final bool isDikonfirmasi = item.status == StatusKonseling.dikonfirmasi;
+    final bool isDiterima = item.status == StatusKonseling.diterima;
+    final bool isBerlangsung = item.status == StatusKonseling.berlangsung;
+    final bool isDiajukan = item.status == StatusKonseling.diajukan;
     final bool isDibatalkan = item.status == StatusKonseling.dibatalkan;
 
     return Container(
@@ -908,7 +1211,7 @@ class _KonselingCard extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          if (isSelesai || isDikonfirmasi)
+          if (isSelesai)
             Row(
               children: [
                 Expanded(
@@ -916,12 +1219,7 @@ class _KonselingCard extends StatelessWidget {
                     onPressed: () {
                       context.push(
                         '/counseling/detail-history',
-                        extra: {
-                          'konselor': item.konselor,
-                          'specialty': specialty,
-                          'tanggal': item.tanggal,
-                          'jam': item.jam,
-                        },
+                        extra: item.toMap(),
                       );
                     },
                     style: ElevatedButton.styleFrom(
@@ -945,7 +1243,12 @@ class _KonselingCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      context.push(
+                        '/counseling/catatan-sesi',
+                        extra: item.toMap(),
+                      );
+                    },
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: Colors.grey.shade300, width: 1.5),
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -965,11 +1268,75 @@ class _KonselingCard extends StatelessWidget {
                 ),
               ],
             )
+          else if (isDiterima || isBerlangsung)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  context.push(
+                    '/counseling/detail-sesi-aktif',
+                    extra: item.toMap(),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1068A3),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                child: Text(
+                  'Lihat Detail',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            )
+          else if (isDiajukan)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  context.push(
+                    '/counseling/detail-sesi',
+                    extra: item.toMap(),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1068A3),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                child: Text(
+                  'Lihat Detail',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            )
           else if (isDibatalkan)
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () => context.push('/counseling/reschedule'),
+                onPressed: () {
+                  final kModel = CounselingController.daftarKonselor.firstWhere(
+                    (k) => k.name == item.konselor,
+                    orElse: () => CounselingController.placeholderKonselor,
+                  );
+                  final extraMap = Map<String, dynamic>.from(kModel.toMap());
+                  extraMap['old_booking_id'] = item.id;
+                  context.push('/counseling/reschedule', extra: extraMap);
+                },
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: Colors.grey.shade300, width: 1.5),
                   padding: const EdgeInsets.symmetric(vertical: 14),

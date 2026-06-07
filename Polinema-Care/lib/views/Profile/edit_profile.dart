@@ -75,7 +75,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       nama: _namaController.text.trim(),
       nomorTelepon: _teleponController.text.trim(),
       programStudi: ProfileStore.programStudi.value,
-      angkatan: 0,
+      angkatan: int.tryParse(ProfileStore.angkatan.value) ?? 2026,
       photoFile: _profileImage,
     );
 

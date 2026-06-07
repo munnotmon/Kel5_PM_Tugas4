@@ -13,9 +13,10 @@ use App\Http\Controllers\KonselorController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/login-google', [AuthController::class, 'loginGoogle']);
+Route::get('/storage/chat/{filename}', [ChatController::class, 'serveChatImage']);
 
 // Authenticated Routes (Protected by Sanctum)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', \App\Http\Middleware\UpdateLastSeen::class])->group(function () {
     // Auth & Profile
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -51,6 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/konseling', [KonselingController::class, 'store']);
     Route::get('/konseling/{id}', [KonselingController::class, 'show']);
     Route::post('/konseling/{id}/status', [KonselingController::class, 'updateStatus']);
+    Route::post('/konseling/{id}/catatan', [KonselingController::class, 'updateCatatan']);
 
     // Chat
     Route::get('/chat/{konselingId}', [ChatController::class, 'getMessages']);

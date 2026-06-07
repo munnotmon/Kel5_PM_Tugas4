@@ -17,21 +17,39 @@ class KonselorController extends Controller
      */
     public function index(Request $request)
     {
+        // Self-healing: update users who were online but haven't been seen recently (40 seconds inactivity)
+        User::whereIn('role', ['admin', 'superadmin'])
+            ->where('is_online', true)
+            ->where(function($q) {
+                $q->whereNull('last_seen_at')
+                  ->orWhere('last_seen_at', '<', now()->subSeconds(40));
+            })
+            ->update(['is_online' => false]);
+
         $query = Admin::query();
         if ($request->user() && $request->user()->role === 'mahasiswa') {
             $query->whereNotNull('spesialisasi');
         }
 
-        $konselor = $query->orderByDesc('is_online')
-            ->orderByDesc('rating')
-            ->get();
+        $konselor = $query->get();
 
         $data = $konselor->map(fn ($k) => $this->transform($k));
 
+        // Sort collection: quota full to the back, online to the front, then by rating desc
+        $sortedData = $data->sort(function ($a, $b) {
+            if ($a['is_quota_full'] !== $b['is_quota_full']) {
+                return $a['is_quota_full'] ? 1 : -1;
+            }
+            if ($a['is_online'] !== $b['is_online']) {
+                return $a['is_online'] ? -1 : 1;
+            }
+            return $b['rating'] <=> $a['rating'];
+        })->values();
+
         return response()->json([
             'success' => true,
-            'data' => $data,
-            'online_count' => $konselor->where('is_online', true)->count(),
+            'data' => $sortedData,
+            'online_count' => $sortedData->where('is_online', true)->count(),
         ]);
     }
 
@@ -285,6 +303,45 @@ class KonselorController extends Controller
             ->where('status', 'Selesai')
             ->count();
 
+        // Count active sessions (not cancelled)
+        $sessions = Konseling::where('admin_id', $k->id)
+            ->where('status', '!=', 'Dibatalkan')
+            ->with('jadwalKonseling')
+            ->get();
+
+        $todayStr = now()->toDateString();
+        $todaySessionCount = 0;
+        $dateCounts = [];
+
+        foreach ($sessions as $session) {
+            $dates = [];
+            if ($session->jadwalKonseling) {
+                $dates[] = $session->jadwalKonseling->tanggal->format('Y-m-d');
+            }
+            if (in_array($session->status, ['Selesai', 'Berlangsung']) && $session->updated_at) {
+                $dates[] = $session->updated_at->format('Y-m-d');
+            }
+            $dates = array_unique($dates);
+            foreach ($dates as $d) {
+                $dateCounts[$d] = ($dateCounts[$d] ?? 0) + 1;
+            }
+            if (in_array($todayStr, $dates)) {
+                $todaySessionCount++;
+            }
+        }
+
+        $fullDates = [];
+        foreach ($dateCounts as $date => $count) {
+            if ($count >= 5) {
+                $fullDates[] = $date;
+            }
+        }
+
+        $isOnline = (bool) $k->is_online;
+        if ($isOnline && $k->last_seen_at) {
+            $isOnline = \Carbon\Carbon::parse($k->last_seen_at)->gt(now()->subSeconds(40));
+        }
+
         return [
             'id' => $k->id,
             'name' => $k->nama,
@@ -297,7 +354,9 @@ class KonselorController extends Controller
             'about' => $k->tentang ?? '',
             'foto_profil' => $k->foto_profil,
             'nomor_telepon' => $k->nomor_telepon,
-            'is_online' => (bool) $k->is_online,
+            'is_online' => $isOnline,
+            'is_quota_full' => $todaySessionCount >= 5,
+            'full_dates' => $fullDates,
             'specialties' => $k->spesialisasi_list ?? [],
             'educations' => $k->pendidikan ?? [],
             'experiences' => $k->pengalaman ?? [],

@@ -31,6 +31,7 @@ class User extends Authenticatable
         'hari_praktik',
         'jam_tersedia',
         'is_online',
+        'last_seen_at',
     ];
 
     protected $hidden = [
@@ -48,6 +49,7 @@ class User extends Authenticatable
             'hari_praktik' => 'array',
             'jam_tersedia' => 'array',
             'is_online' => 'boolean',
+            'last_seen_at' => 'datetime',
         ];
     }
 

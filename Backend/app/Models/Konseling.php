@@ -19,6 +19,9 @@ class Konseling extends Model
         'keluhan',
         'status',
         'tipe',
+        'catatan_mahasiswa',
+        'catatan_konselor',
+        'rekomendasi_pemulihan',
     ];
 
     public function mahasiswa()

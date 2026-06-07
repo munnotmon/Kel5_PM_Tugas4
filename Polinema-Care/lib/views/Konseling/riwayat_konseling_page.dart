@@ -13,10 +13,8 @@ class RiwayatKonselingPage extends StatefulWidget {
 }
 
 class _RiwayatKonselingPageState extends State<RiwayatKonselingPage> {
-  int _selectedFilter = 0; // 0=Semua, 1=Bulan Ini, 2=Selesai
-  final List<String> _filters = ['Semua', 'Bulan Ini', 'Selesai'];
-
-  List<KonselingItem> get _allSessions => CounselingController.riwayatKonselingList;
+  int _selectedFilter = 0;
+  final List<String> _filters = ['Semua', 'Diajukan', 'Diterima', 'Berlangsung', 'Selesai', 'Dibatalkan'];
 
   List<KonselingItem> get _filteredSessions {
     return CounselingController.getFilteredSessions(_selectedFilter);
@@ -85,44 +83,48 @@ class _RiwayatKonselingPageState extends State<RiwayatKonselingPage> {
                 const SizedBox(height: 20),
 
                 // --- FILTER CHIPS ---
-                Row(
-                  children: List.generate(_filters.length, (i) {
-                    final isSelected = _selectedFilter == i;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: GestureDetector(
-                        onTap: () => setState(() => _selectedFilter = i),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 9,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? const Color(0xFF1068A3)
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: List.generate(_filters.length, (i) {
+                      final isSelected = _selectedFilter == i;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: GestureDetector(
+                          onTap: () => setState(() => _selectedFilter = i),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 9,
+                            ),
+                            decoration: BoxDecoration(
                               color: isSelected
                                   ? const Color(0xFF1068A3)
-                                  : Colors.grey.shade300,
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(
+                                color: isSelected
+                                    ? const Color(0xFF1068A3)
+                                    : Colors.grey.shade300,
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            _filters[i],
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: isSelected
-                                  ? Colors.white
-                                  : Colors.grey[600],
+                            child: Text(
+                              _filters[i],
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.grey[600],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  }),
+                      );
+                    }),
+                  ),
                 ),
                 const SizedBox(height: 20),
               ],
@@ -160,7 +162,9 @@ class _RiwayatKonselingPageState extends State<RiwayatKonselingPage> {
 
     // Ambil specialty dari daftarKonselor, tanpa mengubah data_riwayat_konseling.dart
     final String specialty = _getSpecialty(session.konselor);
-    final String avatarUrl = 'https://i.pravatar.cc/150?u=${session.konselor}';
+    final String? dynamicAvatarUrl = (session.counselorData != null && session.counselorData!['foto_profil'] != null && session.counselorData!['foto_profil'].toString().isNotEmpty)
+        ? session.counselorData!['foto_profil'] as String?
+        : null;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -187,7 +191,8 @@ class _RiwayatKonselingPageState extends State<RiwayatKonselingPage> {
               CircleAvatar(
                 radius: 28,
                 backgroundColor: Colors.blueGrey[100],
-                backgroundImage: NetworkImage(avatarUrl),
+                backgroundImage: dynamicAvatarUrl != null ? NetworkImage(dynamicAvatarUrl) : null,
+                child: dynamicAvatarUrl == null ? const Icon(Icons.person, color: Colors.white) : null,
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -298,7 +303,7 @@ class _RiwayatKonselingPageState extends State<RiwayatKonselingPage> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () =>
-                        context.push('/counseling/detail-history'),
+                        context.push('/counseling/detail-history', extra: session.toMap()),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1068A3),
                       elevation: 0,
@@ -320,7 +325,8 @@ class _RiwayatKonselingPageState extends State<RiwayatKonselingPage> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () =>
+                        context.push('/counseling/catatan-sesi', extra: session.toMap()),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: Colors.grey.shade300),
                       padding: const EdgeInsets.symmetric(vertical: 13),
@@ -356,6 +362,54 @@ class _RiwayatKonselingPageState extends State<RiwayatKonselingPage> {
                   'Reschedule Tersedia',
                   style: GoogleFonts.plusJakartaSans(
                     color: const Color(0xFF1A2D3D),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            )
+          else if (session.status == StatusKonseling.diterima || session.status == StatusKonseling.berlangsung)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () =>
+                    context.push('/counseling/detail-sesi-aktif', extra: session.toMap()),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1068A3),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Lihat Detail',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            )
+          else if (session.status == StatusKonseling.diajukan)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () =>
+                    context.push('/counseling/detail-sesi', extra: session.toMap()),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1068A3),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Lihat Detail',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                   ),

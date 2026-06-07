@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -38,17 +39,35 @@ class _RoomChatPageState extends State<RoomChatPage> {
       ChatController.allChats.add(found);
     }
     _session = found;
+    _initialFetchAndScroll();
     _startPolling();
+  }
+
+  Future<void> _initialFetchAndScroll() async {
+    if (_session.konselingId != null) {
+      await ChatController.refreshMessagesForSession(_session);
+      if (mounted) {
+        setState(() {
+          widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
+        });
+        _scrollToBottom();
+      }
+    }
   }
 
   void _startPolling() {
     _pollTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
       if (_session.konselingId != null) {
+        final oldLen = _session.messages.length;
         await ChatController.refreshMessagesForSession(_session);
+        final newLen = _session.messages.length;
         if (mounted) {
           setState(() {
             widget.counselorData['messages'] = _session.messages.map((m) => m.toMap()).toList();
           });
+          if (newLen > oldLen) {
+            _scrollToBottom();
+          }
         }
       }
     });
@@ -83,7 +102,7 @@ class _RoomChatPageState extends State<RoomChatPage> {
     }
 
     // Tunggu respon API selesai di background
-    final success = await future;
+    await future;
     
     // Rebuild lagi untuk sinkronisasi (bila gagal terkirim, pesan akan di-rollback/dihapus otomatis)
     if (mounted) {
@@ -104,7 +123,9 @@ class _RoomChatPageState extends State<RoomChatPage> {
       if (image != null) {
         if (!mounted) return;
         final TextEditingController captionController = TextEditingController();
+        final Uint8List imageBytes = await image.readAsBytes();
         
+        if (!mounted) return;
         final bool? confirmSend = await showDialog<bool>(
           context: context,
           barrierDismissible: false,
@@ -133,9 +154,17 @@ class _RoomChatPageState extends State<RoomChatPage> {
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: kIsWeb
-                              ? Image.network(
-                                  image.path,
+                              ? Image.memory(
+                                  imageBytes,
                                   fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Center(
+                                      child: Text(
+                                        'Gagal memuat gambar',
+                                        style: GoogleFonts.plusJakartaSans(color: Colors.redAccent),
+                                      ),
+                                    );
+                                  },
                                 )
                               : Image.file(
                                   File(image.path),
@@ -184,12 +213,11 @@ class _RoomChatPageState extends State<RoomChatPage> {
           
           Future<bool> future;
           if (kIsWeb) {
-            final bytes = await image.readAsBytes();
             future = ChatController.sendMessage(
               _session.name,
               textToSend,
               konselingId: _session.konselingId,
-              imageBytes: bytes,
+              imageBytes: imageBytes,
               imageName: image.name,
               imagePath: image.path,
             );
@@ -211,7 +239,7 @@ class _RoomChatPageState extends State<RoomChatPage> {
           }
 
           // Tunggu respon API di background
-          final success = await future;
+          await future;
           
           // Rebuild lagi untuk update path gambar atau rollback bila gagal
           if (mounted) {
@@ -430,17 +458,23 @@ class _RoomChatPageState extends State<RoomChatPage> {
                             padding: const EdgeInsets.only(bottom: 8.0),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: (msg.imagePath!.startsWith('http://') || msg.imagePath!.startsWith('https://') || kIsWeb)
-                                  ? Image.network(
-                                      msg.imagePath!,
+                              child: msg.imageBytes != null
+                                  ? Image.memory(
+                                      msg.imageBytes!,
                                       width: 220,
                                       fit: BoxFit.cover,
                                     )
-                                  : Image.file(
-                                      File(msg.imagePath!),
-                                      width: 220,
-                                      fit: BoxFit.cover,
-                                    ),
+                                  : (msg.imagePath!.startsWith('http://') || msg.imagePath!.startsWith('https://') || kIsWeb)
+                                      ? Image.network(
+                                          msg.imagePath!,
+                                          width: 220,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.file(
+                                          File(msg.imagePath!),
+                                          width: 220,
+                                          fit: BoxFit.cover,
+                                        ),
                             ),
                           ),
                         Text(
@@ -454,12 +488,25 @@ class _RoomChatPageState extends State<RoomChatPage> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          msg.time,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 9,
-                            color: isMe ? Colors.white70 : Colors.grey[400],
-                          ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              msg.time,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 9,
+                                color: isMe ? Colors.white70 : Colors.grey[400],
+                              ),
+                            ),
+                            if (isMe) ...[
+                              const SizedBox(width: 4),
+                              Icon(
+                                msg.status == 'Dibaca' ? Icons.done_all : Icons.done,
+                                size: 12,
+                                color: msg.status == 'Dibaca' ? const Color(0xFF40C4FF) : Colors.grey[400],
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),

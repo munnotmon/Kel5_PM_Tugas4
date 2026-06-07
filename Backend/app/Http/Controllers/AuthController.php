@@ -87,6 +87,7 @@ class AuthController extends Controller
         }
 
         $user->is_online = true;
+        $user->last_seen_at = now();
         $user->save();
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -139,6 +140,7 @@ class AuthController extends Controller
         }
 
         $user->is_online = true;
+        $user->last_seen_at = now();
         $user->save();
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -166,6 +168,7 @@ class AuthController extends Controller
     {
         $user = $request->user();
         $user->is_online = false;
+        $user->last_seen_at = null;
         $user->save();
 
         $user->currentAccessToken()->delete();

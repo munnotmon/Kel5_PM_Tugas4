@@ -17,6 +17,11 @@ class SuccessAppointmentPage extends StatelessWidget {
     final wkt = sessionData?['waktu'] ?? "10:30 WIB";
     final md = sessionData?['mode'] ?? "Virtual";
 
+    final List? specs = data['specialties'];
+    final String specsStr = (specs != null && specs.isNotEmpty)
+        ? specs.join(', ')
+        : (data['specialty'] ?? 'Konselor Profesional');
+
     // Menentukan teks lokasi berdasarkan mode yang dipilih
     final isOnline =
         md.toString().toLowerCase() == 'online' ||
@@ -105,7 +110,9 @@ class SuccessAppointmentPage extends StatelessWidget {
                           radius: 24,
                           backgroundColor: const Color(0xFF1068A3),
                           backgroundImage: NetworkImage(
-                            "https://i.pravatar.cc/150?u=${data['name']}",
+                            (data['foto_profil'] != null && data['foto_profil'].toString().isNotEmpty)
+                                ? data['foto_profil']
+                                : "https://i.pravatar.cc/150?u=${data['name']}",
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -123,11 +130,13 @@ class SuccessAppointmentPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                "Konselor Senior",
+                                specsStr,
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 13,
                                   color: Colors.grey[600],
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
@@ -187,7 +196,7 @@ class SuccessAppointmentPage extends StatelessWidget {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF1068A3), Color(0xFF5AB6E5)],
+                      colors: [Color(0xFF1068A3), Color(0xFF1068A3)],
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                     ),

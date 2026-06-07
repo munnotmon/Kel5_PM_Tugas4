@@ -50,6 +50,8 @@ class Konselor {
   final String about;
   final String? fotoProfil;
   final bool isOnline;
+  final bool isQuotaFull;
+  final List<String> fullDates;
   final List<String> specialties;
   final List<EducationItem> educations;
   final List<ExperienceItem> experiences;
@@ -66,6 +68,8 @@ class Konselor {
     required this.about,
     this.fotoProfil,
     this.isOnline = false,
+    this.isQuotaFull = false,
+    this.fullDates = const [],
     required this.specialties,
     required this.educations,
     required this.experiences,
@@ -84,6 +88,8 @@ class Konselor {
       about: map['about'] ?? '',
       fotoProfil: map['foto_profil'],
       isOnline: map['is_online'] == true || map['is_online'] == 1,
+      isQuotaFull: map['is_quota_full'] == true || map['is_quota_full'] == 1,
+      fullDates: List<String>.from(map['full_dates'] ?? []),
       specialties: List<String>.from(map['specialties'] ?? []),
       educations: (map['educations'] as List? ?? [])
           .map((e) => EducationItem.fromMap(Map<String, dynamic>.from(e)))
@@ -109,6 +115,8 @@ class Konselor {
       'about': about,
       'foto_profil': fotoProfil,
       'is_online': isOnline,
+      'is_quota_full': isQuotaFull,
+      'full_dates': fullDates,
       'specialties': specialties,
       'educations': educations.map((e) => e.toMap()).toList(),
       'experiences': experiences.map((e) => e.toMap()).toList(),

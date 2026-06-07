@@ -232,6 +232,19 @@ const IconCheckCircle = ({ size = 16, style }) => (
   </svg>
 );
 
+const IconSingleCheck = ({ size = 14, style, color = 'currentColor' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+const IconDoubleCheck = ({ size = 14, style, color = 'currentColor' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
+    <path d="M17 6L8.5 14.5L5 11" />
+    <path d="M22 6L13.5 14.5L12 13" />
+  </svg>
+);
+
 // Configure Axios defaults
 const useNgrok = false;
 axios.defaults.baseURL = useNgrok 
@@ -328,6 +341,12 @@ function App() {
   const [resetPasswordForm, setResetPasswordForm] = useState({ password: '' });
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
 
+  // Selesai Sesi Modal States
+  const [showSelesaiModal, setShowSelesaiModal] = useState(false);
+  const [selesaiSessionId, setSelesaiSessionId] = useState(null);
+  const [catatanKonselor, setCatatanKonselor] = useState('');
+  const [rekomendasiPemulihan, setRekomendasiPemulihan] = useState('');
+
   // Laporan Search & Pagination States
   const [reportSearchQuery, setReportSearchQuery] = useState('');
   const [reportCurrentPage, setReportCurrentPage] = useState(1);
@@ -383,7 +402,25 @@ function App() {
   const [chatFilter, setChatFilter] = useState('aktif'); // 'aktif' or 'history'
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessageText, setNewMessageText] = useState('');
+  const [chatImageFile, setChatImageFile] = useState(null);
+  const [chatImagePreview, setChatImagePreview] = useState('');
   const chatEndRef = useRef(null);
+
+  const handleChatImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setChatImageFile(file);
+      setChatImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleCancelChatImage = () => {
+    setChatImageFile(null);
+    if (chatImagePreview) {
+      URL.revokeObjectURL(chatImagePreview);
+      setChatImagePreview('');
+    }
+  };
   // Check Auth & Fetch Initial Data
   useEffect(() => {
     if (token) {
@@ -402,26 +439,29 @@ function App() {
 
   // Declarative chat polling effect
   useEffect(() => {
+    handleCancelChatImage();
     if (!activeChatSession) {
       setChatMessages([]);
       return;
     }
 
+    const sessionId = activeChatSession.id;
+
     // Clear messages immediately when switching to avoid showing old/stuck messages
     setChatMessages([]);
 
     // Fetch messages immediately when active chat changes
-    fetchChatMessages(activeChatSession.id);
+    fetchChatMessages(sessionId);
 
     // Setup Polling every 3 seconds
     const interval = setInterval(() => {
-      pollChatMessages(activeChatSession.id);
+      pollChatMessages(sessionId);
     }, 3000);
 
     return () => {
       clearInterval(interval);
     };
-  }, [activeChatSession]);
+  }, [activeChatSession?.id]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -618,6 +658,13 @@ function App() {
 
   // Counseling Booking Actions
   const handleUpdateSessionStatus = async (sessionId, newStatus) => {
+    if (newStatus === 'Selesai') {
+      setSelesaiSessionId(sessionId);
+      setCatatanKonselor('');
+      setRekomendasiPemulihan('');
+      setShowSelesaiModal(true);
+      return;
+    }
     try {
       const res = await axios.post(`/konseling/${sessionId}/status`, { status: newStatus });
       if (res.data.success) {
@@ -633,6 +680,42 @@ function App() {
       }
     } catch (err) {
       setError('Gagal memperbarui status sesi konseling.');
+    }
+  };
+
+  const handleSubmitSelesaiSession = async (e) => {
+    e.preventDefault();
+    if (!catatanKonselor.trim() || !rekomendasiPemulihan.trim()) {
+      setError('Catatan Sesi dan Rekomendasi Pemulihan wajib diisi!');
+      return;
+    }
+    try {
+      const res = await axios.post(`/konseling/${selesaiSessionId}/status`, {
+        status: 'Selesai',
+        catatan_konselor: catatanKonselor,
+        rekomendasi_pemulihan: rekomendasiPemulihan,
+      });
+      if (res.data.success) {
+        setSuccess('Sesi konseling berhasil diselesaikan.');
+        setShowSelesaiModal(false);
+        fetchDashboardData();
+        if (selectedSession && selectedSession.id === selesaiSessionId) {
+          setSelectedSession({
+            ...selectedSession,
+            status: 'Selesai',
+            admin_id: user.id,
+            admin: user,
+            catatan_konselor: catatanKonselor,
+            rekomendasi_pemulihan: rekomendasiPemulihan,
+          });
+        }
+        if (activeChatSession && activeChatSession.id === selesaiSessionId) {
+          setActiveChatSession(null);
+          setChatMessages([]);
+        }
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Gagal menyelesaikan sesi konseling.');
     }
   };
 
@@ -843,16 +926,31 @@ function App() {
     try {
       const res = await axios.get(`/chat/${sessionId}`);
       if (res.data.success) {
-        setChatMessages(res.data.data);
+        const messages = res.data.data;
+        const updatedStatus = res.data.status;
+        setChatMessages(messages);
         setSessions(prev => prev.map(s => {
           if (s.id === sessionId) {
             return {
               ...s,
-              pesan: s.pesan ? s.pesan.map(m => m.sender_id !== user?.id ? { ...m, status_pesan: 'Dibaca' } : m) : []
+              status: updatedStatus || s.status,
+              pesan: messages
             };
           }
           return s;
         }));
+        setActiveChatSession(prev => {
+          if (prev && prev.id === sessionId) {
+            if (prev.status === updatedStatus) {
+              return prev;
+            }
+            return {
+              ...prev,
+              status: updatedStatus || prev.status
+            };
+          }
+          return prev;
+        });
       }
     } catch (err) {
       console.error('Gagal mengambil pesan chat:', err);
@@ -863,16 +961,31 @@ function App() {
     try {
       const res = await axios.get(`/chat/${sessionId}`);
       if (res.data.success) {
-        setChatMessages(res.data.data);
+        const messages = res.data.data;
+        const updatedStatus = res.data.status;
+        setChatMessages(messages);
         setSessions(prev => prev.map(s => {
           if (s.id === sessionId) {
             return {
               ...s,
-              pesan: s.pesan ? s.pesan.map(m => m.sender_id !== user?.id ? { ...m, status_pesan: 'Dibaca' } : m) : []
+              status: updatedStatus || s.status,
+              pesan: messages
             };
           }
           return s;
         }));
+        setActiveChatSession(prev => {
+          if (prev && prev.id === sessionId) {
+            if (prev.status === updatedStatus) {
+              return prev;
+            }
+            return {
+              ...prev,
+              status: updatedStatus || prev.status
+            };
+          }
+          return prev;
+        });
       }
     } catch (err) {
       console.error('Error polling messages:', err);
@@ -881,16 +994,42 @@ function App() {
 
   const handleSendChatMessage = async (e) => {
     e.preventDefault();
-    if (!newMessageText.trim() || !activeChatSession) return;
+    if (!newMessageText.trim() && !chatImageFile) return;
+    if (!activeChatSession) return;
     const txt = newMessageText;
+    const imgFile = chatImageFile;
     setNewMessageText('');
+    handleCancelChatImage();
     try {
-      const res = await axios.post('/chat', {
-        konseling_id: activeChatSession.id,
-        isi_pesan: txt
-      });
+      let res;
+      if (imgFile) {
+        const formData = new FormData();
+        formData.append('konseling_id', activeChatSession.id);
+        formData.append('isi_pesan', txt || 'Lampiran Gambar');
+        formData.append('gambar', imgFile);
+        res = await axios.post('/chat', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      } else {
+        res = await axios.post('/chat', {
+          konseling_id: activeChatSession.id,
+          isi_pesan: txt
+        });
+      }
       if (res.data.success) {
-        setChatMessages([...chatMessages, res.data.data]);
+        const newMsg = res.data.data;
+        setChatMessages(prev => [...prev, newMsg]);
+        setSessions(prev => prev.map(s => {
+          if (s.id === activeChatSession.id) {
+            return {
+              ...s,
+              pesan: s.pesan ? [...s.pesan, newMsg] : [newMsg]
+            };
+          }
+          return s;
+        }));
       }
     } catch (err) {
       setError('Gagal mengirim pesan.');
@@ -1834,7 +1973,15 @@ function App() {
                           <span style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: '600' }}>Q-{s.nomor_antrian}</span>
                         )}
                       </div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{s.keluhan || 'Tidak ada keluhan tertulis'}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                        {(() => {
+                          const lastMsg = s.pesan && s.pesan.length > 0 ? s.pesan[s.pesan.length - 1] : null;
+                          if (lastMsg) {
+                            return lastMsg.path_gambar ? '📷 Lampiran Gambar' : lastMsg.isi_pesan;
+                          }
+                          return s.keluhan || 'Tidak ada keluhan tertulis';
+                        })()}
+                      </div>
                     </div>
                   ))}
                 {sessions.filter(s => {
@@ -1891,8 +2038,15 @@ function App() {
                           </div>
                         )}
                         {msg.isi_pesan && <div>{msg.isi_pesan}</div>}
-                        <div className="message-time">
-                          {new Date(msg.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                        <div className="message-time" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-end' }}>
+                          <span>{new Date(msg.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                          {msg.sender_id === user.id && (
+                            msg.status_pesan === 'Dibaca' ? (
+                              <IconDoubleCheck size={13} color="#40C4FF" />
+                            ) : (
+                              <IconSingleCheck size={13} color="rgba(255, 255, 255, 0.6)" />
+                            )
+                          )}
                         </div>
                       </div>
                     ))}
@@ -1920,16 +2074,91 @@ function App() {
                       Sesi konseling telah selesai (Arsip / Read-Only)
                     </div>
                   ) : (
-                    <form className="chat-input-area" onSubmit={handleSendChatMessage}>
-                      <input
-                        type="text"
-                        placeholder="Tulis pesan konseling di sini..."
-                        value={newMessageText}
-                        onChange={e => setNewMessageText(e.target.value)}
-                        required
-                      />
-                      <button type="submit" className="btn btn-primary">Kirim</button>
-                    </form>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      {chatImagePreview && (
+                        <div style={{
+                          padding: '10px 1.5rem',
+                          borderTop: '1px solid var(--border-color)',
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px'
+                        }}>
+                          <div style={{ position: 'relative', width: '60px', height: '60px' }}>
+                            <img 
+                              src={chatImagePreview} 
+                              alt="Pratinjau" 
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} 
+                            />
+                            <button
+                              type="button"
+                              onClick={handleCancelChatImage}
+                              style={{
+                                position: 'absolute',
+                                top: '-6px',
+                                right: '-6px',
+                                background: '#ef4444',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: '18px',
+                                height: '18px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '10px',
+                                cursor: 'pointer',
+                                padding: 0,
+                                lineHeight: '18px'
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                            {chatImageFile ? chatImageFile.name : ''}
+                          </span>
+                        </div>
+                      )}
+                      <form className="chat-input-area" onSubmit={handleSendChatMessage} style={{ borderTop: chatImagePreview ? 'none' : '1px solid var(--border-color)' }}>
+                        <label 
+                          htmlFor="admin-chat-image-input" 
+                          style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            cursor: 'pointer',
+                            color: 'var(--primary)',
+                            padding: '0.5rem',
+                            borderRadius: '8px',
+                            background: 'rgba(16, 104, 163, 0.05)',
+                            transition: 'var(--transition-fast)'
+                          }}
+                          title="Lampirkan Gambar"
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                            <circle cx="8.5" cy="8.5" r="1.5" />
+                            <polyline points="21 15 16 10 5 21" />
+                          </svg>
+                        </label>
+                        <input
+                          id="admin-chat-image-input"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleChatImageChange}
+                          style={{ display: 'none' }}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Tulis pesan konseling di sini..."
+                          value={newMessageText}
+                          onChange={e => setNewMessageText(e.target.value)}
+                          required={!chatImageFile}
+                        />
+                        <button type="submit" className="btn btn-primary">Kirim</button>
+                      </form>
+                    </div>
                   )}
                 </>
               ) : (
@@ -2477,6 +2706,75 @@ function App() {
                 <button type="button" className="btn btn-secondary" onClick={() => setShowResetPasswordModal(false)}>Batal</button>
                 <button type="submit" className="btn btn-primary" disabled={loading}>
                   {loading ? 'Menyimpan...' : 'Reset Kata Sandi'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* SELESAI SESI FORM MODAL */}
+      {showSelesaiModal && (
+        <div className="modal-overlay" onClick={() => setShowSelesaiModal(false)} style={{ zIndex: 1100 }}>
+          <div className="card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '90%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+              <h2 style={{ fontSize: '1.2rem', color: 'var(--success)' }}>Form Catatan Sesi & Pemulihan</h2>
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowSelesaiModal(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconX size={14} /></button>
+            </div>
+
+            <form onSubmit={handleSubmitSelesaiSession} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: 0 }}>
+                Sebelum menyelesaikan sesi ini, mohon lengkapi catatan sesi konseling dan rekomendasi pemulihan untuk mahasiswa. Informasi ini akan ditampilkan di riwayat sesi mereka.
+              </p>
+
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ fontWeight: '600', fontSize: '0.9rem' }}>Catatan Sesi (Rangkuman) *</label>
+                <textarea
+                  placeholder="Tuliskan rangkuman hasil sesi konseling..."
+                  value={catatanKonselor}
+                  onChange={e => setCatatanKonselor(e.target.value)}
+                  style={{
+                    width: '100%',
+                    minHeight: '120px',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-primary)',
+                    fontFamily: 'inherit',
+                    fontSize: '0.9rem',
+                    resize: 'vertical'
+                  }}
+                  required
+                />
+              </div>
+
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ fontWeight: '600', fontSize: '0.9rem' }}>Rekomendasi Pemulihan (Tindakan Lanjut) *</label>
+                <textarea
+                  placeholder="Tuliskan rekomendasi tindakan atau pemulihan untuk mahasiswa..."
+                  value={rekomendasiPemulihan}
+                  onChange={e => setRekomendasiPemulihan(e.target.value)}
+                  style={{
+                    width: '100%',
+                    minHeight: '120px',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-primary)',
+                    fontFamily: 'inherit',
+                    fontSize: '0.9rem',
+                    resize: 'vertical'
+                  }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowSelesaiModal(false)}>Batal</button>
+                <button type="submit" className="btn btn-primary" style={{ backgroundColor: 'var(--success)', borderColor: 'var(--success)' }}>
+                  Selesaikan Sesi & Simpan Catatan
                 </button>
               </div>
             </form>

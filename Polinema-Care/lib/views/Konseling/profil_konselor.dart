@@ -18,7 +18,7 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
   String selectedTime = "";
   String selectedMode = "Offline";
 
-  late final Konselor counselor;
+  late Konselor counselor;
   List<DateTime> _availableDates = [];
   List<String> _availableTimes = [];
   List<Map<String, dynamic>> _schedules = [];
@@ -35,12 +35,66 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
     _loadSchedules();
   }
 
+  String _normalizeTime(String timeStr) {
+    final match = RegExp(r'(\d{1,2}):(\d{2})').firstMatch(timeStr);
+    if (match != null) {
+      final hour = int.parse(match.group(1)!).toString().padLeft(2, '0');
+      final minute = match.group(2)!;
+      return '$hour:$minute';
+    }
+    return timeStr.trim();
+  }
+
   Future<void> _loadSchedules() async {
+    if (counselor.id != null) {
+      final latest = await CounselingController.fetchKonselorDetail(counselor.id!);
+      if (latest != null && mounted) {
+        setState(() {
+          counselor = latest;
+        });
+      }
+    }
+
     final schedules = await CounselingController.fetchSchedules();
     final available = schedules.where((s) => s['status'] == 'Tersedia').toList();
 
+    // Filter available schedules based on counselor's practiceDays and availableTimes
+    final filteredAvailable = available.where((s) {
+      final rawDate = s['tanggal']?.toString();
+      if (rawDate == null || rawDate.length < 10) return false;
+      final dateStr = rawDate.substring(0, 10);
+      final dt = DateTime.tryParse(dateStr);
+      if (dt == null) return false;
+
+      // Filter out past dates (keep only today or future dates)
+      final todayStr = DateTime.now().toIso8601String().substring(0, 10);
+      final today = DateTime.parse(todayStr);
+      if (dt.isBefore(today)) return false;
+
+      // Filter out dates where the counselor's daily session quota is full
+      if (counselor.fullDates.contains(dateStr)) {
+        return false;
+      }
+
+      // Filter by practice days (counselor.practiceDays contains 1..7 for Mon..Sun)
+      if (!counselor.practiceDays.contains(dt.weekday)) {
+        return false;
+      }
+
+      // Filter by available times
+      final rawStart = s['jam_mulai']?.toString();
+      if (rawStart == null) return false;
+      final startNorm = _normalizeTime(rawStart);
+
+      final hasMatchingTime = counselor.availableTimes.any((t) {
+        return _normalizeTime(t) == startNorm;
+      });
+
+      return hasMatchingTime;
+    }).toList();
+
     final uniqueDates = <String, DateTime>{};
-    for (final s in available) {
+    for (final s in filteredAvailable) {
       final rawDate = s['tanggal']?.toString();
       if (rawDate != null && rawDate.length >= 10) {
         final dateStr = rawDate.substring(0, 10);
@@ -50,8 +104,8 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
       }
     }
 
-    _availableDates = uniqueDates.values.toList()..sort();
-    _schedules = available;
+    _availableDates = (uniqueDates.values.toList()..sort()).take(3).toList();
+    _schedules = filteredAvailable;
 
     if (_availableDates.isNotEmpty) {
       _updateTimesForSelectedDate(0);

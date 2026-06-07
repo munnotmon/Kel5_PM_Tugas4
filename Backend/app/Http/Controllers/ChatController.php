@@ -42,6 +42,8 @@ class ChatController extends Controller
 
         return response()->json([
             'success' => true,
+            'status' => $session->status,
+            'tipe' => $session->tipe,
             'data' => $messages
         ]);
     }
@@ -83,9 +85,12 @@ class ChatController extends Controller
         $path = null;
         if ($request->hasFile('gambar')) {
             $file = $request->file('gambar');
-            $fileName = time() . '_' . rand(100, 999) . '_' . $file->getClientOriginalName();
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $extension = $file->getClientOriginalExtension();
+            $sanitizedName = preg_replace('/[^a-zA-Z0-9_]/', '_', $originalName);
+            $fileName = time() . '_' . rand(100, 999) . '_' . $sanitizedName . '.' . $extension;
             $file->storeAs('chat', $fileName, 'public');
-            $path = asset('storage/chat/' . $fileName);
+            $path = url('api/storage/chat/' . $fileName);
         }
 
         $message = Pesan::create([
@@ -132,5 +137,20 @@ class ChatController extends Controller
             'success' => true,
             'data' => $message->load('sender')
         ], 201);
+    }
+
+    public function serveChatImage($filename)
+    {
+        $path = storage_path('app/public/chat/' . $filename);
+        if (!file_exists($path)) {
+            abort(404);
+        }
+        
+        $file = file_get_contents($path);
+        $type = mime_content_type($path);
+
+        return response($file, 200)
+            ->header("Content-Type", $type)
+            ->header("Access-Control-Allow-Origin", "*");
     }
 }
