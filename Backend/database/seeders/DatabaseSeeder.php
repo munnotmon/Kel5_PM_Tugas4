@@ -2,84 +2,84 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\ProfilMahasiswa;
-use App\Models\JadwalKonseling;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
+/**
+ * Snapshot data nyata dari database `polinema_care`.
+ * Truncate lalu insert ulang. Hanya kolom yang ada di skema tujuan yang dipakai,
+ * jadi tetap aman walau skema sedikit berbeda. Password memakai hash asli.
+ */
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 0. Seed Super Admin User
-        User::updateOrCreate(
-            ['email' => 'superadmin@gmail.com'],
-            [
-                'nama' => 'Super Admin Polinema Care',
-                'password' => Hash::make('123456'),
-                'role' => 'superadmin',
-                'nomor_telepon' => '081234567899',
-            ]
-        );
+        Schema::disableForeignKeyConstraints();
+        foreach ($this->data() as $table => $rows) {
+            if (!Schema::hasTable($table)) { continue; }
+            DB::table($table)->truncate();
+            if (empty($rows)) { continue; }
+            $cols = Schema::getColumnListing($table);
+            $rows = array_map(fn($r) => array_intersect_key($r, array_flip($cols)), $rows);
+            foreach (array_chunk($rows, 100) as $chunk) {
+                DB::table($table)->insert($chunk);
+            }
+        }
+        Schema::enableForeignKeyConstraints();
+    }
 
-        $this->call(KonselorSeeder::class);
-
-        // 1. Seed Admin User
-        $admin = User::updateOrCreate(
-            ['email' => 'admin@gmail.com'],
-            [
-                'nama' => 'Admin Polinema Care',
-                'password' => Hash::make('123456'),
-                'role' => 'admin',
-                'nomor_telepon' => '081234567890',
-            ]
-        );
-
-        // 2. Seed Mahasiswa User
-        $student = User::updateOrCreate(
-            ['email' => 'student@gmail.com'],
-            [
-                'nama' => 'Kelompok 5',
-                'password' => Hash::make('123456'),
-                'role' => 'mahasiswa',
-                'nomor_telepon' => '081234567891',
-            ]
-        );
-
-        // 3. Seed Mahasiswa Profile
-        ProfilMahasiswa::updateOrCreate(
-            ['user_id' => $student->id],
-            [
-                'nim' => '21090123',
-                'program_studi' => 'Teknologi Informasi',
-                'angkatan' => 2026,
-            ]
-        );
-
-        // 4. Seed Jadwal Konseling
-        JadwalKonseling::create([
-            'tanggal' => date('Y-m-d'),
-            'jam_mulai' => '09:00:00',
-            'jam_selesai' => '10:00:00',
-            'lokasi' => 'Gedung TI Lt. 3',
-            'status' => 'Tersedia',
-        ]);
-
-        JadwalKonseling::create([
-            'tanggal' => date('Y-m-d', strtotime('+1 day')),
-            'jam_mulai' => '13:00:00',
-            'jam_selesai' => '14:00:00',
-            'lokasi' => 'Gedung Sipil Lt. 2',
-            'status' => 'Tersedia',
-        ]);
-
-        JadwalKonseling::create([
-            'tanggal' => date('Y-m-d', strtotime('+2 days')),
-            'jam_mulai' => '15:30:00',
-            'jam_selesai' => '16:30:00',
-            'lokasi' => 'Gedung TI Lt. 3',
-            'status' => 'Tersedia',
-        ]);
+    private function data(): array
+    {
+        return [
+            'users' => [
+                ['id' => '1', 'nama' => 'Super Admin Polinema Care', 'email' => 'superadmin@gmail.com', 'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'role' => 'superadmin', 'foto_profil' => null, 'nomor_telepon' => '081234567899', 'spesialisasi' => null, 'rating' => null, 'pengalaman_tahun' => null, 'tentang' => null, 'spesialisasi_list' => null, 'pendidikan' => null, 'pengalaman' => null, 'hari_praktik' => null, 'jam_tersedia' => null, 'is_online' => '0', 'created_at' => '2026-06-03 14:48:41', 'updated_at' => '2026-06-03 14:49:09', 'last_seen_at' => null],
+                ['id' => '2', 'nama' => 'dr. Anton Wijaya', 'email' => 'anton.wijaya@polinema.care', 'password' => '$2y$12$riPEFI5lD.0MUZ4O1clmQemMLlNNzcO0zTOLfoC4VwcOT46ACwHge', 'role' => 'admin', 'foto_profil' => null, 'nomor_telepon' => '0812345678901', 'spesialisasi' => 'Spesialis Trauma & Perundungan', 'rating' => '4.9', 'pengalaman_tahun' => '12 Tahun Eksp.', 'tentang' => 'Halo, saya dr. Anton. Saya mendedikasikan karir saya untuk membantu individu yang menghadapi dampak psikologis dari trauma dan perundungan. Melalui pendekatan yang empatik dan ruang yang aman, kita akan bekerja sama untuk memulihkan kepercayaan diri dan kesehatan mental Anda.', 'spesialisasi_list' => '["Trauma","Perundungan","Konseling Remaja"]', 'pendidikan' => '[{"title":"S3 Psikologi Klinis","subtitle":"Universitas Indonesia \\u2022 2015"}]', 'pengalaman' => '[{"title":"Kepala Konselor","subtitle":"Pusat Rehabilitasi Mental Nasional \\u2022 2018 - Sekarang"}]', 'hari_praktik' => '[1,3,5]', 'jam_tersedia' => '["09:00 WIB","10:30 WIB","13:00 WIB"]', 'is_online' => '0', 'created_at' => '2026-06-03 14:48:41', 'updated_at' => '2026-06-07 07:36:42', 'last_seen_at' => null],
+                ['id' => '3', 'nama' => 'Siska, M.Psi', 'email' => 'siska@polinema.care', 'password' => '$2y$12$iAlTM1nTdbrdSYrTsAOhvOFo.tTo8b2nve8pYIUZiz0zccGjhMPsS', 'role' => 'admin', 'foto_profil' => null, 'nomor_telepon' => null, 'spesialisasi' => 'Kecemasan Sosial', 'rating' => '4.8', 'pengalaman_tahun' => '8 Tahun Eksp.', 'tentang' => 'Halo, saya Siska. Saya fokus pada penanganan kecemasan sosial dan depresi ringan. Mari kita ciptakan ruang nyaman untuk bercerita tanpa penghakiman.', 'spesialisasi_list' => '["Kecemasan Sosial","Depresi"]', 'pendidikan' => '[{"title":"S2 Psikologi Profesi","subtitle":"Universitas Gadjah Mada \\u2022 2018"}]', 'pengalaman' => '[{"title":"Psikolog Klinis","subtitle":"Klinik Sehati \\u2022 2019 - Sekarang"}]', 'hari_praktik' => '[2,4,6]', 'jam_tersedia' => '["10:00 WIB","11:30 WIB","14:00 WIB"]', 'is_online' => '0', 'created_at' => '2026-06-03 14:48:41', 'updated_at' => '2026-06-07 07:36:42', 'last_seen_at' => null],
+                ['id' => '4', 'nama' => 'Budi Hartono, S.Psi', 'email' => 'budi.hartono@polinema.care', 'password' => '$2y$12$Cg1prZeZqRnieInHDKMesuFMHWnjHZ/jUOqSoltIh0zNbGEphdELi', 'role' => 'admin', 'foto_profil' => null, 'nomor_telepon' => null, 'spesialisasi' => 'Konselor Akademik & Karir', 'rating' => '4.8', 'pengalaman_tahun' => '5 Tahun Eksp.', 'tentang' => 'Halo, saya Budi. Khawatir dengan masa depan atau tugas kampus yang menumpuk? Mari kita obrolkan strategi belajar dan pemetaan karirmu secara terstruktur.', 'spesialisasi_list' => '["Stres Akademik","Karir","Manajemen Waktu"]', 'pendidikan' => '[{"title":"S1 Psikologi","subtitle":"Universitas Airlangga \\u2022 2021"}]', 'pengalaman' => '[{"title":"Konselor Akademik","subtitle":"Pusat Bimbingan Kampus \\u2022 2022 - Sekarang"}]', 'hari_praktik' => '[1,2,4]', 'jam_tersedia' => '["08:30 WIB","10:00 WIB","13:30 WIB"]', 'is_online' => '0', 'created_at' => '2026-06-03 14:48:41', 'updated_at' => '2026-06-03 14:48:41', 'last_seen_at' => null],
+                ['id' => '5', 'nama' => 'dr. Sarah Johnson', 'email' => 'sarah.johnson@polinema.care', 'password' => '$2y$12$TQ6nBFg4lh1UVtUBhHMDr.OLds559AJtVwRzwtzqOJNqVauIB922C', 'role' => 'admin', 'foto_profil' => null, 'nomor_telepon' => null, 'spesialisasi' => 'Konselor Psikologi Klinis', 'rating' => '4.9', 'pengalaman_tahun' => '10 Tahun Eksp.', 'tentang' => 'Halo, saya dr. Sarah. Saya berdedikasi membantu individu dalam mengelola stres, kecemasan, dan masalah psikologis klinis lainnya. Mari kita temukan akar masalah dan merancang langkah pemulihan yang tepat bersama-sama.', 'spesialisasi_list' => '["Psikologi Klinis","Manajemen Stres","Kecemasan"]', 'pendidikan' => '[{"title":"S3 Psikologi Klinis","subtitle":"Universitas Padjadjaran \\u2022 2016"}]', 'pengalaman' => '[{"title":"Psikolog Klinis Utama","subtitle":"Klinik Sehat Jiwa \\u2022 2017 - Sekarang"},{"title":"Konselor Relawan","subtitle":"Yayasan Peduli Mental \\u2022 2015 - 2017"}]', 'hari_praktik' => '[1,3,5]', 'jam_tersedia' => '["09:30 WIB","11:00 WIB","14:30 WIB"]', 'is_online' => '0', 'created_at' => '2026-06-03 14:48:41', 'updated_at' => '2026-06-07 07:36:42', 'last_seen_at' => null],
+                ['id' => '8', 'nama' => 'Rayhan', 'email' => 'rayhan@student.polinema.ac.id', 'password' => '$2y$12$V9tmCFsd0jrXf2fjyVSkS.gHgN0VJKrRQGaVwQK181UbbkFIc575e', 'role' => 'mahasiswa', 'foto_profil' => null, 'nomor_telepon' => null, 'spesialisasi' => null, 'rating' => null, 'pengalaman_tahun' => null, 'tentang' => null, 'spesialisasi_list' => null, 'pendidikan' => null, 'pengalaman' => null, 'hari_praktik' => null, 'jam_tersedia' => null, 'is_online' => '0', 'created_at' => '2026-06-06 02:45:36', 'updated_at' => '2026-06-06 02:45:36', 'last_seen_at' => null],
+                ['id' => '9', 'nama' => 'Oca', 'email' => 'oca@student.polinema.ac.id', 'password' => '$2y$12$V9tmCFsd0jrXf2fjyVSkS.gHgN0VJKrRQGaVwQK181UbbkFIc575e', 'role' => 'mahasiswa', 'foto_profil' => null, 'nomor_telepon' => null, 'spesialisasi' => null, 'rating' => null, 'pengalaman_tahun' => null, 'tentang' => null, 'spesialisasi_list' => null, 'pendidikan' => null, 'pengalaman' => null, 'hari_praktik' => null, 'jam_tersedia' => null, 'is_online' => '0', 'created_at' => '2026-06-06 02:45:36', 'updated_at' => '2026-06-06 02:45:36', 'last_seen_at' => null],
+                ['id' => '10', 'nama' => 'Muna', 'email' => 'muna@student.polinema.ac.id', 'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'role' => 'mahasiswa', 'foto_profil' => 'http://localhost:8000/storage/foto_profil/1780817048_scaled__ - 2026-06-06T010545.962.jpeg', 'nomor_telepon' => '0812345678903', 'spesialisasi' => null, 'rating' => null, 'pengalaman_tahun' => null, 'tentang' => null, 'spesialisasi_list' => null, 'pendidikan' => null, 'pengalaman' => null, 'hari_praktik' => null, 'jam_tersedia' => null, 'is_online' => '1', 'created_at' => '2026-06-06 02:45:36', 'updated_at' => '2026-06-07 12:26:10', 'last_seen_at' => '2026-06-07 12:26:10'],
+                ['id' => '11', 'nama' => 'Wildan', 'email' => 'wildan@student.polinema.ac.id', 'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'role' => 'mahasiswa', 'foto_profil' => null, 'nomor_telepon' => null, 'spesialisasi' => null, 'rating' => null, 'pengalaman_tahun' => null, 'tentang' => null, 'spesialisasi_list' => null, 'pendidikan' => null, 'pengalaman' => null, 'hari_praktik' => null, 'jam_tersedia' => null, 'is_online' => '1', 'created_at' => '2026-06-06 02:45:36', 'updated_at' => '2026-06-05 20:21:36', 'last_seen_at' => null],
+                ['id' => '12', 'nama' => 'Dinda Kartika', 'email' => 'dinda@student.polinema.ac.id', 'password' => '$2y$12$V9tmCFsd0jrXf2fjyVSkS.gHgN0VJKrRQGaVwQK181UbbkFIc575e', 'role' => 'mahasiswa', 'foto_profil' => null, 'nomor_telepon' => null, 'spesialisasi' => null, 'rating' => null, 'pengalaman_tahun' => null, 'tentang' => null, 'spesialisasi_list' => null, 'pendidikan' => null, 'pengalaman' => null, 'hari_praktik' => null, 'jam_tersedia' => null, 'is_online' => '0', 'created_at' => '2026-06-06 02:45:36', 'updated_at' => '2026-06-06 02:45:36', 'last_seen_at' => null],
+                ['id' => '13', 'nama' => 'Reza Pahlevi', 'email' => 'reza@student.polinema.ac.id', 'password' => '$2y$12$V9tmCFsd0jrXf2fjyVSkS.gHgN0VJKrRQGaVwQK181UbbkFIc575e', 'role' => 'mahasiswa', 'foto_profil' => null, 'nomor_telepon' => null, 'spesialisasi' => null, 'rating' => null, 'pengalaman_tahun' => null, 'tentang' => null, 'spesialisasi_list' => null, 'pendidikan' => null, 'pengalaman' => null, 'hari_praktik' => null, 'jam_tersedia' => null, 'is_online' => '0', 'created_at' => '2026-06-06 02:45:36', 'updated_at' => '2026-06-06 02:45:36', 'last_seen_at' => null],
+                ['id' => '14', 'nama' => 'Tari Maharani', 'email' => 'tari@student.polinema.ac.id', 'password' => '$2y$12$V9tmCFsd0jrXf2fjyVSkS.gHgN0VJKrRQGaVwQK181UbbkFIc575e', 'role' => 'mahasiswa', 'foto_profil' => null, 'nomor_telepon' => null, 'spesialisasi' => null, 'rating' => null, 'pengalaman_tahun' => null, 'tentang' => null, 'spesialisasi_list' => null, 'pendidikan' => null, 'pengalaman' => null, 'hari_praktik' => null, 'jam_tersedia' => null, 'is_online' => '0', 'created_at' => '2026-06-06 02:45:36', 'updated_at' => '2026-06-06 02:45:36', 'last_seen_at' => null],
+                ['id' => '15', 'nama' => 'Kevin Sanjaya', 'email' => 'kevin@student.polinema.ac.id', 'password' => '$2y$12$V9tmCFsd0jrXf2fjyVSkS.gHgN0VJKrRQGaVwQK181UbbkFIc575e', 'role' => 'mahasiswa', 'foto_profil' => null, 'nomor_telepon' => null, 'spesialisasi' => null, 'rating' => null, 'pengalaman_tahun' => null, 'tentang' => null, 'spesialisasi_list' => null, 'pendidikan' => null, 'pengalaman' => null, 'hari_praktik' => null, 'jam_tersedia' => null, 'is_online' => '0', 'created_at' => '2026-06-06 02:45:36', 'updated_at' => '2026-06-06 02:45:36', 'last_seen_at' => null],
+                ['id' => '16', 'nama' => 'Dian Pratama, M.Psi., Psikolog', 'email' => 'dian.pratama@polinema.care', 'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'role' => 'admin', 'foto_profil' => null, 'nomor_telepon' => '0812345678905', 'spesialisasi' => 'Manajemen Stres & Burnout', 'rating' => '4.7', 'pengalaman_tahun' => '6 Tahun Eksp.', 'tentang' => 'Halo, saya Dian. Saya berfokus membantu mahasiswa yang menghadapi burnout akademik, stres organisasi, dan masalah motivasi belajar. Mari kita urai benang kusutnya bersama.', 'spesialisasi_list' => '["Burnout","Manajemen Stres","Motivasi Belajar"]', 'pendidikan' => '[{"title":"S2 Psikologi Profesi","subtitle":"Universitas Muhammadiyah Malang \\u2022 2020"}]', 'pengalaman' => '[{"title":"Konselor Industri & Akademik","subtitle":"PT Solusi Edukasi \\u2022 2021 - Sekarang"}]', 'hari_praktik' => '[1,2,3]', 'jam_tersedia' => '["08:00 WIB","09:30 WIB","11:00 WIB"]', 'is_online' => '0', 'created_at' => '2026-06-06 02:47:37', 'updated_at' => '2026-06-07 15:49:49', 'last_seen_at' => '2026-06-07 15:37:26'],
+                ['id' => '17', 'nama' => 'Rahmat Hidayat, S.Psi., M.Si.', 'email' => 'rahmat.hidayat@polinema.care', 'password' => '$2y$12$V9tmCFsd0jrXf2fjyVSkS.gHgN0VJKrRQGaVwQK181UbbkFIc575e', 'role' => 'admin', 'foto_profil' => null, 'nomor_telepon' => '0812345678906', 'spesialisasi' => 'Adiksi Gadget & Prokrastinasi', 'rating' => '4.8', 'pengalaman_tahun' => '7 Tahun Eksp.', 'tentang' => 'Halo, saya Rahmat. Fokus saya adalah membantu mahasiswa mengatasi ketergantungan gadget, adiksi game online, serta perilaku menunda-nunda tugas (prokrastinasi).', 'spesialisasi_list' => '["Adiksi Gadget","Prokrastinasi","Konseling Perilaku"]', 'pendidikan' => '[{"title":"S2 Psikologi Sains","subtitle":"Universitas Airlangga \\u2022 2019"}]', 'pengalaman' => '[{"title":"Konselor Perilaku","subtitle":"Klinik Tumbuh Bijak \\u2022 2020 - Sekarang"}]', 'hari_praktik' => '[2,4,5]', 'jam_tersedia' => '["13:00 WIB","14:30 WIB","16:00 WIB"]', 'is_online' => '0', 'created_at' => '2026-06-06 02:47:37', 'updated_at' => '2026-06-06 02:47:37', 'last_seen_at' => null],
+                ['id' => '18', 'nama' => 'Citra Lestari, M.Psi.', 'email' => 'citra.lestari@polinema.care', 'password' => '$2y$12$V9tmCFsd0jrXf2fjyVSkS.gHgN0VJKrRQGaVwQK181UbbkFIc575e', 'role' => 'admin', 'foto_profil' => null, 'nomor_telepon' => '0812345678907', 'spesialisasi' => 'Pengembangan Diri & Interpersonal', 'rating' => '4.9', 'pengalaman_tahun' => '9 Tahun Eksp.', 'tentang' => 'Selamat datang! Saya Citra. Hubungan dengan pacar, teman, atau keluarga sedang renggang? Atau kamu merasa kurang percaya diri? Yuk, kita obrolkan ruang aman ini.', 'spesialisasi_list' => '["Hubungan Interpersonal","Kepercayaan Diri","Keluarga"]', 'pendidikan' => '[{"title":"S2 Psikologi Klinis","subtitle":"Universitas Gadjah Mada \\u2022 2017"}]', 'pengalaman' => '[{"title":"Psikolog Mitra","subtitle":"Platform Konseling Online \\u2022 2018 - Sekarang"}]', 'hari_praktik' => '[1,3,5]', 'jam_tersedia' => '["09:00 WIB","10:30 WIB","13:00 WIB"]', 'is_online' => '0', 'created_at' => '2026-06-06 02:47:37', 'updated_at' => '2026-06-07 07:36:42', 'last_seen_at' => null],
+                ['id' => '19', 'nama' => 'Ahmad Fauzi, S.Psi.', 'email' => 'fauzi.admin@polinema.care', 'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'role' => 'admin', 'foto_profil' => null, 'nomor_telepon' => '0812345678908', 'spesialisasi' => 'Helpdesk & Validasi Laporan', 'rating' => '4.5', 'pengalaman_tahun' => '3 Tahun Eksp.', 'tentang' => 'Halo, saya Fauzi. Saya bertugas sebagai tim awal yang memvalidasi dan memetakan laporan perundungan mahasiswa sebelum diteruskan ke konselor spesialis.', 'spesialisasi_list' => '["Validasi Krisis","Helpdesk","Manajemen Konflik"]', 'pendidikan' => '[{"title":"S1 Psikologi","subtitle":"Universitas Brawijaya \\u2022 2023"}]', 'pengalaman' => '[{"title":"Staf Kemahasiswaan","subtitle":"Biro Konseling Swasta \\u2022 2023 - 2025"}]', 'hari_praktik' => '[1,3,5]', 'jam_tersedia' => '["08:00 WIB","10:00 WIB","13:00 WIB"]', 'is_online' => '1', 'created_at' => '2026-06-06 02:47:37', 'updated_at' => '2026-06-07 15:54:32', 'last_seen_at' => '2026-06-07 15:54:32'],
+                ['id' => '20', 'nama' => 'maulida', 'email' => 'maulidaprna@gmail.com', 'password' => '$2y$12$qPKkZKDna/79qQUdjpE/1eq4dEtRtYwC7788fiFWiAE0AqGlbXq2O', 'role' => 'mahasiswa', 'foto_profil' => 'http://10.0.2.2:8000/storage/foto_profil/1780847271_scaled_19.jpg', 'nomor_telepon' => '082239442005', 'spesialisasi' => null, 'rating' => null, 'pengalaman_tahun' => null, 'tentang' => null, 'spesialisasi_list' => null, 'pendidikan' => null, 'pengalaman' => null, 'hari_praktik' => null, 'jam_tersedia' => null, 'is_online' => '0', 'created_at' => '2026-06-07 15:29:31', 'updated_at' => '2026-06-07 15:47:51', 'last_seen_at' => null],
+            ],
+            'profil_mahasiswa' => [
+                ['id' => '3', 'user_id' => '8', 'nim' => '2241720003', 'program_studi' => 'D-IV Sistem Informasi Bisnis', 'angkatan' => '2022'],
+                ['id' => '4', 'user_id' => '9', 'nim' => '2241720004', 'program_studi' => 'D-IV Sistem Informasi Bisnis', 'angkatan' => '2022'],
+            ],
+            'jadwal_konseling' => [
+                ['id' => '4', 'tanggal' => '2026-06-15', 'jam_mulai' => '08:00:00', 'jam_selesai' => '09:30:00', 'lokasi' => 'Google Meet', 'status' => 'Selesai', 'created_at' => '2026-06-06 02:45:57', 'updated_at' => '2026-06-07 12:09:32'],
+            ],
+            'laporan_perundungan' => [
+                ['id' => '2', 'pelapor_id' => '8', 'judul_pelaporan' => 'Komentar Body Shaming di Grup WA Kelas', 'jenis_perundungan' => 'Siber', 'kronologi' => 'Pelaku mengirim stiker muka saya yang diedit dan melontarkan kalimat merendahkan fisik berkali-kali.', 'deskripsi_pelaku' => 'Teman sekelas, inisial R.', 'lokasi' => 'Grup WhatsApp', 'tanggal_kejadian' => '2026-06-01 20:15:00', 'status' => 'Menunggu', 'created_at' => '2026-06-06 02:46:20', 'updated_at' => '2026-06-06 02:46:20'],
+                ['id' => '3', 'pelapor_id' => '14', 'judul_pelaporan' => 'Pemerasan oleh Kating di Parkiran', 'jenis_perundungan' => 'Fisik & Verbal', 'kronologi' => 'Setiap sore dimintai uang parkir paksa sebesar 20rb oleh gerombolan kating.', 'deskripsi_pelaku' => 'Memakai jaket hitam, tinggi, sering nongkrong di parkiran motor.', 'lokasi' => 'Parkiran Belakang', 'tanggal_kejadian' => '2026-05-28 16:00:00', 'status' => 'Diproses', 'created_at' => '2026-06-06 02:46:20', 'updated_at' => '2026-06-06 02:46:20'],
+                ['id' => '4', 'pelapor_id' => '15', 'judul_pelaporan' => 'Pengucilan di Lab Komputer', 'jenis_perundungan' => 'Relasional', 'kronologi' => 'Sengaja tidak dimasukkan ke kelompok manapun dan difitnah mencontek saat ujian.', 'deskripsi_pelaku' => 'Dua orang perempuan dari prodi yang sama.', 'lokasi' => 'Lab Komputer JTI', 'tanggal_kejadian' => '2026-06-02 10:00:00', 'status' => 'Selesai', 'created_at' => '2026-06-01 02:46:20', 'updated_at' => '2026-06-06 02:46:20'],
+            ],
+            'konseling' => [
+                ['id' => '3', 'mahasiswa_id' => '8', 'admin_id' => '3', 'jadwal_id' => '4', 'nomor_antrian' => 'K-002', 'keluhan' => 'Kesulitan bagi waktu antara organisasi dan ngerjain project.', 'status' => 'Disetujui', 'tipe' => 'konseling', 'created_at' => '2026-06-06 02:46:09', 'updated_at' => '2026-06-06 02:46:09', 'catatan_mahasiswa' => null, 'catatan_konselor' => null, 'rekomendasi_pemulihan' => null],
+                ['id' => '4', 'mahasiswa_id' => '9', 'admin_id' => '5', 'jadwal_id' => '4', 'nomor_antrian' => 'K-003', 'keluhan' => 'Merasa demotivasi akhir-akhir ini dan butuh teman cerita yang netral.', 'status' => 'Disetujui', 'tipe' => 'konseling', 'created_at' => '2026-06-06 02:46:09', 'updated_at' => '2026-06-06 02:46:09', 'catatan_mahasiswa' => null, 'catatan_konselor' => null, 'rekomendasi_pemulihan' => null],
+            ],
+            'bukti' => [
+                ['id' => '1', 'laporan_id' => '2', 'nama_file' => 'screenshot_grup_wa_1.jpg', 'path_file' => '/storage/bukti/screenshot_grup_wa_1.jpg', 'created_at' => '2026-06-06 02:47:24', 'updated_at' => '2026-06-06 02:47:24'],
+                ['id' => '2', 'laporan_id' => '2', 'nama_file' => 'screenshot_grup_wa_2.jpg', 'path_file' => '/storage/bukti/screenshot_grup_wa_2.jpg', 'created_at' => '2026-06-06 02:47:24', 'updated_at' => '2026-06-06 02:47:24'],
+                ['id' => '3', 'laporan_id' => '3', 'nama_file' => 'foto_pelaku_blur.png', 'path_file' => '/storage/bukti/foto_pelaku_blur.png', 'created_at' => '2026-06-06 02:47:24', 'updated_at' => '2026-06-06 02:47:24'],
+                ['id' => '4', 'laporan_id' => '4', 'nama_file' => 'rekaman_suara_korban.mp4', 'path_file' => '/storage/bukti/rekaman_suara_korban.mp4', 'created_at' => '2026-06-06 02:47:24', 'updated_at' => '2026-06-06 02:47:24'],
+            ],
+            'pesan' => [
+                ['id' => '1', 'konseling_id' => '3', 'sender_id' => '8', 'isi_pesan' => 'Halo Bu Siska, selamat pagi.', 'path_gambar' => null, 'status_pesan' => 'read', 'created_at' => '2026-06-06 02:16:53', 'updated_at' => '2026-06-06 02:16:53'],
+                ['id' => '2', 'konseling_id' => '3', 'sender_id' => '3', 'isi_pesan' => 'Pagi Rayhan, bagaimana kabarmu hari ini?', 'path_gambar' => null, 'status_pesan' => 'read', 'created_at' => '2026-06-06 02:18:53', 'updated_at' => '2026-06-06 02:18:53'],
+                ['id' => '3', 'konseling_id' => '3', 'sender_id' => '8', 'isi_pesan' => 'Kurang baik Bu. Project akhir saya stuck dan saya merasa bersalah sama tim.', 'path_gambar' => null, 'status_pesan' => 'read', 'created_at' => '2026-06-06 02:21:53', 'updated_at' => '2026-06-06 02:21:53'],
+                ['id' => '4', 'konseling_id' => '3', 'sender_id' => '3', 'isi_pesan' => 'Wajar merasa begitu apalagi kalau *deadline* makin dekat. Sudah coba diobrolkan hambatannya ke tim?', 'path_gambar' => null, 'status_pesan' => 'read', 'created_at' => '2026-06-06 02:26:53', 'updated_at' => '2026-06-06 02:26:53'],
+            ],
+        ];
     }
 }
