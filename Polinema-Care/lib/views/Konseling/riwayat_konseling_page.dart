@@ -261,12 +261,15 @@ class _RiwayatKonselingPageState extends State<RiwayatKonselingPage> {
                       color: Color(0xFF1068A3),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      session.tanggal,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        color: Colors.grey[700],
-                        fontWeight: FontWeight.w500,
+                    Expanded(
+                      child: Text(
+                        session.tanggal,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: Colors.grey[700],
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],
@@ -280,12 +283,15 @@ class _RiwayatKonselingPageState extends State<RiwayatKonselingPage> {
                       color: Color(0xFF1068A3),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      session.jam,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        color: Colors.grey[700],
-                        fontWeight: FontWeight.w500,
+                    Expanded(
+                      child: Text(
+                        session.jam,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: Colors.grey[700],
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],

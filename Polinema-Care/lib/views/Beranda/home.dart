@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data' show Uint8List;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +10,7 @@ import '../../controllers/auth_controller.dart';
 import '../../controllers/counseling_controller.dart';
 import '../../models/counseling_model.dart';
 import '../../services/api_service.dart';
+import '../Profile/profile_store.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -69,6 +72,15 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       debugPrint('Error fetching unread notification count: $e');
     }
+  }
+
+  String _mapImageUrl(String url) {
+    if (url.isEmpty) return '';
+    if (kIsWeb) return url;
+    if (ApiService.baseUrl.contains('127.0.0.1')) {
+      return url.replaceAll('localhost', '127.0.0.1');
+    }
+    return url.replaceAll('localhost', '10.0.2.2').replaceAll('127.0.0.1', '10.0.2.2');
   }
 
   Widget _buildNotificationBell(BuildContext context) {
@@ -201,17 +213,41 @@ class _HomeScreenState extends State<HomeScreen> {
                 // --- PROFILE & NOTIFICATION HEADER ---
                 Row(
                   children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: const Color(0xFF1068A3).withOpacity(0.1),
-                      child: Text(
-                        initial,
-                        style: GoogleFonts.plusJakartaSans(
-                          color: const Color(0xFF1068A3),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                      ),
+                    ValueListenableBuilder<Uint8List?>(
+                      valueListenable: ProfileStore.photo,
+                      builder: (ctx, localBytes, _) {
+                        if (localBytes != null) {
+                          return CircleAvatar(
+                            radius: 20,
+                            backgroundImage: MemoryImage(localBytes),
+                          );
+                        }
+                        return ValueListenableBuilder<String>(
+                          valueListenable: ProfileStore.photoUrl,
+                          builder: (ctx2, url, _) {
+                            if (url.isNotEmpty) {
+                              return CircleAvatar(
+                                radius: 20,
+                                backgroundImage: NetworkImage(_mapImageUrl(url)),
+                                onBackgroundImageError: (_, __) {},
+                                backgroundColor: const Color(0xFF1068A3).withOpacity(0.1),
+                              );
+                            }
+                            return CircleAvatar(
+                              radius: 20,
+                              backgroundColor: const Color(0xFF1068A3).withOpacity(0.1),
+                              child: Text(
+                                initial,
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: const Color(0xFF1068A3),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -965,12 +1001,15 @@ class UpcomingSessionSection extends StatelessWidget {
           children: [
             Icon(icon, size: 14, color: const Color(0xFF1068A3)),
             const SizedBox(width: 8),
-            Text(
-              text,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1A2D3D),
+            Expanded(
+              child: Text(
+                text,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF1A2D3D),
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],

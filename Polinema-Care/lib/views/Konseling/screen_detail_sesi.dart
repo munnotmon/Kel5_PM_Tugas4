@@ -408,7 +408,6 @@ class _ScreenDetailSesiState extends State<ScreenDetailSesi> {
     final name = AuthController.currentUserName;
     final nim = AuthController.currentUserNim;
     final prodi = AuthController.currentUserProdi;
-    final angkatan = AuthController.currentUserAngkatan;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -486,7 +485,7 @@ class _ScreenDetailSesiState extends State<ScreenDetailSesi> {
                 style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.grey[500]),
               ),
               Text(
-                prodi.isNotEmpty ? '$prodi (Angkatan $angkatan)' : '-',
+                prodi.isNotEmpty ? prodi : '-',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,

@@ -425,14 +425,17 @@ class _LaporanStep3PageState extends State<LaporanStep3Page> {
           ),
         ),
         const SizedBox(height: 10),
-        Text(
-          'KERAHASIAAN ANDA ADALAH PRIORITAS KAMI.\nDATA INI AKAN DIPROSES DENGAN PROTOKOL\nKEAMANAN TINGGI.',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 10,
-            color: Colors.grey[400],
-            letterSpacing: 0.3,
-            fontWeight: FontWeight.w500,
+        SizedBox(
+          width: double.infinity,
+          child: Text(
+            'KERAHASIAAN ANDA ADALAH PRIORITAS KAMI.\nDATA INI AKAN DIPROSES DENGAN PROTOKOL\nKEAMANAN TINGGI.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 10,
+              color: Colors.grey[400],
+              letterSpacing: 0.3,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       ],

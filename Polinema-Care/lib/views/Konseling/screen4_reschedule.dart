@@ -278,10 +278,8 @@ class _Screen4RescheduleState extends State<Screen4Reschedule> {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    const Icon(Icons.star, color: Colors.amber, size: 13),
-                    const SizedBox(width: 4),
                     Text(
-                      '${konselor['rating'] ?? '5.0'} (${konselor['sessions'] ?? '0'} sesi)',
+                      'Konselor Aktif',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         color: Colors.grey[600],

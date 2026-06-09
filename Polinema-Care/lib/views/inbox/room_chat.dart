@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../controllers/chat_controller.dart';
 import '../../models/chat_model.dart';
+import '../../services/api_service.dart';
 
 class RoomChatPage extends StatefulWidget {
   final Map<String, dynamic> counselorData;
@@ -211,24 +212,14 @@ class _RoomChatPageState extends State<RoomChatPage> {
           final caption = captionController.text.trim();
           final textToSend = caption.isNotEmpty ? caption : 'Lampiran Gambar';
           
-          Future<bool> future;
-          if (kIsWeb) {
-            future = ChatController.sendMessage(
-              _session.name,
-              textToSend,
-              konselingId: _session.konselingId,
-              imageBytes: imageBytes,
-              imageName: image.name,
-              imagePath: image.path,
-            );
-          } else {
-            future = ChatController.sendMessage(
-              _session.name,
-              textToSend,
-              konselingId: _session.konselingId,
-              imagePath: image.path,
-            );
-          }
+          final future = ChatController.sendMessage(
+            _session.name,
+            textToSend,
+            konselingId: _session.konselingId,
+            imageBytes: imageBytes,
+            imageName: image.name,
+            imagePath: image.path,
+          );
           
           // Rebuild UI secara instan
           if (mounted) {
@@ -468,6 +459,7 @@ class _RoomChatPageState extends State<RoomChatPage> {
                                       ? Image.network(
                                           msg.imagePath!,
                                           width: 220,
+                                          headers: ApiService.imageHeaders,
                                           fit: BoxFit.cover,
                                         )
                                       : Image.file(

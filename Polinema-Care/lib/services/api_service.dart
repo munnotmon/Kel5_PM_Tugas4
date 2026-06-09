@@ -4,11 +4,22 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // Set true jika ingin memakai ngrok, set false jika memakai local
-  static const bool useNgrok = false;
+  static const bool useNgrok = true;
 
   static const String baseUrl = useNgrok
-      ? 'https://gleeful-geek-unwashed.ngrok-free.dev/api'
+      ? 'https://engraver-stride-chatter.ngrok-free.dev/api'
       : (kIsWeb ? 'http://localhost:8000/api' : 'http://127.0.0.1:8000/api');
+
+  static String buildImageUrl(String path) {
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return '$baseUrl/storage/$cleanPath';
+  }
+
+  // Header wajib untuk Image.network() agar ngrok tidak redirect ke halaman warning
+  static Map<String, String> get imageHeaders => useNgrok
+      ? {'ngrok-skip-browser-warning': 'true'}
+      : {};
 
   static String? _token;
 
@@ -17,6 +28,7 @@ class ApiService {
   }
 
   static bool get isAuthenticated => _token != null;
+  static String? get token => _token;
 
   static Map<String, String> _getHeaders() {
     final headers = {
@@ -29,10 +41,13 @@ class ApiService {
     return headers;
   }
 
+  static const _timeout = Duration(seconds: 15);
+  static const _uploadTimeout = Duration(seconds: 60);
+
   static Future<http.Response> get(String endpoint) async {
     final url = Uri.parse('$baseUrl$endpoint');
     try {
-      return await http.get(url, headers: _getHeaders());
+      return await http.get(url, headers: _getHeaders()).timeout(_timeout);
     } catch (e) {
       return http.Response(jsonEncode({'success': false, 'message': 'Koneksi ke server gagal: $e'}), 500);
     }
@@ -45,7 +60,7 @@ class ApiService {
         url,
         headers: _getHeaders(),
         body: jsonEncode(body),
-      );
+      ).timeout(_timeout);
     } catch (e) {
       return http.Response(jsonEncode({'success': false, 'message': 'Koneksi ke server gagal: $e'}), 500);
     }
@@ -64,11 +79,14 @@ class ApiService {
         request.headers['Authorization'] = 'Bearer $_token';
       }
       request.headers['Accept'] = 'application/json';
+      if (useNgrok) {
+        request.headers['ngrok-skip-browser-warning'] = 'true';
+      }
 
       request.fields.addAll(fields);
       request.files.addAll(files);
 
-      final streamedResponse = await request.send();
+      final streamedResponse = await request.send().timeout(_uploadTimeout);
       return await http.Response.fromStream(streamedResponse);
     } catch (e) {
       return http.Response(jsonEncode({'success': false, 'message': 'Upload file gagal: $e'}), 500);

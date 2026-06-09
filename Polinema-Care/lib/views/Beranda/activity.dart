@@ -405,7 +405,7 @@ class _TabLaporanState extends State<_TabLaporan> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: Stack(
-          children: [
+            children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 24, 120, 24),
               child: Column(
@@ -421,7 +421,7 @@ class _TabLaporanState extends State<_TabLaporan> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Jangan diam. Laporkan kejadian secara aman, rahasia, dan terpercaya di sini.',
+                    'Jangan diam. Laporkan kejadian\nsecara aman, rahasia & terpercaya.',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       color: const Color(0xFF1E40AF).withOpacity(0.8),
@@ -965,8 +965,8 @@ class _TabKonselingState extends State<_TabKonseling> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
-        child: Stack(
-          children: [
+          child: Stack(
+            children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 24, 120, 24),
               child: Column(

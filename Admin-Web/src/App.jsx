@@ -225,6 +225,21 @@ const IconX = ({ size = 14, style }) => (
   </svg>
 );
 
+const IconEye = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const IconEyeOff = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+    <line x1="1" y1="1" x2="23" y2="23" />
+  </svg>
+);
+
 const IconCheckCircle = ({ size = 16, style }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
@@ -246,10 +261,16 @@ const IconDoubleCheck = ({ size = 14, style, color = 'currentColor' }) => (
 );
 
 // Configure Axios defaults
-const useNgrok = false;
-axios.defaults.baseURL = useNgrok 
-  ? 'https://gleeful-geek-unwashed.ngrok-free.dev/api'
+const useNgrok = true;
+axios.defaults.baseURL = useNgrok
+  ? 'https://engraver-stride-chatter.ngrok-free.dev/api'
   : 'http://localhost:8000/api';
+
+const getImageUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${axios.defaults.baseURL}/storage/${path}`;
+};
 
 // Add request interceptor to attach bearer token
 axios.interceptors.request.use(
@@ -338,7 +359,7 @@ function App() {
 
   // Reset Password Mahasiswa States
   const [resettingUser, setResettingUser] = useState(null);
-  const [resetPasswordForm, setResetPasswordForm] = useState({ password: '' });
+  const [resetPasswordForm, setResetPasswordForm] = useState({ password: '', showPassword: false });
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
 
   // Selesai Sesi Modal States
@@ -768,6 +789,7 @@ function App() {
     setKonselorSaving(true);
     setKonselorFormError('');
     const f = konselorForm;
+
     const payload = {
       nama: f.nama,
       spesialisasi: f.spesialisasi,
@@ -777,10 +799,10 @@ function App() {
       spesialisasi_list: f.spesialisasi_list.split(',').map((s) => s.trim()).filter(Boolean),
       jam_tersedia: f.jam_tersedia.split(',').map((s) => s.trim()).filter(Boolean),
       hari_praktik: f.hari_praktik,
-      foto_profil: f.foto_profil || null,
       nomor_telepon: f.nomor_telepon || null,
       pendidikan: f.pendidikan.filter((r) => r.title || r.subtitle),
       pengalaman: f.pengalaman.filter((r) => r.title || r.subtitle),
+      foto_profil: f.foto_profil || null,
     };
     try {
       const res = await axios.post('/konselor/me', payload);
@@ -886,17 +908,30 @@ function App() {
 
   const handleResetPasswordPrompt = (u) => {
     setResettingUser(u);
-    setResetPasswordForm({ password: '' });
+    setResetPasswordForm({ password: '', showPassword: false });
     setShowResetPasswordModal(true);
   };
 
   const handleSaveResetPassword = async (e) => {
     e.preventDefault();
+    const pwd = resetPasswordForm.password;
+    if (pwd.length < 8) {
+      setError('Kata sandi minimal 8 karakter.');
+      return;
+    }
+    if (!/\d/.test(pwd)) {
+      setError('Kata sandi harus mengandung setidaknya satu angka.');
+      return;
+    }
+    if (!/[@#$%^&*!_]/.test(pwd)) {
+      setError('Kata sandi harus mengandung karakter khusus (@, #, $, _).');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
       const res = await axios.post(`/mahasiswa/${resettingUser.id}/reset-password`, {
-        password: resetPasswordForm.password,
+        password: pwd,
       });
       if (res.data.success) {
         setSuccessAlertMsg(`Kata sandi mahasiswa "${resettingUser.nama}" berhasil direset.`);
@@ -1089,6 +1124,7 @@ function App() {
   }
 
   const hasNewReports = reports.some(r => r.status === 'Menunggu');
+  const hasNewSessions = sessions.some(s => s.status === 'Diajukan');
   const hasUnreadChats = sessions.some(s => 
     (s.status === 'Diterima' || s.status === 'Berlangsung') &&
     s.pesan?.some(m => m.sender_id !== user?.id && m.status_pesan === 'Terkirim')
@@ -1160,9 +1196,25 @@ function App() {
                   <IconSchedule />
                   {!sidebarCollapsed && <span>Jadwal Konseling</span>}
                 </li>
-                <li className={`menu-item ${activeTab === 'konseling' ? 'active' : ''}`} onClick={() => { setActiveTab('konseling'); setActiveChatSession(null); }} title={sidebarCollapsed ? "Pemesanan Konseling" : ""}>
-                  <IconBooking />
-                  {!sidebarCollapsed && <span>Pemesanan Konseling</span>}
+                <li className={`menu-item ${activeTab === 'konseling' ? 'active' : ''}`} onClick={() => { setActiveTab('konseling'); setActiveChatSession(null); }} style={sidebarCollapsed ? { justifyContent: 'center' } : { display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} title={sidebarCollapsed ? "Pemesanan Konseling" : ""}>
+                  {sidebarCollapsed ? (
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <IconBooking />
+                      {hasNewSessions && (
+                        <span style={{ position: 'absolute', top: '-4px', right: '-4px', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <IconBooking />
+                        <span>Pemesanan Konseling</span>
+                      </span>
+                      {hasNewSessions && (
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444', marginRight: '8px' }} />
+                      )}
+                    </>
+                  )}
                 </li>
                 <li className={`menu-item ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => { setActiveTab('chat'); }} style={sidebarCollapsed ? { justifyContent: 'center' } : { display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} title={sidebarCollapsed ? "Chat Konseling" : ""}>
                   {sidebarCollapsed ? (
@@ -1517,7 +1569,7 @@ function App() {
                 <img
                   src={konselorForm.foto_profil || `https://i.pravatar.cc/120?u=${encodeURIComponent(konselorForm.nama)}`}
                   alt={konselorForm.nama}
-                  style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--primary)' }}
+                  style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--primary)', flexShrink: 0 }}
                   onError={(e) => { e.target.src = 'https://via.placeholder.com/120?text=Profile'; }}
                 />
                 <div>
@@ -1558,7 +1610,7 @@ function App() {
                       <label>Nomor Telepon</label>
                       <input value={konselorForm.nomor_telepon} onChange={e => setKonselorField('nomor_telepon', e.target.value)} placeholder="cth: 08123456789" />
                     </div>
-                    <div className="form-group">
+                    <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                       <label>URL Foto Profil</label>
                       <input value={konselorForm.foto_profil} onChange={e => setKonselorField('foto_profil', e.target.value)} placeholder="https://..." />
                     </div>
@@ -1970,7 +2022,7 @@ function App() {
                         {s.tipe === 'laporan' ? (
                           <span style={{ fontSize: '0.75rem', color: 'var(--warning)', fontWeight: '600', padding: '2px 6px', background: 'rgba(245, 158, 11, 0.15)', borderRadius: '4px' }}>Laporan</span>
                         ) : (
-                          <span style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: '600' }}>Q-{s.nomor_antrian}</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '600', padding: '2px 6px', background: 'rgba(16, 104, 163, 0.12)', borderRadius: '4px' }}>Konseling</span>
                         )}
                       </div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
@@ -2029,11 +2081,11 @@ function App() {
                         </div>
                         {msg.path_gambar && (
                           <div style={{ marginBottom: '0.5rem', maxWidth: '240px' }}>
-                            <img 
-                              src={msg.path_gambar} 
-                              alt="Lampiran" 
-                              style={{ width: '100%', borderRadius: '8px', cursor: 'pointer' }} 
-                              onClick={() => window.open(msg.path_gambar, '_blank')}
+                            <img
+                              src={getImageUrl(msg.path_gambar)}
+                              alt="Lampiran"
+                              style={{ width: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                              onClick={() => window.open(getImageUrl(msg.path_gambar), '_blank')}
                             />
                           </div>
                         )}
@@ -2387,22 +2439,6 @@ function App() {
 
                   {(selectedReport.status === 'Diterima' || selectedReport.status === 'Diproses') && (
                     <>
-                      {selectedReport.status === 'Diterima' && (
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => handleUpdateReportStatus(selectedReport.id, 'Diproses')}
-                          disabled={reportStatusUpdating !== null}
-                          style={{ position: 'relative', minWidth: '95px', padding: '0.5rem 1rem' }}
-                        >
-                          {reportStatusUpdating === 'Diproses' ? (
-                            <>
-                              <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite', marginRight: '6px' }}></span>
-                              Proses...
-                            </>
-                          ) : 'Proses'}
-                        </button>
-                      )}
-
                       <button
                         className="btn btn-secondary btn-sm"
                         onClick={() => handleStartChatForReport(selectedReport)}
@@ -2420,6 +2456,22 @@ function App() {
                           </>
                         )}
                       </button>
+
+                      {selectedReport.status === 'Diterima' && (
+                        <button
+                          className="btn btn-sm"
+                          onClick={() => handleUpdateReportStatus(selectedReport.id, 'Diproses')}
+                          disabled={reportStatusUpdating !== null}
+                          style={{ background: '#6b7280', color: '#fff', border: 'none', position: 'relative', minWidth: '95px', padding: '0.5rem 1rem' }}
+                        >
+                          {reportStatusUpdating === 'Diproses' ? (
+                            <>
+                              <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite', marginRight: '6px' }}></span>
+                              Proses...
+                            </>
+                          ) : 'Proses'}
+                        </button>
+                      )}
 
                       <button
                         className="btn btn-primary btn-sm"
@@ -2690,19 +2742,69 @@ function App() {
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>NIM: {resettingUser.profil_mahasiswa?.nim || resettingUser.nim || '-'}</span>
               </div>
 
-              <div className="form-group">
+              {error && (
+                <div style={{ padding: '0.65rem 0.9rem', backgroundColor: '#fff0f0', border: '1px solid #ffcdd2', borderRadius: '8px', color: '#c62828', fontSize: '0.85rem', fontWeight: '500' }}>
+                  {error}
+                </div>
+              )}
+
+              <div className="form-group" style={{ marginBottom: 0 }}>
                 <label>Kata Sandi Baru *</label>
-                <input
-                  type="password"
-                  placeholder="Masukkan minimal 6 karakter"
-                  value={resetPasswordForm.password}
-                  onChange={e => setResetPasswordForm({ password: e.target.value })}
-                  required
-                  minLength={6}
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={resetPasswordForm.showPassword ? 'text' : 'password'}
+                    placeholder="Masukkan minimal 8 karakter"
+                    value={resetPasswordForm.password}
+                    onChange={e => { setResetPasswordForm(prev => ({ ...prev, password: e.target.value })); setError(''); }}
+                    required
+                    style={{ paddingRight: '2.75rem' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setResetPasswordForm(prev => ({ ...prev, showPassword: !prev.showPassword }))}
+                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 0, display: 'flex', alignItems: 'center' }}
+                  >
+                    {resetPasswordForm.showPassword ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+                  </button>
+                </div>
+
+                {resetPasswordForm.password.length > 0 && (() => {
+                  const pwd = resetPasswordForm.password;
+                  const hasMin = pwd.length >= 8;
+                  const hasNum = /\d/.test(pwd);
+                  const hasSpecial = /[@#$%^&*!_]/.test(pwd);
+                  const score = (hasMin ? 1 : 0) + (hasNum ? 1 : 0) + (hasSpecial ? 1 : 0);
+                  const label = score <= 1 ? 'Lemah' : score === 2 ? 'Sedang' : 'Kuat';
+                  const color = score <= 1 ? '#E53935' : score === 2 ? '#2A7B8A' : '#2A9B6E';
+                  return (
+                    <div style={{ marginTop: '0.85rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: '500' }}>Kekuatan:</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: '700', color }}>{label}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '4px', marginBottom: '0.75rem' }}>
+                        {[0, 1, 2].map(i => (
+                          <div key={i} style={{ flex: 1, height: '4px', borderRadius: '4px', backgroundColor: i < score ? color : 'var(--border-color)', transition: 'background-color 0.2s' }} />
+                        ))}
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                        {[
+                          { label: 'Minimal 8 karakter', ok: hasMin },
+                          { label: 'Mengandung setidaknya satu angka', ok: hasNum },
+                          { label: 'Mengandung karakter khusus (@, #, $, _)', ok: hasSpecial },
+                        ].map(({ label: lbl, ok }) => (
+                          <div key={lbl} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <span style={{ fontSize: '15px', color: ok ? '#2A9B6E' : 'var(--text-secondary)', lineHeight: 1 }}>{ok ? '✓' : '○'}</span>
+                            <span style={{ fontSize: '0.78rem', color: ok ? '#2A9B6E' : 'var(--text-secondary)', fontWeight: ok ? '600' : '400' }}>{lbl}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setShowResetPasswordModal(false)}>Batal</button>
                 <button type="submit" className="btn btn-primary" disabled={loading}>
                   {loading ? 'Menyimpan...' : 'Reset Kata Sandi'}

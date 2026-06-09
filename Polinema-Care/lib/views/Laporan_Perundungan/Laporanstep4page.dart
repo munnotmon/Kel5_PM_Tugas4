@@ -476,10 +476,23 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
               children: lampiran.map((f) => f.toString()).toList().asMap().entries.map((entry) {
                 final i = entry.key;
                 final name = entry.value.split('/').last;
-                final isImage =
-                    name.endsWith('.jpg') ||
-                    name.endsWith('.jpeg') ||
-                    name.endsWith('.png');
+                final ext = name.split('.').last.toLowerCase();
+                final isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext);
+                final isVideo = ['mp4', 'mov', 'avi', 'mkv', '3gp'].contains(ext);
+                final isAudio = ['mp3', 'm4a', 'aac', 'wav', 'ogg'].contains(ext);
+
+                final IconData fileIcon = isImage
+                    ? Icons.image_outlined
+                    : isVideo
+                        ? Icons.videocam_outlined
+                        : isAudio
+                            ? Icons.audiotrack_outlined
+                            : Icons.insert_drive_file_outlined;
+                final Color fileIconColor = isVideo
+                    ? const Color(0xFF1565C0)
+                    : isAudio
+                        ? const Color(0xFF2E7D32)
+                        : const Color(0xFF1A6B8A);
 
                 return Column(
                   children: [
@@ -496,11 +509,9 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
                       child: Row(
                         children: [
                           Icon(
-                            isImage
-                                ? Icons.image_outlined
-                                : Icons.insert_drive_file_outlined,
+                            fileIcon,
                             size: 20,
-                            color: const Color(0xFF1A6B8A),
+                            color: fileIconColor,
                           ),
                           const SizedBox(width: 10),
                           Expanded(

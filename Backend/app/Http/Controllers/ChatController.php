@@ -90,7 +90,7 @@ class ChatController extends Controller
             $sanitizedName = preg_replace('/[^a-zA-Z0-9_]/', '_', $originalName);
             $fileName = time() . '_' . rand(100, 999) . '_' . $sanitizedName . '.' . $extension;
             $file->storeAs('chat', $fileName, 'public');
-            $path = url('api/storage/chat/' . $fileName);
+            $path = 'chat/' . $fileName;
         }
 
         $message = Pesan::create([

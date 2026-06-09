@@ -113,7 +113,6 @@ class KonselorController extends Controller
             'hari_praktik' => 'nullable|array',
             'jam_tersedia' => 'nullable|array',
             'is_online' => 'nullable|boolean',
-            'foto_profil' => 'nullable|string',
             'nomor_telepon' => 'nullable|string|max:20',
         ]);
 
@@ -128,13 +127,51 @@ class KonselorController extends Controller
         $user->fill($request->only([
             'nama', 'spesialisasi', 'rating', 'pengalaman_tahun', 'tentang',
             'spesialisasi_list', 'pendidikan', 'pengalaman', 'hari_praktik',
-            'jam_tersedia', 'foto_profil', 'nomor_telepon',
+            'jam_tersedia', 'nomor_telepon',
         ]));
+
+        if ($request->has('is_online')) {
+            $user->is_online = $request->boolean('is_online');
+        }
+
         $user->save();
 
         return response()->json([
             'success' => true,
             'message' => 'Profil konselor berhasil diperbarui',
+            'data' => $this->transform($user),
+        ]);
+    }
+
+    public function updateMyPhoto(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->role !== 'admin') {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'foto_profil' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File tidak valid',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $file = $request->file('foto_profil');
+        $fileName = time() . '_' . $file->getClientOriginalName();
+        $file->storeAs('foto_profil', $fileName, 'public');
+        $user->foto_profil = asset('storage/foto_profil/' . $fileName);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Foto profil berhasil diperbarui',
             'data' => $this->transform($user),
         ]);
     }

@@ -29,6 +29,10 @@ class AuthController {
       angkatanVal: currentUserAngkatan,
       photoUrlVal: currentUserFoto,
     );
+    // Muat bytes foto yang sudah di-cache dari SharedPreferences
+    if (currentUserEmail.isNotEmpty) {
+      ProfileStore.loadPhotoBytes(currentUserEmail);
+    }
   }
 
   static Future<Map<String, dynamic>> login(String email, String password) async {

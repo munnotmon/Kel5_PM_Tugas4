@@ -37,6 +37,7 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\UpdateLastSeen::class])-
     Route::get('/konselor', [KonselorController::class, 'index']);
     Route::get('/konselor/me', [KonselorController::class, 'myProfile']);
     Route::post('/konselor/me', [KonselorController::class, 'updateMyProfile']);
+    Route::post('/konselor/me/photo', [KonselorController::class, 'updateMyPhoto']);
     Route::get('/konselor/{id}', [KonselorController::class, 'show'])->where('id', '[0-9]+');
     Route::post('/konselor', [KonselorController::class, 'store']);
     Route::post('/konselor/{id}', [KonselorController::class, 'update'])->where('id', '[0-9]+');

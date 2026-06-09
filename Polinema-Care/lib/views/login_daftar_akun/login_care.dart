@@ -62,30 +62,25 @@ class _LoginCareState extends State<LoginCare> {
             content: Row(
               children: [
                 const Icon(
-                  Icons.check_circle_outline,
+                  Icons.check_circle_rounded,
                   color: Colors.white,
-                  size: 20,
+                  size: 18,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Login Berhasil!',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
+                const SizedBox(width: 10),
+                Text(
+                  'Login Berhasil!',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: Colors.white,
                   ),
                 ),
               ],
             ),
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: const Color(0xFF4CAF82),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            margin: const EdgeInsets.only(bottom: 120, left: 24, right: 24),
-            elevation: 4,
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -309,8 +304,14 @@ class _LoginCareState extends State<LoginCare> {
                               if (value == null || value.isEmpty) {
                                 return 'Password wajib diisi';
                               }
-                              if (value.length < 6) {
-                                return 'Password minimal harus 6 karakter';
+                              if (value.length < 8) {
+                                return 'Password minimal 8 karakter';
+                              }
+                              if (!RegExp(r'\d').hasMatch(value)) {
+                                return 'Password harus mengandung setidaknya satu angka';
+                              }
+                              if (!RegExp(r'[@#$%^&*!_]').hasMatch(value)) {
+                                return r'Password harus mengandung karakter khusus (@, #, $, _)';
                               }
                               return null;
                             },

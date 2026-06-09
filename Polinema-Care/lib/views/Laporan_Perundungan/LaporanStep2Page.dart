@@ -1,4 +1,6 @@
 // Lokasi: lib/halaman_pendukung/laporan_step2.dart
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io' show Directory, File;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,8 +9,10 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import '../../controllers/laporan_controller.dart';
 
 class LaporanStep2Page extends StatefulWidget {
@@ -44,6 +48,11 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
   final MapController _mapController = MapController();
   LatLng _selectedLatLng = const LatLng(-7.9666, 112.6326); // Default: Malang
   bool _isLoadingLocation = false;
+
+  // Search suggestions
+  Timer? _searchDebounce;
+  List<Map<String, dynamic>> _searchSuggestions = [];
+  bool _isSearching = false;
 
   // Lampiran
   final List<XFile> _attachments = [];
@@ -122,6 +131,7 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _lokasiController.dispose();
     _deskripsiController.dispose();
     super.dispose();
@@ -189,6 +199,76 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
   }
 
   // =====================================================================
+  // PLACE SEARCH — ketik nama → saran via Nominatim
+  // =====================================================================
+  Future<void> _searchPlaces(String query) async {
+    if (query.trim().length < 3) {
+      if (mounted) setState(() => _searchSuggestions = []);
+      return;
+    }
+    if (mounted) setState(() => _isSearching = true);
+    try {
+      // viewbox = batas Jawa Timur (lon_min,lat_max,lon_max,lat_min), bounded=1 agar hasil tidak keluar area
+      final uri = Uri.parse(
+        'https://nominatim.openstreetmap.org/search'
+        '?format=json&q=${Uri.encodeComponent(query)}&accept-language=id'
+        '&viewbox=110.95,-6.73,114.44,-8.79&bounded=1&limit=6',
+      );
+      final response = await http.get(uri, headers: {'User-Agent': 'PolinemaCarApp/1.0'});
+      if (response.statusCode == 200 && mounted) {
+        final List results = jsonDecode(response.body);
+        setState(() => _searchSuggestions =
+            results.map((e) => Map<String, dynamic>.from(e as Map)).toList());
+      }
+    } catch (_) {
+      if (mounted) setState(() => _searchSuggestions = []);
+    } finally {
+      if (mounted) setState(() => _isSearching = false);
+    }
+  }
+
+  void _selectSuggestion(Map<String, dynamic> suggestion) {
+    final lat = double.tryParse(suggestion['lat']?.toString() ?? '') ?? 0;
+    final lng = double.tryParse(suggestion['lon']?.toString() ?? '') ?? 0;
+    final name = suggestion['display_name'] as String? ?? '';
+    final newLatLng = LatLng(lat, lng);
+    setState(() {
+      _selectedLatLng = newLatLng;
+      _lokasiController.text = name;
+      _searchSuggestions = [];
+    });
+    _mapController.move(newLatLng, 17);
+  }
+
+  // =====================================================================
+  // REVERSE GEOCODING — koordinat → nama tempat via Nominatim
+  // =====================================================================
+  Future<String> _getPlaceName(LatLng latLng) async {
+    try {
+      final uri = Uri.parse(
+        'https://nominatim.openstreetmap.org/reverse'
+        '?format=json&lat=${latLng.latitude}&lon=${latLng.longitude}&accept-language=id',
+      );
+      final response = await http.get(uri, headers: {'User-Agent': 'PolinemaCarApp/1.0'});
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final address = data['address'] as Map<String, dynamic>?;
+        if (address != null) {
+          final parts = [
+            address['amenity'] ?? address['building'] ?? address['road'],
+            address['suburb'] ?? address['neighbourhood'],
+            address['city'] ?? address['town'] ?? address['village'],
+          ].whereType<String>().where((s) => s.isNotEmpty).toList();
+          if (parts.isNotEmpty) return parts.join(', ');
+        }
+        final displayName = data['display_name'] as String?;
+        if (displayName != null && displayName.isNotEmpty) return displayName;
+      }
+    } catch (_) {}
+    return '${latLng.latitude.toStringAsFixed(5)}, ${latLng.longitude.toStringAsFixed(5)}';
+  }
+
+  // =====================================================================
   // GEOLOCATOR — lokasi saat ini
   // =====================================================================
   Future<void> _getCurrentLocation() async {
@@ -253,13 +333,13 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
       );
 
       final newLatLng = LatLng(position.latitude, position.longitude);
+      final placeName = await _getPlaceName(newLatLng);
 
       if (mounted) {
         setState(() {
           _selectedLatLng = newLatLng;
-          _lokasiController.text =
-              '${position.latitude.toStringAsFixed(5)}, '
-              '${position.longitude.toStringAsFixed(5)}';
+          _lokasiController.text = placeName;
+          _searchSuggestions = [];
         });
 
         // Animasikan kamera map ke posisi baru
@@ -300,13 +380,15 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
         );
 
     if (result != null && mounted) {
-      setState(() {
-        _selectedLatLng = result;
-        _lokasiController.text =
-            '${result.latitude.toStringAsFixed(5)}, '
-            '${result.longitude.toStringAsFixed(5)}';
-      });
-      _mapController.move(result, 15);
+      final placeName = await _getPlaceName(result);
+      if (mounted) {
+        setState(() {
+          _selectedLatLng = result;
+          _lokasiController.text = placeName;
+          _searchSuggestions = [];
+        });
+        _mapController.move(result, 15);
+      }
     }
   }
 
@@ -354,6 +436,16 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
                 onTap: () {
                   Navigator.pop(ctx);
                   _pickFromGallery();
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildAttachOption(
+                icon: Icons.audio_file_outlined,
+                label: 'Audio / Video',
+                subtitle: 'Unggah file MP3 atau MP4 dari penyimpanan',
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickAudioVideo();
                 },
               ),
             ],
@@ -442,6 +534,30 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
     }
   }
 
+  // 'image' | 'video' | 'audio'
+  String _fileType(String path) {
+    final ext = path.split('.').last.toLowerCase();
+    if (['mp4', 'mov', 'avi', 'mkv', '3gp'].contains(ext)) return 'video';
+    if (['mp3', 'm4a', 'aac', 'wav', 'ogg'].contains(ext)) return 'audio';
+    return 'image';
+  }
+
+  Future<void> _pickAudioVideo() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['mp3', 'mp4', 'm4a', 'aac', 'mov', 'avi', 'mkv'],
+      allowMultiple: true,
+    );
+    if (result != null && result.files.isNotEmpty && mounted) {
+      setState(() {
+        for (final f in result.files) {
+          if (f.path != null) _attachments.add(XFile(f.path!));
+        }
+        LaporanController.rawFiles = List<XFile>.from(_attachments);
+      });
+    }
+  }
+
   void _removeAttachment(int index) {
     setState(() {
       _attachments.removeAt(index);
@@ -466,7 +582,7 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
       if (_attachments.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Lampiran bukti wajib diunggah (minimal 1 foto/video)'),
+            content: Text('Lampiran bukti wajib diunggah (minimal 1 foto/video/audio)'),
             backgroundColor: Colors.red,
           ),
         );
@@ -678,12 +794,19 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
                   controller: _lokasiController,
                   validator: (val) =>
                       val == null || val.isEmpty ? 'Lokasi wajib diisi' : null,
+                  onChanged: (val) {
+                    _searchDebounce?.cancel();
+                    _searchDebounce = Timer(
+                      const Duration(milliseconds: 500),
+                      () => _searchPlaces(val),
+                    );
+                  },
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     color: const Color(0xFF1A2D3D),
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Cari atau pilih lokasi...',
+                    hintText: 'Ketik nama tempat atau alamat...',
                     hintStyle: GoogleFonts.plusJakartaSans(
                       color: Colors.grey[400],
                       fontSize: 14,
@@ -717,6 +840,64 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
                   ),
                 ),
               ),
+
+              // Dropdown saran pencarian
+              if (_isSearching)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 6),
+                  child: Center(child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1A6B8A)))),
+                ),
+              if (_searchSuggestions.isNotEmpty)
+                Container(
+                  margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                  constraints: const BoxConstraints(maxHeight: 312), // ≈ 6 item × 52px
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 3))],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: ListView.separated(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    physics: const ClampingScrollPhysics(),
+                    itemCount: _searchSuggestions.length,
+                    separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.withOpacity(0.15)),
+                    itemBuilder: (_, i) {
+                      final s = _searchSuggestions[i];
+                      final display = s['display_name'] as String? ?? '';
+                      final parts = display.split(',');
+                      final title = parts.first.trim();
+                      final subtitle = parts.length > 1 ? parts.skip(1).take(2).map((e) => e.trim()).join(', ') : '';
+                      return InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () => _selectSuggestion(s),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.location_on_outlined, size: 18, color: Color(0xFF1A6B8A)),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1A2D3D))),
+                                    if (subtitle.isNotEmpty)
+                                      Text(subtitle, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: Colors.grey[500]), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  ),
+                ),
 
               // Flutter Map — tap untuk buka fullscreen
               GestureDetector(
@@ -1102,26 +1283,43 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: FutureBuilder<Uint8List>(
-                        future: _attachments[i].readAsBytes(),
-                        builder: (ctx, snap) {
-                          if (snap.hasData) {
-                            return Image.memory(
-                              snap.data!,
+                      child: Builder(builder: (_) {
+                        final type = _fileType(_attachments[i].path);
+                        if (type == 'video') {
+                          return Container(
+                            width: 80, height: 80,
+                            color: const Color(0xFFE3F2FD),
+                            child: const Icon(Icons.videocam, size: 36, color: Color(0xFF1A6B8A)),
+                          );
+                        }
+                        if (type == 'audio') {
+                          return Container(
+                            width: 80, height: 80,
+                            color: const Color(0xFFE8F5E9),
+                            child: const Icon(Icons.audiotrack, size: 36, color: Color(0xFF2E7D32)),
+                          );
+                        }
+                        return FutureBuilder<Uint8List>(
+                          future: _attachments[i].readAsBytes(),
+                          builder: (ctx, snap) {
+                            if (snap.hasData) {
+                              return Image.memory(
+                                snap.data!,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              );
+                            }
+                            return const SizedBox(
                               width: 80,
                               height: 80,
-                              fit: BoxFit.cover,
+                              child: Center(
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
                             );
-                          }
-                          return const SizedBox(
-                            width: 80,
-                            height: 80,
-                            child: Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          );
-                        },
-                      ),
+                          },
+                        );
+                      }),
                     ),
                   ),
                   Positioned(
@@ -1189,7 +1387,7 @@ class _LaporanStep2PageState extends State<LaporanStep2Page> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Foto, Video, atau Tangkapan Layar (Maks. 1GB)',
+                  'Foto, Video, Audio, atau Tangkapan Layar (Maks. 1GB)',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     color: Colors.grey[500],

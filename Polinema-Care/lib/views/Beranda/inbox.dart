@@ -29,12 +29,13 @@ class _InboxPageState extends State<InboxPage> {
   }
 
   Future<void> _loadChats() async {
-    setState(() => _isLoading = true);
+    // Tampilkan data cache dulu agar UI tidak freeze
+    if (ChatController.allChats.isNotEmpty) {
+      setState(() => _isLoading = false);
+    }
     await ChatController.fetchChats();
     if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 

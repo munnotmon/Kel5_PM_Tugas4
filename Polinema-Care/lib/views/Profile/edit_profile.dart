@@ -9,7 +9,6 @@ import '../login_daftar_akun/input_decoration_helper.dart';
 import 'profile_store.dart';
 import '../../services/api_service.dart';
 import '../../controllers/auth_controller.dart';
-
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
 
@@ -83,10 +82,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() => _isSaving = false);
 
     if (result['success'] == true) {
-      // If photo was selected, read as bytes to keep ProfileStore.photo (local image) updated
+      // Simpan bytes foto ke SharedPreferences agar persisten lintas sesi
       if (_profileImage != null) {
         final bytes = await _profileImage!.readAsBytes();
-        ProfileStore.photo.value = bytes;
+        ProfileStore.savePhotoBytes(AuthController.currentUserEmail, bytes);
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -457,29 +456,43 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         return Container(color: const Color(0xFFE8D5C4));
                       },
                     )
-                  : (ProfileStore.photoUrl.value.isNotEmpty
-                      ? Image.network(
-                          _mapImageUrl(ProfileStore.photoUrl.value),
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                          errorBuilder: (ctx, error, stackTrace) => Container(
-                            color: const Color(0xFFE8D5C4),
-                            child: const Icon(
-                              Icons.person,
-                              size: 64,
-                              color: Colors.white54,
+                  : ValueListenableBuilder<Uint8List?>(
+                      valueListenable: ProfileStore.photo,
+                      builder: (ctx, localBytes, _) {
+                        if (localBytes != null) {
+                          return Image.memory(
+                            localBytes,
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          );
+                        }
+                        if (ProfileStore.photoUrl.value.isNotEmpty) {
+                          return Image.network(
+                            _mapImageUrl(ProfileStore.photoUrl.value),
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                            errorBuilder: (ctx, error, stackTrace) => Container(
+                              color: const Color(0xFFE8D5C4),
+                              child: const Icon(
+                                Icons.person,
+                                size: 64,
+                                color: Colors.white54,
+                              ),
                             ),
-                          ),
-                        )
-                      : Container(
+                          );
+                        }
+                        return Container(
                           color: const Color(0xFFE8D5C4),
                           child: const Icon(
                             Icons.person,
                             size: 64,
                             color: Colors.white54,
                           ),
-                        )),
+                        );
+                      },
+                    ),
             ),
           ),
           Positioned(

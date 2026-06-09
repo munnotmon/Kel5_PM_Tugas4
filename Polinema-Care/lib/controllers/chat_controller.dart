@@ -12,7 +12,11 @@ class ChatController {
 
   static List<ChatSession> get allChats => _allChats;
 
+  static bool _isFetching = false;
+
   static Future<List<ChatSession>> fetchChats() async {
+    if (_isFetching) return _allChats;
+    _isFetching = true;
     try {
       final response = await ApiService.get('/konseling');
       final body = jsonDecode(response.body);
@@ -36,7 +40,8 @@ class ChatController {
             final isMe = m['sender_id'] == AuthController.currentUser?['id'];
             final createdAt = m['created_at']?.toString() ?? '';
             final timeStr = _formatTime(createdAt);
-            final imagePath = m['path_gambar'] as String?;
+            final rawPath = m['path_gambar'] as String?;
+            final imagePath = rawPath != null ? ApiService.buildImageUrl(rawPath) : null;
             final status = m['status_pesan'] ?? 'Terkirim';
             return ChatMessage(
               text: text,
@@ -74,6 +79,8 @@ class ChatController {
       }
     } catch (e) {
       print('Error fetching chats: $e');
+    } finally {
+      _isFetching = false;
     }
     return _allChats;
   }
@@ -97,7 +104,8 @@ class ChatController {
           final isMe = m['sender_id'] == AuthController.currentUser?['id'];
           final createdAt = m['created_at']?.toString() ?? '';
           final timeStr = _formatTime(createdAt);
-          final imagePath = m['path_gambar'] as String?;
+          final rawPath = m['path_gambar'] as String?;
+          final imagePath = rawPath != null ? ApiService.buildImageUrl(rawPath) : null;
           final status = m['status_pesan'] ?? 'Terkirim';
           return ChatMessage(
             text: text,
@@ -203,8 +211,11 @@ class ChatController {
           });
         }
         final body = jsonDecode(response.body);
+        print('[ChatController] sendMessage response ${response.statusCode}: ${response.body}');
         if ((response.statusCode == 201 || response.statusCode == 200) && body['success'] == true) {
-          final returnedPath = body['data']?['path_gambar'] as String?;
+          final rawReturnedPath = body['data']?['path_gambar'] as String?;
+          print('[ChatController] path_gambar dari server: $rawReturnedPath');
+          final returnedPath = rawReturnedPath != null ? ApiService.buildImageUrl(rawReturnedPath) : null;
           if (returnedPath != null) {
             final idx = session.messages.indexOf(tempMsg);
             if (idx != -1) {
@@ -218,7 +229,7 @@ class ChatController {
           }
           return true;
         } else {
-          print('sendMessage failed. Status: ${response.statusCode}, Body: ${response.body}');
+          print('[ChatController] sendMessage failed. Status: ${response.statusCode}, Body: ${response.body}');
         }
       } catch (e) {
         print('Error sending message: $e');
