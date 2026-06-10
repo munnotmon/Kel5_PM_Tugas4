@@ -222,7 +222,7 @@ class _CounselorProfilePageState extends State<CounselorProfilePage> {
         dayName = "Minggu";
         break;
     }
-    return "$dayName, ${dt.day} ${_getIndonesianMonthName(dt.month)}";
+    return "$dayName, ${dt.day} ${_getIndonesianMonthName(dt.month)} ${dt.year}";
   }
 
   @override

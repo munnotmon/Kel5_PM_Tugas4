@@ -17,6 +17,7 @@ class _Screen4RescheduleState extends State<Screen4Reschedule> {
   int _selectedDateIndex = 0;
   int _selectedTimeIndex = -1;
   List<String> _availableTimes = [];
+  String _selectedMode = 'Offline';
   final TextEditingController _reasonController = TextEditingController();
 
   List<DateTime> _availableDates = [];
@@ -158,7 +159,7 @@ class _Screen4RescheduleState extends State<Screen4Reschedule> {
 
   String _formatFullDate(DateTime dt) {
     final days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    return '${days[dt.weekday % 7]}, ${dt.day} ${_getIndonesianMonthName(dt.month)}';
+    return '${days[dt.weekday % 7]}, ${dt.day} ${_getIndonesianMonthName(dt.month)} ${dt.year}';
   }
 
   String _getDayName(DateTime date) {
@@ -210,6 +211,10 @@ class _Screen4RescheduleState extends State<Screen4Reschedule> {
 
                 // --- AVAILABLE TIME ---
                 _buildTimeSection(),
+                const SizedBox(height: 28),
+
+                // --- MODE ---
+                _buildModeSelector(),
                 const SizedBox(height: 28),
 
                 // --- REASON ---
@@ -472,8 +477,9 @@ class _Screen4RescheduleState extends State<Screen4Reschedule> {
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFF0F4F8),
-            borderRadius: BorderRadius.circular(20),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: Colors.grey.shade300),
           ),
           child: TextField(
             controller: _reasonController,
@@ -491,6 +497,64 @@ class _Screen4RescheduleState extends State<Screen4Reschedule> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildModeSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Metode Konseling',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF1A2D3D),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            _modeButton('Offline', Icons.location_on_outlined),
+            const SizedBox(width: 12),
+            _modeButton('Online', Icons.videocam_outlined),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _modeButton(String mode, IconData icon) {
+    final active = _selectedMode == mode;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedMode = mode),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: active ? const Color(0xFF1068A3) : Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(
+              color: active ? const Color(0xFF1068A3) : Colors.grey.shade300,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 18, color: active ? Colors.white : Colors.grey),
+              const SizedBox(width: 8),
+              Text(
+                mode,
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: active ? Colors.white : Colors.grey[700],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -580,7 +644,7 @@ class _Screen4RescheduleState extends State<Screen4Reschedule> {
                             'counselor': konselor,
                             'tanggal': _formatFullDate(selectedDate),
                             'waktu': selectedTime,
-                            'mode': widget.counselorData?['mode'] ?? 'Online',
+                            'mode': _selectedMode,
                           },
                         );
                       }

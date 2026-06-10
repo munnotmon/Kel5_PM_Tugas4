@@ -348,6 +348,7 @@ function App() {
   const [superAdmins, setSuperAdmins] = useState([]);
   const [loadingChatForReport, setLoadingChatForReport] = useState(false);
   const [newAdminForm, setNewAdminForm] = useState({ nama: '', email: '', password: '', nomor_telepon: '', role: 'admin' });
+  const [showNewAdminPassword, setShowNewAdminPassword] = useState(false);
   const [adminRegistering, setAdminRegistering] = useState(false);
   const [adminRegisterError, setAdminRegisterError] = useState('');
   const [adminRegisterSuccess, setAdminRegisterSuccess] = useState('');
@@ -355,6 +356,7 @@ function App() {
   // Edit/Delete Counselor States
   const [editingCounselor, setEditingCounselor] = useState(null);
   const [editForm, setEditForm] = useState({ nama: '', email: '', password: '', nomor_telepon: '', role: 'admin' });
+  const [showEditPassword, setShowEditPassword] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
   // Reset Password Mahasiswa States
@@ -404,6 +406,7 @@ function App() {
   const [konselorSaving, setKonselorSaving] = useState(false);
   const [konselorFormError, setKonselorFormError] = useState('');
   const [konselorLoaded, setKonselorLoaded] = useState(false);
+  const konselorLoadedRef = useRef(false);
 
   // Detail Modal States
   const [selectedReport, setSelectedReport] = useState(null);
@@ -511,13 +514,15 @@ function App() {
         return;
       }
 
-      const results = await Promise.all([
+      const baseRequests = [
         axios.get('/laporan'),
         axios.get('/jadwal'),
         axios.get('/konseling'),
         axios.get('/mahasiswa'),
-        axios.get('/konselor/me'),
-      ]);
+      ];
+      if (!silent) baseRequests.push(axios.get('/konselor/me'));
+
+      const results = await Promise.all(baseRequests);
       const [repRes, schedRes, sessRes, mhsRes, lastRes] = results;
 
       if (repRes.data.success) setReports(repRes.data.data);
@@ -764,12 +769,17 @@ function App() {
   const setKonselorField = (key, value) => setKonselorForm((f) => ({ ...f, [key]: value }));
 
   const toggleKonselorDay = (d) => {
-    setKonselorForm((f) => ({
-      ...f,
-      hari_praktik: f.hari_praktik.includes(d)
-        ? f.hari_praktik.filter((x) => x !== d)
-        : [...f.hari_praktik, d].sort((a, b) => a - b),
-    }));
+    setKonselorForm((f) => {
+      if (f.hari_praktik.includes(d)) {
+        return { ...f, hari_praktik: f.hari_praktik.filter((x) => x !== d) };
+      }
+      if (f.hari_praktik.length >= 3) {
+        setKonselorFormError('Maksimal 3 hari praktik yang dapat dipilih.');
+        return f;
+      }
+      setKonselorFormError('');
+      return { ...f, hari_praktik: [...f.hari_praktik, d].sort((a, b) => a - b) };
+    });
   };
 
   const updateKonselorRow = (field, idx, key, value) => {
@@ -819,9 +829,22 @@ function App() {
 
   const handleRegisterAdmin = async (e) => {
     e.preventDefault();
-    setAdminRegistering(true);
     setAdminRegisterError('');
     setAdminRegisterSuccess('');
+    const pwd = newAdminForm.password;
+    if (pwd.length < 8) {
+      setAdminRegisterError('Password minimal 8 karakter.');
+      return;
+    }
+    if (!/\d/.test(pwd)) {
+      setAdminRegisterError('Password harus mengandung setidaknya satu angka.');
+      return;
+    }
+    if (!/[@#$%^&*!_]/.test(pwd)) {
+      setAdminRegisterError('Password harus mengandung karakter khusus (@, #, $, %, ^, &, *, !, _).');
+      return;
+    }
+    setAdminRegistering(true);
     try {
       // POST /konselor membuat user sesuai role yang dipilih (admin / superadmin).
       const res = await axios.post('/konselor', {
@@ -854,13 +877,29 @@ function App() {
       nomor_telepon: counselor.nomor_telepon || '',
       role: counselor.role || 'admin'
     });
+    setShowEditPassword(false);
     setShowEditModal(true);
   };
 
   const handleSaveEditCounselor = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+    if (editForm.password) {
+      const pwd = editForm.password;
+      if (pwd.length < 8) {
+        setError('Password minimal 8 karakter.');
+        return;
+      }
+      if (!/\d/.test(pwd)) {
+        setError('Password harus mengandung setidaknya satu angka.');
+        return;
+      }
+      if (!/[@#$%^&*!_]/.test(pwd)) {
+        setError('Password harus mengandung karakter khusus (@, #, $, %, ^, &, *, !, _).');
+        return;
+      }
+    }
+    setLoading(true);
     try {
       const payload = {
         nama: editForm.nama,
@@ -1467,13 +1506,23 @@ function App() {
 
                   <div className="form-group">
                     <label>Password *</label>
-                    <input
-                      type="password"
-                      value={newAdminForm.password}
-                      onChange={e => setNewAdminForm({ ...newAdminForm, password: e.target.value })}
-                      required
-                      placeholder="Minimal 6 karakter"
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showNewAdminPassword ? 'text' : 'password'}
+                        value={newAdminForm.password}
+                        onChange={e => setNewAdminForm({ ...newAdminForm, password: e.target.value })}
+                        required
+                        placeholder="Min. 8 karakter, angka, dan karakter khusus"
+                        style={{ paddingRight: '2.75rem' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewAdminPassword(v => !v)}
+                        style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 0, display: 'flex', alignItems: 'center' }}
+                      >
+                        {showNewAdminPassword ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="form-group">
@@ -2645,12 +2694,22 @@ function App() {
 
               <div className="form-group">
                 <label>Password (Kosongkan jika tidak diubah)</label>
-                <input
-                  type="password"
-                  placeholder="Minimal 6 karakter"
-                  value={editForm.password}
-                  onChange={e => setEditForm({ ...editForm, password: e.target.value })}
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showEditPassword ? 'text' : 'password'}
+                    placeholder="Min. 8 karakter, angka, dan karakter khusus"
+                    value={editForm.password}
+                    onChange={e => setEditForm({ ...editForm, password: e.target.value })}
+                    style={{ paddingRight: '2.75rem' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowEditPassword(v => !v)}
+                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 0, display: 'flex', alignItems: 'center' }}
+                  >
+                    {showEditPassword ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+                  </button>
+                </div>
               </div>
 
               <div className="form-group">

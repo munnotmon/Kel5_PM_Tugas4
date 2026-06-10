@@ -22,7 +22,6 @@ import 'views/Konseling/cari_konselor.dart';
 import 'views/Konseling/profil_konselor.dart';
 import 'views/Konseling/konfirmasi_konseling.dart';
 import 'views/Konseling/sukses_konseling.dart';
-import 'views/Konseling/screen1_detail_konseling.dart';
 import 'views/Konseling/screen3_detail_history.dart';
 import 'views/Konseling/screen4_reschedule.dart';
 import 'views/Konseling/screen_detail_sesi.dart';

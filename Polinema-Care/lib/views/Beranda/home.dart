@@ -229,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               return CircleAvatar(
                                 radius: 20,
                                 backgroundImage: NetworkImage(_mapImageUrl(url)),
-                                onBackgroundImageError: (_, __) {},
+                                onBackgroundImageError: (_, _) {},
                                 backgroundColor: const Color(0xFF1068A3).withOpacity(0.1),
                               );
                             }

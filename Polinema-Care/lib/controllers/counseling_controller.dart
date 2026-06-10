@@ -204,7 +204,7 @@ class CounselingController {
       final response = await ApiService.post('/konseling', {
         'jadwal_id': scheduleId,
         'keluhan': keluhan,
-        if (adminId != null) 'admin_id': adminId,
+        'admin_id': ?adminId,
       });
       final body = jsonDecode(response.body);
       if ((response.statusCode == 201 || response.statusCode == 200) && body['success'] == true) {

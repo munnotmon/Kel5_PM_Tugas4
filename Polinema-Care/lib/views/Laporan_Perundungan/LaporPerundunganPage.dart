@@ -19,18 +19,6 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
   final TextEditingController _nimController = TextEditingController();
   final TextEditingController _teleponController = TextEditingController();
 
-  String? _selectedProdi;
-
-  final List<String> _prodiList = [
-    'Teknologi Informasi',
-    'Teknik Kimia',
-    'Teknik Elektro',
-    'Teknik Mesin',
-    'Teknik Sipil',
-    'Administrasi Niaga',
-    'Akuntansi',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -38,13 +26,6 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
     _namaController.text = d['nama'] ?? AuthController.currentUserName;
     _nimController.text = d['nim'] ?? AuthController.currentUserNim;
     _teleponController.text = d['telepon'] ?? AuthController.currentUserPhone;
-    
-    final initialProdi = d['prodi'] as String?;
-    if (initialProdi != null && initialProdi.isNotEmpty && _prodiList.contains(initialProdi)) {
-      _selectedProdi = initialProdi;
-    } else {
-      _selectedProdi = null;
-    }
   }
 
   void _handleNext() {
@@ -57,7 +38,6 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
         'nama': _namaController.text,
         'nim': _nimController.text,
         'telepon': _teleponController.text,
-        'prodi': _selectedProdi,
       };
 
       if (isEdit) {
@@ -274,10 +254,6 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
           validator: (val) =>
               val == null || val.isEmpty ? 'Nomor telepon wajib diisi' : null,
         ),
-        const SizedBox(height: 20),
-        _buildLabel('Program Studi'),
-        const SizedBox(height: 8),
-        _buildProdiDropdown(),
       ],
     );
   }
@@ -342,169 +318,6 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
           borderSide: const BorderSide(color: Colors.red, width: 1.5),
         ),
       ),
-    );
-  }
-
-  void _showProdiPicker() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Handle bar
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD0D8E4),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Pilih Program Studi',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1A2D3D),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              ..._prodiList.map((prodi) {
-                final isSelected = prodi == _selectedProdi;
-                return InkWell(
-                  onTap: () {
-                    setState(() => _selectedProdi = prodi);
-                    Navigator.pop(context);
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xFF1A6B8A).withOpacity(0.1)
-                          : const Color(0xFFF0F2F5),
-                      borderRadius: BorderRadius.circular(12),
-                      border: isSelected
-                          ? Border.all(
-                              color: const Color(0xFF1A6B8A),
-                              width: 1.5,
-                            )
-                          : null,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            prodi,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
-                              color: isSelected
-                                  ? const Color(0xFF1A6B8A)
-                                  : const Color(0xFF1A2D3D),
-                            ),
-                          ),
-                        ),
-                        if (isSelected)
-                          const Icon(
-                            Icons.check_circle,
-                            color: Color(0xFF1A6B8A),
-                            size: 20,
-                          ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildProdiDropdown() {
-    return FormField<String>(
-      validator: (val) =>
-          _selectedProdi == null ? 'Program studi wajib dipilih' : null,
-      builder: (state) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onTap: _showProdiPicker,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0F2F5),
-                  borderRadius: BorderRadius.circular(12),
-                  border: state.hasError
-                      ? Border.all(color: Colors.red, width: 1.5)
-                      : _selectedProdi != null
-                      ? Border.all(color: const Color(0xFF1A6B8A), width: 1.5)
-                      : null,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _selectedProdi ?? 'Pilih Prodi',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: _selectedProdi != null
-                              ? const Color(0xFF1A2D3D)
-                              : Colors.grey[400],
-                        ),
-                      ),
-                    ),
-                    AnimatedRotation(
-                      turns: 0,
-                      duration: const Duration(milliseconds: 200),
-                      child: const Icon(
-                        Icons.keyboard_arrow_down,
-                        color: Color(0xFF1A6B8A),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            if (state.hasError)
-              Padding(
-                padding: const EdgeInsets.only(top: 6, left: 12),
-                child: Text(
-                  state.errorText!,
-                  style: const TextStyle(color: Colors.red, fontSize: 12),
-                ),
-              ),
-          ],
-        );
-      },
     );
   }
 

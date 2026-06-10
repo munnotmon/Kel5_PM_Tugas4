@@ -488,8 +488,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       _showSnackBar('Konfirmasi kata sandi tidak cocok.', isError: true);
       return;
     }
-    if (newPass.length < 6) {
-      _showSnackBar('Kata sandi baru minimal 6 karakter.', isError: true);
+    if (newPass.length < 8) {
+      _showSnackBar('Kata sandi baru minimal 8 karakter.', isError: true);
+      return;
+    }
+    if (!RegExp(r'\d').hasMatch(newPass)) {
+      _showSnackBar('Kata sandi baru harus mengandung setidaknya satu angka.', isError: true);
+      return;
+    }
+    if (!RegExp(r'[@#$%^&*!_]').hasMatch(newPass)) {
+      _showSnackBar(r'Kata sandi baru harus mengandung karakter khusus (@, #, $, _).', isError: true);
       return;
     }
 
