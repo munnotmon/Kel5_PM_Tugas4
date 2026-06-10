@@ -1,1 +1,4 @@
 #include "Generated.xcconfig"
+
+MAPS_API_KEY = REPLACE_ME_WITH_GOOGLE_MAPS_API_KEY
+#include? "DeveloperSecrets.xcconfig"
