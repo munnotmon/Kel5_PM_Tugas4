@@ -272,6 +272,32 @@ const getImageUrl = (path) => {
   return `${axios.defaults.baseURL}/storage/${path}`;
 };
 
+const getBuktiType = (fileName) => {
+  if (!fileName) return 'other';
+  const ext = fileName.split('.').pop().toLowerCase();
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext)) return 'image';
+  if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext)) return 'video';
+  if (['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'].includes(ext)) return 'audio';
+  return 'other';
+};
+
+const getBuktiUrl = (pathFile) => {
+  if (!pathFile) { console.warn('[getBuktiUrl] pathFile is null/empty'); return null; }
+  const serverRoot = axios.defaults.baseURL.replace(/\/api$/, '');
+  let result;
+  if (pathFile.startsWith('http://') || pathFile.startsWith('https://')) {
+    try {
+      const u = new URL(pathFile);
+      result = `${serverRoot}${u.pathname}`;
+    } catch { result = pathFile; }
+  } else {
+    const cleanPath = pathFile.startsWith('/') ? pathFile : `/storage/${pathFile}`;
+    result = `${serverRoot}${cleanPath}`;
+  }
+  console.log('[getBuktiUrl] raw:', pathFile, '| final:', result);
+  return result;
+};
+
 // Add request interceptor to attach bearer token
 axios.interceptors.request.use(
   (config) => {
@@ -414,6 +440,7 @@ function App() {
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [successAlertMsg, setSuccessAlertMsg] = useState('');
   const [reportStatusUpdating, setReportStatusUpdating] = useState(null);
+  const [previewBukti, setPreviewBukti] = useState(null);
 
   // Form States (New Schedule)
   const [newSchedDate, setNewSchedDate] = useState('');
@@ -2429,17 +2456,26 @@ function App() {
               <div className="info-item">
                 <span className="info-label">Lampiran Bukti</span>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
-                  {selectedReport.bukti?.map(b => (
-                    <a
-                      key={b.id}
-                      href={b.path_file}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="attachment-link"
-                    >
-                      <IconPaperclip size={14} /> {b.nama_file || 'File Bukti'}
-                    </a>
-                  ))}
+                  {selectedReport.bukti?.map(b => {
+                    const url = getBuktiUrl(b.path_file);
+                    const type = getBuktiType(b.nama_file || b.path_file);
+                    return (
+                      <button
+                        key={b.id}
+                        onClick={() => {
+                          if (type === 'other') {
+                            window.open(url, '_blank', 'noopener,noreferrer');
+                          } else {
+                            setPreviewBukti({ url, name: b.nama_file || 'File Bukti', type });
+                          }
+                        }}
+                        className="attachment-link"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit' }}
+                      >
+                        <IconPaperclip size={14} /> {b.nama_file || 'File Bukti'}
+                      </button>
+                    );
+                  })}
                   {(!selectedReport.bukti || selectedReport.bukti.length === 0) && (
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>Tidak ada lampiran bukti diunggah.</p>
                   )}
@@ -2559,6 +2595,70 @@ function App() {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PREVIEW BUKTI MODAL */}
+      {previewBukti && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 9999, padding: '1rem',
+          }}
+          onClick={() => setPreviewBukti(null)}
+        >
+          <div
+            style={{
+              background: '#1a1a1a', borderRadius: '12px', overflow: 'hidden',
+              maxWidth: '90vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column',
+              minWidth: previewBukti.type === 'audio' ? '320px' : 'auto',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 1rem', borderBottom: '1px solid #333', gap: '1rem' }}>
+              <span style={{ color: '#d1d5db', fontSize: '0.82rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '260px' }}>
+                {previewBukti.name}
+              </span>
+              <button
+                onClick={() => setPreviewBukti(null)}
+                style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+              >
+                <IconX size={18} />
+              </button>
+            </div>
+            <div style={{ overflow: 'auto', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.75rem' }}>
+              {previewBukti.type === 'image' && (
+                <img
+                  src={previewBukti.url}
+                  alt={previewBukti.name}
+                  style={{ maxWidth: '80vw', maxHeight: '70vh', objectFit: 'contain', borderRadius: '6px', display: 'block' }}
+                  onError={(e) => console.error('[preview] img failed:', previewBukti.url)}
+                />
+              )}
+              {previewBukti.type === 'video' && (
+                <iframe
+                  key={previewBukti.url}
+                  src={previewBukti.url}
+                  title={previewBukti.name}
+                  allow="autoplay"
+                  style={{ width: '80vw', maxWidth: '860px', height: '60vh', border: 'none', borderRadius: '6px', background: '#000', display: 'block' }}
+                />
+              )}
+              {previewBukti.type === 'audio' && (
+                <div style={{ padding: '1.5rem 2rem', textAlign: 'center', width: '100%' }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🎵</div>
+                  <audio
+                    key={previewBukti.url}
+                    src={previewBukti.url}
+                    controls
+                    style={{ width: '100%', minWidth: '260px', maxWidth: '400px' }}
+                    onError={() => console.error('[preview] audio failed:', previewBukti.url)}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

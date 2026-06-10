@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:video_player/video_player.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../../controllers/laporan_controller.dart';
 
 class LaporanStep4Page extends StatefulWidget {
@@ -497,35 +500,114 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
                 return Column(
                   children: [
                     if (i > 0) const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F7FA),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            fileIcon,
-                            size: 20,
-                            color: fileIconColor,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              name,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 13,
-                                color: const Color(0xFF1A2D3D),
-                                fontWeight: FontWeight.w500,
+                    GestureDetector(
+                      onTap: () {
+                        if (isImage) {
+                          showDialog(
+                            context: context,
+                            builder: (_) => Dialog(
+                              backgroundColor: Colors.transparent,
+                              insetPadding: const EdgeInsets.all(16),
+                              child: Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Image.file(
+                                      File(entry.value),
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (_, __, ___) => Container(
+                                        padding: const EdgeInsets.all(32),
+                                        color: Colors.black87,
+                                        child: const Icon(Icons.broken_image, color: Colors.white, size: 64),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: GestureDetector(
+                                      onTap: () => Navigator.pop(context),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.black54,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.close, color: Colors.white, size: 20),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
+                          );
+                        } else if (isVideo) {
+                          showDialog(
+                            context: context,
+                            builder: (_) => _VideoPreviewDialog(filePath: entry.value, fileName: name),
+                          );
+                        } else if (isAudio) {
+                          showDialog(
+                            context: context,
+                            builder: (_) => _AudioPreviewDialog(filePath: entry.value, fileName: name),
+                          );
+                        } else {
+                          showDialog(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              title: Row(
+                                children: [
+                                  Icon(fileIcon, color: fileIconColor, size: 22),
+                                  const SizedBox(width: 10),
+                                  const Text('Lampiran'),
+                                ],
+                              ),
+                              content: Text(
+                                name,
+                                style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Tutup'),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F7FA),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              fileIcon,
+                              size: 20,
+                              color: fileIconColor,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                name,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13,
+                                  color: const Color(0xFF1A2D3D),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -768,6 +850,308 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
             color: const Color(0xFF1A2D3D),
             height: 1.4,
           ),
+        ),
+      ],
+    );
+  }
+}
+
+// =====================================================================
+// VIDEO PREVIEW DIALOG
+// =====================================================================
+class _VideoPreviewDialog extends StatefulWidget {
+  final String filePath;
+  final String fileName;
+  const _VideoPreviewDialog({required this.filePath, required this.fileName});
+
+  @override
+  State<_VideoPreviewDialog> createState() => _VideoPreviewDialogState();
+}
+
+class _VideoPreviewDialogState extends State<_VideoPreviewDialog> {
+  late VideoPlayerController _controller;
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.file(File(widget.filePath))
+      ..initialize().then((_) {
+        if (mounted) setState(() => _initialized = true);
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  String _formatDuration(Duration d) {
+    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screen = MediaQuery.of(context).size;
+    final maxVideoH = screen.height * 0.45;
+
+    return Dialog(
+      backgroundColor: Colors.black,
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: screen.width * 0.04,
+        vertical: screen.height * 0.06,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: Stack(
+              alignment: Alignment.topRight,
+              children: [
+                _initialized
+                    ? ConstrainedBox(
+                        constraints: BoxConstraints(maxHeight: maxVideoH),
+                        child: AspectRatio(
+                          aspectRatio: _controller.value.aspectRatio,
+                          child: VideoPlayer(_controller),
+                        ),
+                      )
+                    : SizedBox(
+                        height: maxVideoH.clamp(150.0, 220.0),
+                        width: double.infinity,
+                        child: const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        ),
+                      ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(
+                          color: Colors.black54, shape: BoxShape.circle),
+                      child: const Icon(Icons.close, color: Colors.white, size: 20),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_initialized)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Column(
+                children: [
+                  ValueListenableBuilder(
+                    valueListenable: _controller,
+                    builder: (_, VideoPlayerValue val, __) => Column(
+                      children: [
+                        Slider(
+                          value: val.position.inSeconds.toDouble(),
+                          min: 0,
+                          max: val.duration.inSeconds.toDouble().clamp(1, double.infinity),
+                          activeColor: const Color(0xFF1068A3),
+                          onChanged: (v) => _controller.seekTo(Duration(seconds: v.toInt())),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(_formatDuration(val.position),
+                                  style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                              Text(_formatDuration(val.duration),
+                                  style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.replay_10, color: Colors.white),
+                        onPressed: () async {
+                          final pos = await _controller.position ?? Duration.zero;
+                          _controller.seekTo(pos - const Duration(seconds: 10));
+                        },
+                      ),
+                      IconButton(
+                        iconSize: 48,
+                        icon: Icon(
+                          _controller.value.isPlaying ? Icons.pause_circle : Icons.play_circle,
+                          color: Colors.white,
+                        ),
+                        onPressed: () => setState(() {
+                          _controller.value.isPlaying ? _controller.pause() : _controller.play();
+                        }),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.forward_10, color: Colors.white),
+                        onPressed: () async {
+                          final pos = await _controller.position ?? Duration.zero;
+                          _controller.seekTo(pos + const Duration(seconds: 10));
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
+            child: Text(
+              widget.fileName,
+              style: const TextStyle(color: Colors.white60, fontSize: 11),
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// AUDIO PREVIEW DIALOG
+// =====================================================================
+class _AudioPreviewDialog extends StatefulWidget {
+  final String filePath;
+  final String fileName;
+  const _AudioPreviewDialog({required this.filePath, required this.fileName});
+
+  @override
+  State<_AudioPreviewDialog> createState() => _AudioPreviewDialogState();
+}
+
+class _AudioPreviewDialogState extends State<_AudioPreviewDialog> {
+  final AudioPlayer _player = AudioPlayer();
+  PlayerState _playerState = PlayerState.stopped;
+  Duration _position = Duration.zero;
+  Duration _duration = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _player.onPlayerStateChanged.listen((s) {
+      if (mounted) setState(() => _playerState = s);
+    });
+    _player.onPositionChanged.listen((p) {
+      if (mounted) setState(() => _position = p);
+    });
+    _player.onDurationChanged.listen((d) {
+      if (mounted) setState(() => _duration = d);
+    });
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
+
+  String _fmt(Duration d) {
+    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isPlaying = _playerState == PlayerState.playing;
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: const Color(0xFF1A2D3D),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1068A3).withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.audiotrack_rounded, color: Color(0xFF5AB6E5), size: 40),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            widget.fileName,
+            style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 16),
+          Slider(
+            value: _position.inSeconds.toDouble(),
+            min: 0,
+            max: _duration.inSeconds.toDouble().clamp(1, double.infinity),
+            activeColor: const Color(0xFF5AB6E5),
+            inactiveColor: Colors.white24,
+            onChanged: (v) => _player.seek(Duration(seconds: v.toInt())),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(_fmt(_position), style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                Text(_fmt(_duration), style: const TextStyle(color: Colors.white54, fontSize: 11)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.replay_10, color: Colors.white70),
+                onPressed: () => _player.seek(_position - const Duration(seconds: 10)),
+              ),
+              IconButton(
+                iconSize: 56,
+                icon: Icon(
+                  isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                  color: const Color(0xFF5AB6E5),
+                ),
+                onPressed: () async {
+                  if (isPlaying) {
+                    await _player.pause();
+                  } else {
+                    if (_playerState == PlayerState.stopped || _playerState == PlayerState.completed) {
+                      await _player.play(DeviceFileSource(widget.filePath));
+                    } else {
+                      await _player.resume();
+                    }
+                  }
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.forward_10, color: Colors.white70),
+                onPressed: () => _player.seek(_position + const Duration(seconds: 10)),
+              ),
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            _player.stop();
+            Navigator.pop(context);
+          },
+          child: const Text('Tutup', style: TextStyle(color: Color(0xFF5AB6E5))),
         ),
       ],
     );

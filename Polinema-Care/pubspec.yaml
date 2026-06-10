@@ -20,6 +20,8 @@ dependencies:
   geolocator: ^14.0.2
   http: ^1.6.0
   shared_preferences: ^2.5.5
+  video_player: ^2.9.2
+  audioplayers: ^6.1.0
 
 dev_dependencies:
   flutter_test:

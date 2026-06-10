@@ -361,95 +361,95 @@ class _RegisterCareState extends State<RegisterCare> {
                           // 6. Kata Sandi Field
                           _buildFieldLabel("Kata Sandi"),
                           Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              TextFormField(
-                                controller: _passwordController,
-                                obscureText: _isObscure,
-                                onChanged: (value) {
-                                  _resetSubmittedState();
-                                  setState(() {});
-                                },
-                                style: GoogleFonts.plusJakartaSans(),
-                                decoration: PolinemaCareInputDecoration.get(
-                                  hint: 'Buat kata sandi yang kuat',
-                                  icon: Icons.lock_outline,
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _isObscure
-                                          ? Icons.visibility_off_outlined
-                                          : Icons.visibility_outlined,
-                                      color: Colors.black38,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                TextFormField(
+                                  controller: _passwordController,
+                                  obscureText: _isObscure,
+                                  onChanged: (value) {
+                                    _resetSubmittedState();
+                                    setState(() {});
+                                  },
+                                  style: GoogleFonts.plusJakartaSans(),
+                                  decoration: PolinemaCareInputDecoration.get(
+                                    hint: 'Buat kata sandi yang kuat',
+                                    icon: Icons.lock_outline,
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _isObscure
+                                            ? Icons.visibility_off_outlined
+                                            : Icons.visibility_outlined,
+                                        color: Colors.black38,
+                                      ),
+                                      onPressed: () =>
+                                          setState(() => _isObscure = !_isObscure),
                                     ),
-                                    onPressed: () =>
-                                        setState(() => _isObscure = !_isObscure),
                                   ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Kata sandi wajib diisi';
+                                    }
+                                    if (value.length < 8) {
+                                      return 'Kata sandi minimal 8 karakter';
+                                    }
+                                    if (!RegExp(r'\d').hasMatch(value)) {
+                                      return 'Kata sandi harus mengandung setidaknya satu angka';
+                                    }
+                                    if (!RegExp(r'[@#$%^&*!_]').hasMatch(value)) {
+                                      return r'Kata sandi harus mengandung karakter khusus (@, #, $, _)';
+                                    }
+                                    return null;
+                                  },
                                 ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Kata sandi wajib diisi';
-                                  }
-                                  if (value.length < 8) {
-                                    return 'Kata sandi minimal 8 karakter';
-                                  }
-                                  if (!RegExp(r'\d').hasMatch(value)) {
-                                    return 'Kata sandi harus mengandung setidaknya satu angka';
-                                  }
-                                  if (!RegExp(r'[@#$%^&*!_]').hasMatch(value)) {
-                                    return r'Kata sandi harus mengandung karakter khusus (@, #, $, _)';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              if (_passwordController.text.isNotEmpty) ...[
-                                const SizedBox(height: 14),
-                                Row(
-                                  children: [
-                                    Text(
-                                      'Kekuatan: ',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 12.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: const Color(0xFF1A2D3D),
-                                      ),
-                                    ),
-                                    Text(
-                                      _strengthLabel,
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 12.5,
-                                        fontWeight: FontWeight.bold,
-                                        color: _strengthColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: List.generate(3, (i) {
-                                    final active = i < _strengthScore;
-                                    return Expanded(
-                                      child: Container(
-                                        margin: EdgeInsets.only(right: i < 2 ? 6 : 0),
-                                        height: 5,
-                                        decoration: BoxDecoration(
-                                          color: active
-                                              ? _strengthColor
-                                              : const Color(0xFFDDE2E8),
-                                          borderRadius: BorderRadius.circular(4),
+                                if (_passwordController.text.isNotEmpty) ...[
+                                  const SizedBox(height: 14),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Kekuatan: ',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: const Color(0xFF1A2D3D),
                                         ),
                                       ),
-                                    );
-                                  }),
-                                ),
-                                const SizedBox(height: 12),
-                                _buildCheckItem('Minimal 8 karakter', _hasMinLength),
-                                const SizedBox(height: 6),
-                                _buildCheckItem('Mengandung setidaknya satu angka', _hasNumber),
-                                const SizedBox(height: 6),
-                                _buildCheckItem(r'Mengandung karakter khusus (@, #, $, _)', _hasSpecial),
+                                      Text(
+                                        _strengthLabel,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: _strengthColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: List.generate(3, (i) {
+                                      final active = i < _strengthScore;
+                                      return Expanded(
+                                        child: Container(
+                                          margin: EdgeInsets.only(right: i < 2 ? 6 : 0),
+                                          height: 5,
+                                          decoration: BoxDecoration(
+                                            color: active
+                                                ? _strengthColor
+                                                : const Color(0xFFDDE2E8),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildCheckItem('Minimal 8 karakter', _hasMinLength),
+                                  const SizedBox(height: 6),
+                                  _buildCheckItem('Mengandung setidaknya satu angka', _hasNumber),
+                                  const SizedBox(height: 6),
+                                  _buildCheckItem(r'Mengandung karakter khusus (@, #, $, _)', _hasSpecial),
+                                ],
                               ],
-                            ],
-                          ),
+                            ),
 
                           const SizedBox(height: 16),
                           // --- REGISTER BUTTON (Daftar Sekarang) ---
