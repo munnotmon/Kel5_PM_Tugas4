@@ -340,6 +340,29 @@ const emptyKonselorForm = {
   foto_profil: '', is_online: false, pendidikan: [], pengalaman: [],
 };
 
+const getWeekdayFromDateString = (dateStr) => {
+  if (!dateStr) return 1;
+  const cleanStr = dateStr.substring(0, 10);
+  const parts = cleanStr.split('-');
+  if (parts.length < 3) return 1;
+  const yr = parseInt(parts[0], 10);
+  const mo = parseInt(parts[1], 10);
+  const dy = parseInt(parts[2], 10);
+  const dt = new Date(Date.UTC(yr, mo - 1, dy));
+  const day = dt.getUTCDay();
+  return day === 0 ? 7 : day;
+};
+
+const normalizeTimeStr = (timeStr) => {
+  if (!timeStr) return '';
+  const clean = timeStr.replace(' WIB', '').trim();
+  const parts = clean.split(':');
+  if (parts.length === 0) return '';
+  const hr = parts[0].padStart(2, '0');
+  const min = (parts[1] || '00').padStart(2, '0');
+  return `${hr}:${min}`;
+};
+
 function App() {
   const storedUser = JSON.parse(localStorage.getItem('admin_user'));
   const [token, setToken] = useState(localStorage.getItem('admin_token'));
@@ -352,6 +375,14 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('sidebar_collapsed') === 'true');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
+  const [showDeleteSchedConfirm, setShowDeleteSchedConfirm] = useState(false);
+  const [schedIdToDelete, setSchedIdToDelete] = useState(null);
+  const [deleteSchedLoading, setDeleteSchedLoading] = useState(false);
+  const [showDeleteCounselorConfirm, setShowDeleteCounselorConfirm] = useState(false);
+  const [counselorIdToDelete, setCounselorIdToDelete] = useState(null);
+  const [deleteCounselorLoading, setDeleteCounselorLoading] = useState(false);
+  const [myProfileData, setMyProfileData] = useState(null);
+
 
   const toggleSidebar = () => {
     setSidebarCollapsed(prev => {
@@ -553,13 +584,37 @@ function App() {
       const [repRes, schedRes, sessRes, mhsRes, lastRes] = results;
 
       if (repRes.data.success) setReports(repRes.data.data);
-      if (schedRes.data.success) setSchedules(schedRes.data.data);
       if (sessRes.data.success) setSessions(sessRes.data.data);
       if (mhsRes.data.success) setUsers(mhsRes.data.data);
 
+      let myProfile = myProfileData;
       if (lastRes && lastRes.data.success) {
-        applyMyKonselorProfile(lastRes.data.data);
+        myProfile = lastRes.data.data;
+        setMyProfileData(myProfile);
+        applyMyKonselorProfile(myProfile);
         setKonselorLoaded(true);
+      } else if (!myProfile) {
+        myProfile = user;
+      }
+
+      if (schedRes.data.success) {
+        const allScheds = schedRes.data.data;
+        if (myProfile) {
+          const practiceDays = myProfile.practice_days || [];
+          const availableTimes = (myProfile.available_times || []).map(normalizeTimeStr);
+
+          const myScheds = allScheds.filter(s => {
+            const weekday = getWeekdayFromDateString(s.tanggal);
+
+            if (!practiceDays.includes(weekday)) return false;
+
+            const startNorm = normalizeTimeStr(s.jam_mulai);
+            return availableTimes.includes(startNorm);
+          });
+          setSchedules(myScheds);
+        } else {
+          setSchedules(allScheds);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -673,9 +728,47 @@ function App() {
     }
   };
 
+  const syncProfileDaysAndTimes = async (updatedSchedules) => {
+    const practiceDays = Array.from(new Set(updatedSchedules.map(s => getWeekdayFromDateString(s.tanggal))));
+
+    const availableTimes = Array.from(new Set(updatedSchedules.map(s => {
+      const startNorm = normalizeTimeStr(s.jam_mulai);
+      return `${startNorm} WIB`;
+    })));
+
+    const payload = {
+      nama: konselorForm.nama,
+      spesialisasi: konselorForm.spesialisasi,
+      rating: parseFloat(konselorForm.rating) || 5.0,
+      pengalaman_tahun: konselorForm.pengalaman_tahun,
+      tentang: konselorForm.tentang,
+      spesialisasi_list: konselorForm.spesialisasi_list.split(',').map((s) => s.trim()).filter(Boolean),
+      jam_tersedia: availableTimes,
+      hari_praktik: practiceDays,
+      nomor_telepon: konselorForm.nomor_telepon || null,
+      pendidikan: konselorForm.pendidikan.filter((r) => r.title || r.subtitle),
+      pengalaman: konselorForm.pengalaman.filter((r) => r.title || r.subtitle),
+      foto_profil: konselorForm.foto_profil || null,
+    };
+
+    try {
+      const res = await axios.post('/konselor/me', payload);
+      if (res.data.success) {
+        applyMyKonselorProfile(res.data.data);
+        setMyProfileData(res.data.data);
+      }
+    } catch (err) {
+      console.error('Gagal menyinkronkan hari praktik & jam tersedia:', err);
+    }
+  };
+
   // Schedule Management Actions
   const handleAddSchedule = async (e) => {
     e.preventDefault();
+    if (schedules.length >= 3) {
+      setError('Maksimal hanya boleh memiliki 3 slot jadwal.');
+      return;
+    }
     try {
       const res = await axios.post('/jadwal', {
         tanggal: newSchedDate,
@@ -685,7 +778,10 @@ function App() {
       });
       if (res.data.success) {
         setSuccess('Jadwal berhasil ditambahkan.');
-        setSchedules([...schedules, res.data.data]);
+        const updated = [...schedules, res.data.data];
+        setSchedules(updated);
+        await syncProfileDaysAndTimes(updated);
+        await fetchDashboardData(true);
         setNewSchedDate('');
         setNewSchedStart('');
         setNewSchedEnd('');
@@ -696,16 +792,30 @@ function App() {
     }
   };
 
-  const handleDeleteSchedule = async (schedId) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) return;
+  const promptDeleteSchedule = (schedId) => {
+    setSchedIdToDelete(schedId);
+    setShowDeleteSchedConfirm(true);
+  };
+
+  const confirmDeleteSchedule = async () => {
+    if (!schedIdToDelete) return;
+    setDeleteSchedLoading(true);
+    setError('');
     try {
-      const res = await axios.delete(`/jadwal/${schedId}`);
+      const res = await axios.delete(`/jadwal/${schedIdToDelete}`);
       if (res.data.success) {
         setSuccess('Jadwal berhasil dihapus.');
-        setSchedules(schedules.filter(s => s.id !== schedId));
+        const updated = schedules.filter(s => s.id !== schedIdToDelete);
+        setSchedules(updated);
+        await syncProfileDaysAndTimes(updated);
+        await fetchDashboardData(true);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Gagal menghapus jadwal.');
+    } finally {
+      setDeleteSchedLoading(false);
+      setShowDeleteSchedConfirm(false);
+      setSchedIdToDelete(null);
     }
   };
 
@@ -827,6 +937,13 @@ function App() {
     setKonselorFormError('');
     const f = konselorForm;
 
+    const practiceDays = Array.from(new Set(schedules.map(s => getWeekdayFromDateString(s.tanggal))));
+
+    const availableTimes = Array.from(new Set(schedules.map(s => {
+      const startNorm = normalizeTimeStr(s.jam_mulai);
+      return `${startNorm} WIB`;
+    })));
+
     const payload = {
       nama: f.nama,
       spesialisasi: f.spesialisasi,
@@ -834,8 +951,8 @@ function App() {
       pengalaman_tahun: f.pengalaman_tahun,
       tentang: f.tentang,
       spesialisasi_list: f.spesialisasi_list.split(',').map((s) => s.trim()).filter(Boolean),
-      jam_tersedia: f.jam_tersedia.split(',').map((s) => s.trim()).filter(Boolean),
-      hari_praktik: f.hari_praktik,
+      jam_tersedia: availableTimes,
+      hari_praktik: practiceDays,
       nomor_telepon: f.nomor_telepon || null,
       pendidikan: f.pendidikan.filter((r) => r.title || r.subtitle),
       pengalaman: f.pengalaman.filter((r) => r.title || r.subtitle),
@@ -845,6 +962,7 @@ function App() {
       const res = await axios.post('/konselor/me', payload);
       if (res.data.success) {
         applyMyKonselorProfile(res.data.data);
+        setMyProfileData(res.data.data);
         setSuccess('Profil konselor Anda berhasil diperbarui.');
       }
     } catch (err) {
@@ -952,23 +1070,28 @@ function App() {
     }
   };
 
-  const handleDeleteCounselor = async (id) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus akun admin/konselor ini? Semua data terkait (jadwal, konseling, pesan) juga akan terhapus.')) {
-      return;
-    }
-    setLoading(true);
+  const promptDeleteCounselor = (id) => {
+    setCounselorIdToDelete(id);
+    setShowDeleteCounselorConfirm(true);
+  };
+
+  const confirmDeleteCounselor = async () => {
+    if (!counselorIdToDelete) return;
+    setDeleteCounselorLoading(true);
     setError('');
     try {
-      const res = await axios.delete(`/konselor/${id}`);
+      const res = await axios.delete(`/konselor/${counselorIdToDelete}`);
       if (res.data.success) {
         setSuccess('Akun berhasil dihapus.');
+        setShowDeleteCounselorConfirm(false);
+        setCounselorIdToDelete(null);
         fetchDashboardData();
       }
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || 'Gagal menghapus akun.');
     } finally {
-      setLoading(false);
+      setDeleteCounselorLoading(false);
     }
   };
 
@@ -1258,10 +1381,7 @@ function App() {
                     </>
                   )}
                 </li>
-                <li className={`menu-item ${activeTab === 'jadwal' ? 'active' : ''}`} onClick={() => { setActiveTab('jadwal'); setActiveChatSession(null); }} title={sidebarCollapsed ? "Jadwal Konseling" : ""}>
-                  <IconSchedule />
-                  {!sidebarCollapsed && <span>Jadwal Konseling</span>}
-                </li>
+
                 <li className={`menu-item ${activeTab === 'konseling' ? 'active' : ''}`} onClick={() => { setActiveTab('konseling'); setActiveChatSession(null); }} style={sidebarCollapsed ? { justifyContent: 'center' } : { display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} title={sidebarCollapsed ? "Pemesanan Konseling" : ""}>
                   {sidebarCollapsed ? (
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -1324,7 +1444,7 @@ function App() {
               {activeTab === 'dashboard' && 'Dashboard Overview'}
               {activeTab === 'konselor' && (user && user.role === 'superadmin' ? 'Kelola Admin & Konselor' : 'Profil Konselor Saya')}
               {activeTab === 'laporan' && 'Laporan Perundungan'}
-              {activeTab === 'jadwal' && 'Manajemen Jadwal Konseling'}
+
               {activeTab === 'konseling' && 'Daftar Pengajuan & Sesi Konseling'}
               {activeTab === 'chat' && 'Ruang Chat Konseling'}
               {activeTab === 'users' && 'Daftar Mahasiswa Terdaftar'}
@@ -1394,12 +1514,12 @@ function App() {
                 <div className="table-container">
                   <table style={{ tableLayout: 'fixed', width: '100%' }}>
                     <colgroup>
-                      <col style={{ width: '18%' }} />
+                      <col style={{ width: '20%' }} />
+                      <col style={{ width: '15%' }} />
+                      <col style={{ width: '33%' }} />
                       <col style={{ width: '10%' }} />
-                      <col style={{ width: '25%' }} />
                       <col style={{ width: '12%' }} />
-                      <col style={{ width: '13%' }} />
-                      <col style={{ width: '12%' }} />
+                      <col style={{ width: '10%' }} />
                     </colgroup>
                     <thead>
                       <tr>
@@ -1418,8 +1538,8 @@ function App() {
                             <strong>{r.pelapor?.nama || 'Mahasiswa'}</strong>
                             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{r.pelapor?.nomor_telepon || '-'}</div>
                           </td>
-                          <td>{r.pelapor?.profil_mahasiswa?.nim || '-'}</td>
-                          <td>{r.judul_pelaporan}</td>
+                          <td style={{ whiteSpace: 'normal', wordBreak: 'break-all' }}>{r.pelapor?.profil_mahasiswa?.nim || '-'}</td>
+                          <td style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{r.judul_pelaporan}</td>
                           <td>{r.jenis_perundungan || '-'}</td>
                           <td>{new Date(r.created_at).toLocaleDateString('id-ID')}</td>
                           <td>
@@ -1626,7 +1746,7 @@ function App() {
                           <td>
                             <div style={{ display: 'flex', gap: '0.4rem' }}>
                               <button className="btn btn-secondary btn-sm" onClick={() => handleOpenEditModal(c)}>Edit</button>
-                              <button className="btn btn-danger btn-sm" onClick={() => handleDeleteCounselor(c.id)}>Hapus</button>
+                              <button className="btn btn-danger btn-sm" onClick={() => promptDeleteCounselor(c.id)}>Hapus</button>
                             </div>
                           </td>
                         </tr>
@@ -1697,32 +1817,9 @@ function App() {
                     <textarea rows={4} value={konselorForm.tentang} onChange={e => setKonselorField('tentang', e.target.value)} placeholder="Tulis deskripsi diri atau latar belakang Anda..." />
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="form-group">
-                      <label>Spesialisasi (Chips, pisah dengan koma)</label>
-                      <input value={konselorForm.spesialisasi_list} onChange={e => setKonselorField('spesialisasi_list', e.target.value)} placeholder="cth: Perundungan, Trauma, Cemas" />
-                    </div>
-                    <div className="form-group">
-                      <label>Jam Tersedia (pisah dengan koma)</label>
-                      <input value={konselorForm.jam_tersedia} onChange={e => setKonselorField('jam_tersedia', e.target.value)} placeholder="cth: 09:00 WIB, 13:00 WIB" />
-                    </div>
-                  </div>
-
                   <div className="form-group">
-                    <label>Hari Praktik</label>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
-                      {KONSELOR_DAYS.map(d => (
-                        <button
-                          type="button"
-                          key={d.v}
-                          onClick={() => toggleKonselorDay(d.v)}
-                          className={`btn btn-sm ${konselorForm.hari_praktik.includes(d.v) ? 'btn-primary' : 'btn-secondary'}`}
-                          style={{ padding: '0.4rem 0.85rem' }}
-                        >
-                          {d.l}
-                        </button>
-                      ))}
-                    </div>
+                    <label>Spesialisasi (Chips, pisah dengan koma)</label>
+                    <input value={konselorForm.spesialisasi_list} onChange={e => setKonselorField('spesialisasi_list', e.target.value)} placeholder="cth: Perundungan, Trauma, Cemas" />
                   </div>
 
                   <KonselorRowEditor
@@ -1740,6 +1837,98 @@ function App() {
                     onRemove={(i) => removeKonselorRow('pengalaman', i)}
                     onChange={(i, key, val) => updateKonselorRow('pengalaman', i, key, val)}
                   />
+
+                  {/* SECTION: TAMBAH SLOT JADWAL PRAKTIK */}
+                  <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <h3 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--primary)' }}>
+                        Tambah Slot Jadwal Praktik ({schedules.length}/3)
+                      </h3>
+                      {schedules.length >= 3 && (
+                        <span style={{ color: 'var(--danger)', fontSize: '0.85rem', fontWeight: '500' }}>
+                          Batas maksimal 3 slot jadwal tercapai.
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div className="form-group">
+                        <label>Tanggal</label>
+                        <input 
+                          type="date" 
+                          value={newSchedDate} 
+                          onChange={e => setNewSchedDate(e.target.value)} 
+                          disabled={schedules.length >= 3}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Ruangan / Lokasi</label>
+                        <input 
+                          type="text" 
+                          placeholder="Ruang Konseling Gd. AX" 
+                          value={newSchedLoc} 
+                          onChange={e => setNewSchedLoc(e.target.value)} 
+                          disabled={schedules.length >= 3}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
+                      <div className="form-group">
+                        <label>Jam Mulai</label>
+                        <input 
+                          type="time" 
+                          value={newSchedStart} 
+                          onChange={e => setNewSchedStart(e.target.value)} 
+                          disabled={schedules.length >= 3}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Jam Selesai</label>
+                        <input 
+                          type="time" 
+                          value={newSchedEnd} 
+                          onChange={e => setNewSchedEnd(e.target.value)} 
+                          disabled={schedules.length >= 3}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '0.75rem' }}>
+                      <button 
+                        type="button" 
+                        className="btn btn-secondary btn-sm" 
+                        onClick={handleAddSchedule}
+                        disabled={schedules.length >= 3}
+                      >
+                        Tambah Slot Jadwal
+                      </button>
+                    </div>
+
+                    {/* Current slots list */}
+                    {schedules.length > 0 && (
+                      <div style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(16, 104, 163, 0.08)', paddingTop: '1.25rem' }}>
+                        <h4 style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.75rem', color: 'var(--text-secondary)' }}>
+                          Daftar Slot Jadwal Aktif
+                        </h4>
+                        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          {schedules.map(s => (
+                            <li key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.85rem', background: 'rgba(16, 104, 163, 0.03)', borderRadius: '8px', border: '1px solid rgba(16, 104, 163, 0.06)', fontSize: '0.875rem' }}>
+                              <span>
+                                <strong>{new Date(s.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' })}</strong>: {s.jam_mulai.substring(0, 5)} - {s.jam_selesai.substring(0, 5)} ({s.lokasi || 'TBA'})
+                              </span>
+                              <button 
+                                type="button" 
+                                className="btn btn-danger btn-sm" 
+                                style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', borderRadius: '4px' }} 
+                                onClick={() => promptDeleteSchedule(s.id)}
+                              >
+                                Hapus
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
                     <button type="submit" className="btn btn-primary" disabled={konselorSaving} style={{ padding: '0.6rem 2rem' }}>
@@ -1796,12 +1985,12 @@ function App() {
               <table style={{ tableLayout: 'fixed', width: '100%' }}>
                 <colgroup>
                   <col style={{ width: '18%' }} />
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '30%' }} />
                   <col style={{ width: '10%' }} />
-                  <col style={{ width: '25%' }} />
-                  <col style={{ width: '12%' }} />
-                  <col style={{ width: '13%' }} />
-                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '11%' }} />
                   <col style={{ width: '10%' }} />
+                  <col style={{ width: '6%' }} />
                 </colgroup>
                 <thead>
                   <tr>
@@ -1821,8 +2010,8 @@ function App() {
                         <strong>{r.pelapor?.nama || 'Mahasiswa'}</strong>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{r.pelapor?.nomor_telepon || '-'}</div>
                       </td>
-                      <td>{r.pelapor?.profil_mahasiswa?.nim || '-'}</td>
-                      <td>{r.judul_pelaporan}</td>
+                      <td style={{ whiteSpace: 'normal', wordBreak: 'break-all' }}>{r.pelapor?.profil_mahasiswa?.nim || '-'}</td>
+                      <td style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{r.judul_pelaporan}</td>
                       <td>{r.jenis_perundungan || '-'}</td>
                       <td>{new Date(r.created_at).toLocaleDateString('id-ID')}</td>
                       <td>
@@ -1893,74 +2082,7 @@ function App() {
           </div>
         )}
 
-        {/* TAB 3: JADWAL KONSELING */}
-        {activeTab === 'jadwal' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '1.5rem' }}>
-            {/* Create Schedule Slot */}
-            <div className="card">
-              <h2 style={{ fontSize: '1.2rem', marginBottom: '1.25rem' }}>Tambah Slot Jadwal</h2>
-              <form onSubmit={handleAddSchedule}>
-                <div className="form-group">
-                  <label>Tanggal</label>
-                  <input type="date" value={newSchedDate} onChange={e => setNewSchedDate(e.target.value)} required />
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group">
-                    <label>Jam Mulai</label>
-                    <input type="time" value={newSchedStart} onChange={e => setNewSchedStart(e.target.value)} required />
-                  </div>
-                  <div className="form-group">
-                    <label>Jam Selesai</label>
-                    <input type="time" value={newSchedEnd} onChange={e => setNewSchedEnd(e.target.value)} required />
-                  </div>
-                </div>
-                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                  <label>Ruangan / Lokasi</label>
-                  <input type="text" placeholder="Ruang Konseling Gd. AX" value={newSchedLoc} onChange={e => setNewSchedLoc(e.target.value)} />
-                </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Simpan Slot Jadwal</button>
-              </form>
-            </div>
 
-            {/* List Schedule Slots */}
-            <div className="card">
-              <h2 style={{ fontSize: '1.2rem', marginBottom: '1.25rem' }}>Daftar Slot Konseling</h2>
-              <div className="table-container">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Tanggal</th>
-                      <th>Jam</th>
-                      <th>Lokasi</th>
-                      <th>Status</th>
-                      <th>Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {schedules.map(s => (
-                      <tr key={s.id}>
-                        <td>{new Date(s.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</td>
-                        <td>{s.jam_mulai.substring(0, 5)} - {s.jam_selesai.substring(0, 5)}</td>
-                        <td>{s.lokasi || 'TBA'}</td>
-                        <td>
-                          <span className={`badge ${s.status === 'Tersedia' ? 'badge-success' :
-                            s.status === 'Penuh' ? 'badge-pending' : 'badge-danger'
-                            }`}>{s.status}</span>
-                        </td>
-                        <td>
-                          <button className="btn btn-danger btn-sm" onClick={() => handleDeleteSchedule(s.id)}>Hapus</button>
-                        </td>
-                      </tr>
-                    ))}
-                    {schedules.length === 0 && (
-                      <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada slot konseling dibuat.</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* TAB 4: PEMESANAN KONSELING */}
         {activeTab === 'konseling' && (
@@ -3088,6 +3210,113 @@ function App() {
                     disabled={logoutLoading}
                   >
                     Ya, Keluar
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      {/* DELETE SCHEDULE CONFIRMATION MODAL */}
+      {showDeleteSchedConfirm && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="card modal-content modal-confirm-card">
+            {deleteSchedLoading ? (
+              <>
+                <div className="confirm-spinner" />
+                <div style={{ marginTop: '0.5rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#ef4444', marginBottom: '0.5rem' }}>Menghapus Jadwal</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                    Sedang menghapus slot jadwal...
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="confirm-icon-container">
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#ef4444', marginBottom: '0.5rem' }}>Hapus Slot Jadwal</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                    Apakah Anda yakin ingin menghapus slot jadwal praktik ini? Tindakan ini tidak dapat dibatalkan.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-confirm-no"
+                    onClick={() => { setShowDeleteSchedConfirm(false); setSchedIdToDelete(null); }}
+                    disabled={deleteSchedLoading}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-confirm-yes"
+                    onClick={confirmDeleteSchedule}
+                    disabled={deleteSchedLoading}
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* DELETE COUNSELOR CONFIRMATION MODAL */}
+      {showDeleteCounselorConfirm && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="card modal-content modal-confirm-card">
+            {deleteCounselorLoading ? (
+              <>
+                <div className="confirm-spinner" />
+                <div style={{ marginTop: '0.5rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#ef4444', marginBottom: '0.5rem' }}>Menghapus Akun</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                    Sedang menghapus akun admin/konselor...
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="confirm-icon-container">
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#ef4444', marginBottom: '0.5rem' }}>Hapus Akun Konselor</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                    Apakah Anda yakin ingin menghapus akun admin/konselor ini? Semua data terkait (jadwal, konseling, pesan) juga akan terhapus.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-confirm-no"
+                    onClick={() => { setShowDeleteCounselorConfirm(false); setCounselorIdToDelete(null); }}
+                    disabled={deleteCounselorLoading}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-confirm-yes"
+                    onClick={confirmDeleteCounselor}
+                    disabled={deleteCounselorLoading}
+                  >
+                    Hapus
                   </button>
                 </div>
               </>

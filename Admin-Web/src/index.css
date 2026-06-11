@@ -687,8 +687,8 @@ tr:hover td {
   transform: translateY(-1px);
 }
 
-/* Logout Modal Specific Styles */
-.modal-logout-card {
+/* Confirm/Logout Modal Styles */
+.modal-logout-card, .modal-confirm-card {
   max-width: 380px;
   padding: 2.5rem 2rem 2rem;
   text-align: center;
@@ -701,7 +701,7 @@ tr:hover td {
   animation: modalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.logout-icon-container {
+.logout-icon-container, .confirm-icon-container {
   width: 64px;
   height: 64px;
   border-radius: 50%;
@@ -714,7 +714,7 @@ tr:hover td {
   box-shadow: 0 0 15px rgba(239, 68, 68, 0.15);
 }
 
-.logout-spinner {
+.logout-spinner, .confirm-spinner {
   width: 48px;
   height: 48px;
   border: 4px solid rgba(239, 68, 68, 0.1);
@@ -723,7 +723,7 @@ tr:hover td {
   animation: logoutSpin 1s linear infinite;
 }
 
-.btn-logout-confirm {
+.btn-logout-confirm, .btn-confirm-yes {
   background: #ef4444 !important;
   color: #fff !important;
   border: none !important;
@@ -731,13 +731,13 @@ tr:hover td {
   flex: 1;
 }
 
-.btn-logout-confirm:hover {
+.btn-logout-confirm:hover, .btn-confirm-yes:hover {
   background: #dc2626 !important;
   box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
   transform: translateY(-1px);
 }
 
-.btn-logout-cancel {
+.btn-logout-cancel, .btn-confirm-no {
   flex: 1;
 }
 

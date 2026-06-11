@@ -16,8 +16,13 @@ class KonselingController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role === 'admin') {
+        if ($user->role === 'superadmin') {
             $sessions = Konseling::with(['mahasiswa.profilMahasiswa', 'admin', 'jadwalKonseling', 'pesan'])
+                ->latest()
+                ->get();
+        } else if ($user->role === 'admin') {
+            $sessions = Konseling::with(['mahasiswa.profilMahasiswa', 'admin', 'jadwalKonseling', 'pesan'])
+                ->where('admin_id', $user->id)
                 ->latest()
                 ->get();
         } else {

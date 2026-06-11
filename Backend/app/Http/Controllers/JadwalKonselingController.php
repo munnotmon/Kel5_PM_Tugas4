@@ -10,8 +10,6 @@ class JadwalKonselingController extends Controller
 {
     public function index(Request $request)
     {
-        $this->generateMissingSchedules();
-
         $schedules = JadwalKonseling::orderBy('tanggal', 'asc')
             ->orderBy('jam_mulai', 'asc')
             ->get();
@@ -20,58 +18,6 @@ class JadwalKonselingController extends Controller
             'success' => true,
             'data' => $schedules
         ]);
-    }
-
-    private function generateMissingSchedules()
-    {
-        $counselors = \App\Models\User::whereNotNull('hari_praktik')->get();
-        $today = new \DateTime();
-
-        foreach ($counselors as $counselor) {
-            $practiceDays = $counselor->hari_praktik ?? [];
-            $availableTimes = $counselor->jam_tersedia ?? [];
-
-            if (empty($practiceDays) || empty($availableTimes)) {
-                continue;
-            }
-
-            for ($i = 0; $i < 14; $i++) {
-                $date = clone $today;
-                $date->modify("+$i day");
-                $weekday = (int)$date->format('N'); // 1 (Mon) to 7 (Sun)
-
-                if (in_array($weekday, $practiceDays)) {
-                    $dateStr = $date->format('Y-m-d');
-
-                    foreach ($availableTimes as $timeStr) {
-                        preg_match('/(\d{1,2}):(\d{2})/', $timeStr, $matches);
-                        if (!empty($matches)) {
-                            $hour = str_pad($matches[1], 2, '0', STR_PAD_LEFT);
-                            $minute = $matches[2];
-                            $startTime = "$hour:$minute:00";
-
-                            // End time defaults to 1 hour later
-                            $endHour = str_pad((int)$hour + 1, 2, '0', STR_PAD_LEFT);
-                            $endTime = "$endHour:$minute:00";
-
-                            $exists = JadwalKonseling::where('tanggal', $dateStr)
-                                ->where('jam_mulai', $startTime)
-                                ->exists();
-
-                            if (!$exists) {
-                                JadwalKonseling::create([
-                                    'tanggal' => $dateStr,
-                                    'jam_mulai' => $startTime,
-                                    'jam_selesai' => $endTime,
-                                    'lokasi' => 'Gedung TI Lt. 3',
-                                    'status' => 'Tersedia',
-                                ]);
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     public function store(Request $request)
