@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
 // SVG Icons for Sidebar
@@ -25,15 +25,6 @@ const IconReport = () => (
     <path d="M11 5L6 9H2v6h4l5 4V5z" />
     <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
     <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-  </svg>
-);
-
-const IconSchedule = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-    <line x1="16" y1="2" x2="16" y2="6" />
-    <line x1="8" y1="2" x2="8" y2="6" />
-    <line x1="3" y1="10" x2="21" y2="10" />
   </svg>
 );
 
@@ -327,12 +318,6 @@ axios.interceptors.response.use(
   }
 );
 
-// Hari praktik untuk form konselor
-const KONSELOR_DAYS = [
-  { v: 1, l: 'Sen' }, { v: 2, l: 'Sel' }, { v: 3, l: 'Rab' },
-  { v: 4, l: 'Kam' }, { v: 5, l: 'Jum' }, { v: 6, l: 'Sab' }, { v: 7, l: 'Min' },
-];
-
 const emptyKonselorForm = {
   nama: '', email: '', password: '', nomor_telepon: '',
   spesialisasi: '', rating: '5.0', pengalaman_tahun: '', tentang: '',
@@ -382,7 +367,7 @@ function App() {
   const [showDeleteCounselorConfirm, setShowDeleteCounselorConfirm] = useState(false);
   const [counselorIdToDelete, setCounselorIdToDelete] = useState(null);
   const [deleteCounselorLoading, setDeleteCounselorLoading] = useState(false);
-  const [myProfileData, setMyProfileData] = useState(null);
+  const [, setMyProfileData] = useState(null);
 
 
   const toggleSidebar = () => {
@@ -467,7 +452,6 @@ function App() {
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
   const [profilePhotoUploading, setProfilePhotoUploading] = useState(false);
   const [konselorPhotoBlobUrl, setKonselorPhotoBlobUrl] = useState(null);
-  const konselorLoadedRef = useRef(false);
   const myProfileDataRef = useRef(null);
   const photoInputRef = useRef(null);
 
@@ -731,7 +715,7 @@ function App() {
           setShowSuccessAlert(false);
         }, 2500);
       }
-    } catch (err) {
+    } catch {
       setError('Gagal memperbarui status laporan.');
     } finally {
       setReportStatusUpdating(null);
@@ -879,7 +863,7 @@ function App() {
           setChatMessages([]);
         }
       }
-    } catch (err) {
+    } catch {
       setError('Gagal memperbarui status sesi konseling.');
     }
   };
@@ -942,20 +926,6 @@ function App() {
   };
 
   const setKonselorField = (key, value) => setKonselorForm((f) => ({ ...f, [key]: value }));
-
-  const toggleKonselorDay = (d) => {
-    setKonselorForm((f) => {
-      if (f.hari_praktik.includes(d)) {
-        return { ...f, hari_praktik: f.hari_praktik.filter((x) => x !== d) };
-      }
-      if (f.hari_praktik.length >= 3) {
-        setKonselorFormError('Maksimal 3 hari praktik yang dapat dipilih.');
-        return f;
-      }
-      setKonselorFormError('');
-      return { ...f, hari_praktik: [...f.hari_praktik, d].sort((a, b) => a - b) };
-    });
-  };
 
   const updateKonselorRow = (field, idx, key, value) => {
     setKonselorForm((f) => {
@@ -1337,7 +1307,7 @@ function App() {
           return s;
         }));
       }
-    } catch (err) {
+    } catch {
       setError('Gagal mengirim pesan.');
     }
   };
@@ -2875,7 +2845,7 @@ function App() {
                   src={previewBukti.url}
                   alt={previewBukti.name}
                   style={{ maxWidth: '80vw', maxHeight: '70vh', objectFit: 'contain', borderRadius: '6px', display: 'block' }}
-                  onError={(e) => console.error('[preview] img failed:', previewBukti.url)}
+                  onError={() => console.error('[preview] img failed:', previewBukti.url)}
                 />
               )}
               {previewBukti.type === 'video' && (

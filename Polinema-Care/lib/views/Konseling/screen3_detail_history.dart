@@ -2,6 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import '../../controllers/counseling_controller.dart';
 import '../../controllers/auth_controller.dart';
 
@@ -23,6 +26,7 @@ class _Screen3DetailHistoryState extends State<Screen3DetailHistory> {
   late String _jamSesi;
   late String _mode;
   late String _lokasi;
+  bool _isPdfLoading = false;
 
   @override
   void initState() {
@@ -100,6 +104,241 @@ class _Screen3DetailHistoryState extends State<Screen3DetailHistory> {
       ),
     );
   }
+
+  // ─── PDF GENERATION ────────────────────────────────────────────────────────
+
+  Future<void> _generateAndDownloadPdf() async {
+    setState(() => _isPdfLoading = true);
+    try {
+      final pdf = pw.Document();
+
+      final sessionId = widget.sessionData?['id']?.toString() ?? 'KSL-00';
+      final keluhan = widget.sessionData?['keluhan']?.toString() ?? '';
+      final name = AuthController.currentUserName;
+      final nim = AuthController.currentUserNim;
+      final prodi = AuthController.currentUserProdi;
+      final angkatan = AuthController.currentUserAngkatan;
+      final lokasiText = _mode.toLowerCase() == 'offline'
+          ? (_lokasi.isNotEmpty && _lokasi != '-'
+              ? _lokasi
+              : 'Ruang Konseling Kampus (Gedung AA, Lantai 1)')
+          : 'Tautan Google Meet expired/telah dinonaktifkan karena sesi telah selesai.';
+
+      final now = DateTime.now();
+      final issuedAt =
+          '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}'
+          '  ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+
+      // ~80mm wide — thermal receipt feel
+      const pageFormat = PdfPageFormat(
+        8.0 * PdfPageFormat.cm,
+        double.infinity,
+        marginAll: 0.8 * PdfPageFormat.cm,
+      );
+
+      pdf.addPage(
+        pw.Page(
+          pageFormat: pageFormat,
+          build: (pw.Context context) => pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
+            children: [
+              // ── Header ──
+              pw.Text(
+                'POLINEMA CARE+',
+                style: pw.TextStyle(
+                  fontSize: 13,
+                  fontWeight: pw.FontWeight.bold,
+                  letterSpacing: 1.5,
+                  color: PdfColors.blueGrey800,
+                ),
+              ),
+              pw.SizedBox(height: 3),
+              pw.Text(
+                'RINGKASAN SESI KONSELING',
+                style: pw.TextStyle(
+                  fontSize: 8.5,
+                  color: PdfColors.blueGrey400,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              pw.SizedBox(height: 3),
+              pw.Text(
+                'No. $sessionId',
+                style: pw.TextStyle(fontSize: 8, color: PdfColors.blueGrey300),
+              ),
+              pw.SizedBox(height: 10),
+              _pdfDashedLine(),
+              pw.SizedBox(height: 10),
+
+              // ── Session rows ──
+              _pdfReceiptRow('Status Sesi', 'Selesai'),
+              _pdfReceiptRow('Konselor', _namaDokter),
+              _pdfReceiptRow('Spesialisasi', _spesialisasi),
+              _pdfReceiptRow('Metode Sesi', _mode),
+              _pdfReceiptRow('Hari & Tanggal', _tanggalSesi),
+              _pdfReceiptRow('Waktu Sesi', _jamSesi),
+              pw.SizedBox(height: 8),
+              _pdfDashedLine(),
+              pw.SizedBox(height: 8),
+
+              // ── Lokasi ──
+              pw.Align(
+                alignment: pw.Alignment.centerLeft,
+                child: pw.Text(
+                  _mode.toLowerCase() == 'offline' ? 'Lokasi Pertemuan:' : 'Tautan Sesi:',
+                  style: pw.TextStyle(fontSize: 8, color: PdfColors.blueGrey400),
+                ),
+              ),
+              pw.SizedBox(height: 5),
+              pw.Container(
+                width: double.infinity,
+                padding: const pw.EdgeInsets.all(8),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.blueGrey100),
+                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                ),
+                child: pw.Text(
+                  lokasiText,
+                  style: pw.TextStyle(fontSize: 8.5, color: PdfColors.blueGrey900),
+                ),
+              ),
+              pw.SizedBox(height: 12),
+              _pdfDashedLine(),
+              pw.SizedBox(height: 10),
+
+              // ── Student identity ──
+              pw.Align(
+                alignment: pw.Alignment.centerLeft,
+                child: pw.Text(
+                  'IDENTITAS MAHASISWA',
+                  style: pw.TextStyle(
+                    fontSize: 9,
+                    fontWeight: pw.FontWeight.bold,
+                    letterSpacing: 0.5,
+                    color: PdfColors.blueGrey700,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 8),
+              _pdfReceiptRow('Nama', name),
+              _pdfReceiptRow('NIM', nim),
+              _pdfReceiptRow(
+                'Program Studi',
+                prodi.isNotEmpty ? prodi : '-',
+              ),
+
+              // ── Keluhan ──
+              if (keluhan.isNotEmpty && keluhan != '-') ...[
+                pw.SizedBox(height: 8),
+                _pdfDashedLine(),
+                pw.SizedBox(height: 10),
+                pw.Align(
+                  alignment: pw.Alignment.centerLeft,
+                  child: pw.Text(
+                    'KELUHAN / DESKRIPSI MASALAH',
+                    style: pw.TextStyle(
+                      fontSize: 9,
+                      fontWeight: pw.FontWeight.bold,
+                      letterSpacing: 0.5,
+                      color: PdfColors.blueGrey700,
+                    ),
+                  ),
+                ),
+                pw.SizedBox(height: 6),
+                pw.Container(
+                  width: double.infinity,
+                  padding: const pw.EdgeInsets.all(8),
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border.all(color: PdfColors.blueGrey100),
+                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                  ),
+                  child: pw.Text(
+                    keluhan,
+                    style: pw.TextStyle(
+                      fontSize: 8.5,
+                      color: PdfColors.blueGrey900,
+                      lineSpacing: 2,
+                    ),
+                  ),
+                ),
+              ],
+
+              // ── Footer ──
+              pw.SizedBox(height: 16),
+              _pdfDashedLine(),
+              pw.SizedBox(height: 10),
+              pw.Text(
+                'Dicetak pada: $issuedAt',
+                style: pw.TextStyle(fontSize: 7.5, color: PdfColors.blueGrey300),
+              ),
+              pw.SizedBox(height: 3),
+              pw.Text(
+                'Dokumen ini diterbitkan oleh Polinema Care+',
+                style: pw.TextStyle(fontSize: 7.5, color: PdfColors.blueGrey300),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      await Printing.sharePdf(
+        bytes: await pdf.save(),
+        filename: 'Ringkasan_Sesi_$sessionId.pdf',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuat PDF: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isPdfLoading = false);
+    }
+  }
+
+  pw.Widget _pdfDashedLine() {
+    return pw.Row(
+      children: List.generate(
+        35,
+        (i) => pw.Expanded(
+          child: pw.Container(
+            height: 1,
+            color: i % 2 == 0 ? PdfColors.white : PdfColors.blueGrey200,
+          ),
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _pdfReceiptRow(String label, String value) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 7),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            label,
+            style: pw.TextStyle(fontSize: 9, color: PdfColors.blueGrey400),
+          ),
+          pw.SizedBox(width: 8),
+          pw.Flexible(
+            child: pw.Text(
+              value,
+              textAlign: pw.TextAlign.right,
+              style: pw.TextStyle(
+                fontSize: 9,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.blueGrey900,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildStatusBar(BuildContext context) {
     return Row(
@@ -403,14 +642,23 @@ class _Screen3DetailHistoryState extends State<Screen3DetailHistory> {
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.download_rounded,
-              color: Color(0xFF1A2D3D),
-              size: 20,
-            ),
+            onPressed: _isPdfLoading ? null : _generateAndDownloadPdf,
+            icon: _isPdfLoading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Color(0xFF1A2D3D),
+                    ),
+                  )
+                : const Icon(
+                    Icons.download_rounded,
+                    color: Color(0xFF1A2D3D),
+                    size: 20,
+                  ),
             label: Text(
-              'Unduh Ringkasan Sesi (PDF)',
+              _isPdfLoading ? 'Membuat PDF...' : 'Unduh Ringkasan Sesi (PDF)',
               style: GoogleFonts.plusJakartaSans(
                 color: const Color(0xFF1A2D3D),
                 fontWeight: FontWeight.bold,
@@ -717,7 +965,7 @@ class _Screen3DetailHistoryState extends State<Screen3DetailHistory> {
                 style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.grey[500]),
               ),
               Text(
-                prodi.isNotEmpty ? '$prodi (Angkatan $angkatan)' : '-',
+                prodi.isNotEmpty ? prodi : '-',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
