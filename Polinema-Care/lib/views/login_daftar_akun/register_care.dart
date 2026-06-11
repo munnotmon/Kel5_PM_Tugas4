@@ -329,7 +329,7 @@ class _RegisterCareState extends State<RegisterCare> {
                           // 5. Program Studi Field
                           _buildFieldLabel("Program Studi"),
                           DropdownButtonFormField<String>(
-                            value: _selectedProdi,
+                            initialValue: _selectedProdi,
                             isExpanded: true,
                             menuMaxHeight: 280,
                             borderRadius: BorderRadius.circular(16),

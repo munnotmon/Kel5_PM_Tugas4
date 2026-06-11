@@ -12,6 +12,7 @@ class JadwalKonseling extends Model
     protected $table = 'jadwal_konseling';
 
     protected $fillable = [
+        'admin_id',
         'tanggal',
         'jam_mulai',
         'jam_selesai',

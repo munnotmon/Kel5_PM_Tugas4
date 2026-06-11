@@ -515,7 +515,7 @@ class _LaporanStep4PageState extends State<LaporanStep4Page> {
                                     child: Image.file(
                                       File(entry.value),
                                       fit: BoxFit.contain,
-                                      errorBuilder: (_, __, ___) => Container(
+                                      errorBuilder: (_, _, _) => Container(
                                         padding: const EdgeInsets.all(32),
                                         color: Colors.black87,
                                         child: const Icon(Icons.broken_image, color: Colors.white, size: 64),
@@ -951,7 +951,7 @@ class _VideoPreviewDialogState extends State<_VideoPreviewDialog> {
                 children: [
                   ValueListenableBuilder(
                     valueListenable: _controller,
-                    builder: (_, VideoPlayerValue val, __) => Column(
+                    builder: (_, VideoPlayerValue val, _) => Column(
                       children: [
                         Slider(
                           value: val.position.inSeconds.toDouble(),

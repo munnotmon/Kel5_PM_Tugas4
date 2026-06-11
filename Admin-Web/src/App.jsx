@@ -378,6 +378,7 @@ function App() {
   const [showDeleteSchedConfirm, setShowDeleteSchedConfirm] = useState(false);
   const [schedIdToDelete, setSchedIdToDelete] = useState(null);
   const [deleteSchedLoading, setDeleteSchedLoading] = useState(false);
+  const [addSchedLoading, setAddSchedLoading] = useState(false);
   const [showDeleteCounselorConfirm, setShowDeleteCounselorConfirm] = useState(false);
   const [counselorIdToDelete, setCounselorIdToDelete] = useState(null);
   const [deleteCounselorLoading, setDeleteCounselorLoading] = useState(false);
@@ -464,6 +465,7 @@ function App() {
   const [konselorFormError, setKonselorFormError] = useState('');
   const [konselorLoaded, setKonselorLoaded] = useState(false);
   const konselorLoadedRef = useRef(false);
+  const myProfileDataRef = useRef(null);
 
   // Detail Modal States
   const [selectedReport, setSelectedReport] = useState(null);
@@ -587,9 +589,10 @@ function App() {
       if (sessRes.data.success) setSessions(sessRes.data.data);
       if (mhsRes.data.success) setUsers(mhsRes.data.data);
 
-      let myProfile = myProfileData;
+      let myProfile = myProfileDataRef.current;
       if (lastRes && lastRes.data.success) {
         myProfile = lastRes.data.data;
+        myProfileDataRef.current = myProfile;
         setMyProfileData(myProfile);
         applyMyKonselorProfile(myProfile);
         setKonselorLoaded(true);
@@ -755,6 +758,7 @@ function App() {
       const res = await axios.post('/konselor/me', payload);
       if (res.data.success) {
         applyMyKonselorProfile(res.data.data);
+        myProfileDataRef.current = res.data.data;
         setMyProfileData(res.data.data);
       }
     } catch (err) {
@@ -765,10 +769,13 @@ function App() {
   // Schedule Management Actions
   const handleAddSchedule = async (e) => {
     e.preventDefault();
-    if (schedules.length >= 3) {
-      setError('Maksimal hanya boleh memiliki 3 slot jadwal.');
+    const existingDates = new Set(schedules.map(s => String(s.tanggal).substring(0, 10)));
+    const isNewDay = !existingDates.has(newSchedDate);
+    if (isNewDay && existingDates.size >= 3) {
+      setError('Maksimal hanya boleh memiliki 3 hari jadwal yang berbeda.');
       return;
     }
+    setAddSchedLoading(true);
     try {
       const res = await axios.post('/jadwal', {
         tanggal: newSchedDate,
@@ -789,6 +796,8 @@ function App() {
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Gagal menambahkan jadwal.');
+    } finally {
+      setAddSchedLoading(false);
     }
   };
 
@@ -962,6 +971,7 @@ function App() {
       const res = await axios.post('/konselor/me', payload);
       if (res.data.success) {
         applyMyKonselorProfile(res.data.data);
+        myProfileDataRef.current = res.data.data;
         setMyProfileData(res.data.data);
         setSuccess('Profil konselor Anda berhasil diperbarui.');
       }
@@ -1840,68 +1850,81 @@ function App() {
 
                   {/* SECTION: TAMBAH SLOT JADWAL PRAKTIK */}
                   <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                      <h3 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--primary)' }}>
-                        Tambah Slot Jadwal Praktik ({schedules.length}/3)
-                      </h3>
-                      {schedules.length >= 3 && (
-                        <span style={{ color: 'var(--danger)', fontSize: '0.85rem', fontWeight: '500' }}>
-                          Batas maksimal 3 slot jadwal tercapai.
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                      <div className="form-group">
-                        <label>Tanggal</label>
-                        <input 
-                          type="date" 
-                          value={newSchedDate} 
-                          onChange={e => setNewSchedDate(e.target.value)} 
-                          disabled={schedules.length >= 3}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Ruangan / Lokasi</label>
-                        <input 
-                          type="text" 
-                          placeholder="Ruang Konseling Gd. AX" 
-                          value={newSchedLoc} 
-                          onChange={e => setNewSchedLoc(e.target.value)} 
-                          disabled={schedules.length >= 3}
-                        />
-                      </div>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
-                      <div className="form-group">
-                        <label>Jam Mulai</label>
-                        <input 
-                          type="time" 
-                          value={newSchedStart} 
-                          onChange={e => setNewSchedStart(e.target.value)} 
-                          disabled={schedules.length >= 3}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Jam Selesai</label>
-                        <input 
-                          type="time" 
-                          value={newSchedEnd} 
-                          onChange={e => setNewSchedEnd(e.target.value)} 
-                          disabled={schedules.length >= 3}
-                        />
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '0.75rem' }}>
-                      <button 
-                        type="button" 
-                        className="btn btn-secondary btn-sm" 
-                        onClick={handleAddSchedule}
-                        disabled={schedules.length >= 3}
-                      >
-                        Tambah Slot Jadwal
-                      </button>
-                    </div>
+                    {(() => {
+                      const existingDatesSet = new Set(schedules.map(s => String(s.tanggal).substring(0, 10)));
+                      const uniqueDayCount = existingDatesSet.size;
+                      const isDateNew = newSchedDate && !existingDatesSet.has(newSchedDate);
+                      const isMaxDayReached = uniqueDayCount >= 3 && isDateNew;
+                      const isFormDisabled = addSchedLoading;
+                      return (
+                        <>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--primary)' }}>
+                              Tambah Slot Jadwal Praktik ({uniqueDayCount}/3 hari)
+                            </h3>
+                            {uniqueDayCount >= 3 && (
+                              <span style={{ color: 'var(--warning)', fontSize: '0.85rem', fontWeight: '500' }}>
+                                3 hari sudah terisi — jam baru pada hari yang sama tetap bisa ditambah.
+                              </span>
+                            )}
+                          </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div className="form-group">
+                              <label>Tanggal</label>
+                              <input
+                                type="date"
+                                value={newSchedDate}
+                                onChange={e => setNewSchedDate(e.target.value)}
+                                disabled={isFormDisabled}
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label>Ruangan / Lokasi</label>
+                              <input
+                                type="text"
+                                placeholder="Ruang Konseling Gd. AX"
+                                value={newSchedLoc}
+                                onChange={e => setNewSchedLoc(e.target.value)}
+                                disabled={isFormDisabled}
+                              />
+                            </div>
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
+                            <div className="form-group">
+                              <label>Jam Mulai</label>
+                              <input
+                                type="time"
+                                value={newSchedStart}
+                                onChange={e => setNewSchedStart(e.target.value)}
+                                disabled={isFormDisabled}
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label>Jam Selesai</label>
+                              <input
+                                type="time"
+                                value={newSchedEnd}
+                                onChange={e => setNewSchedEnd(e.target.value)}
+                                disabled={isFormDisabled}
+                              />
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '0.75rem' }}>
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-sm"
+                              onClick={handleAddSchedule}
+                              disabled={isFormDisabled || isMaxDayReached}
+                              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                            >
+                              <IconRefresh spinning={addSchedLoading} />
+                              {addSchedLoading ? 'Menyimpan...' : 'Tambah Slot Jadwal'}
+                            </button>
+                          </div>
+                        </>
+                      );
+                    })()}
 
                     {/* Current slots list */}
                     {schedules.length > 0 && (
