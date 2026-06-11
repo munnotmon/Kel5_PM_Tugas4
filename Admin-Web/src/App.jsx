@@ -464,8 +464,12 @@ function App() {
   const [konselorSaving, setKonselorSaving] = useState(false);
   const [konselorFormError, setKonselorFormError] = useState('');
   const [konselorLoaded, setKonselorLoaded] = useState(false);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
+  const [profilePhotoUploading, setProfilePhotoUploading] = useState(false);
+  const [konselorPhotoBlobUrl, setKonselorPhotoBlobUrl] = useState(null);
   const konselorLoadedRef = useRef(false);
   const myProfileDataRef = useRef(null);
+  const photoInputRef = useRef(null);
 
   // Detail Modal States
   const [selectedReport, setSelectedReport] = useState(null);
@@ -553,6 +557,31 @@ function App() {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [chatMessages]);
+
+  // Fetch foto profil konselor via axios agar header ngrok ter-include
+  useEffect(() => {
+    const url = getBuktiUrl(konselorForm.foto_profil);
+    if (!url) {
+      setKonselorPhotoBlobUrl(null);
+      return;
+    }
+    let currentBlobUrl = null;
+    let cancelled = false;
+    axios.get(url, { responseType: 'blob' })
+      .then(res => {
+        if (cancelled) return;
+        const blob = URL.createObjectURL(res.data);
+        currentBlobUrl = blob;
+        setKonselorPhotoBlobUrl(blob);
+      })
+      .catch(() => {
+        if (!cancelled) setKonselorPhotoBlobUrl(null);
+      });
+    return () => {
+      cancelled = true;
+      if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+    };
+  }, [konselorForm.foto_profil]);
 
   const fetchDashboardData = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -979,6 +1008,49 @@ function App() {
       setKonselorFormError(err.response?.data?.message || 'Gagal menyimpan profil konselor.');
     } finally {
       setKonselorSaving(false);
+    }
+  };
+
+  const handleProfilePhotoChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const objectUrl = URL.createObjectURL(file);
+    setProfilePhotoPreview(objectUrl);
+    setProfilePhotoUploading(true);
+    setKonselorFormError('');
+    try {
+      const formData = new FormData();
+      formData.append('foto_profil', file);
+      const res = await axios.post('/konselor/me/photo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      if (res.data.success) {
+        const newUrl = res.data.data.foto_profil;
+        // Update form & semua ref agar polling tidak menimpa foto baru
+        setKonselorField('foto_profil', newUrl);
+        if (myProfileDataRef.current) {
+          myProfileDataRef.current = { ...myProfileDataRef.current, foto_profil: newUrl };
+        }
+        setMyProfileData(prev => prev ? { ...prev, foto_profil: newUrl } : prev);
+        setSuccess('Foto profil berhasil diperbarui.');
+        // Tetap tampilkan blob lokal; hanya ganti ke server URL setelah gambar berhasil dimuat
+        const img = new Image();
+        img.onload = () => {
+          setProfilePhotoPreview(null);
+          URL.revokeObjectURL(objectUrl);
+        };
+        img.onerror = () => {
+          // Jika server URL gagal dimuat, tetap pakai blob preview
+        };
+        img.src = newUrl;
+      }
+    } catch (err) {
+      setKonselorFormError(err.response?.data?.message || 'Gagal mengupload foto profil.');
+      URL.revokeObjectURL(objectUrl);
+      setProfilePhotoPreview(null);
+    } finally {
+      setProfilePhotoUploading(false);
+      e.target.value = '';
     }
   };
 
@@ -1732,7 +1804,7 @@ function App() {
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                               <img
-                                src={c.foto_profil || `https://i.pravatar.cc/40?u=${encodeURIComponent(c.name)}`}
+                                src={getBuktiUrl(c.foto_profil) || `https://i.pravatar.cc/40?u=${encodeURIComponent(c.name)}`}
                                 alt={c.name}
                                 style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
                                 onError={(e) => { e.target.src = 'https://via.placeholder.com/40?text=P'; }}
@@ -1772,12 +1844,39 @@ function App() {
           ) : (
             <div className="card" style={{ maxWidth: '800px', margin: '0 auto' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.5rem' }}>
-                <img
-                  src={konselorForm.foto_profil || `https://i.pravatar.cc/120?u=${encodeURIComponent(konselorForm.nama)}`}
-                  alt={konselorForm.nama}
-                  style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--primary)', flexShrink: 0 }}
-                  onError={(e) => { e.target.src = 'https://via.placeholder.com/120?text=Profile'; }}
-                />
+                <div
+                  style={{ position: 'relative', width: '80px', height: '80px', flexShrink: 0, cursor: 'pointer' }}
+                  onClick={() => !profilePhotoUploading && photoInputRef.current?.click()}
+                  title="Klik untuk ubah foto profil"
+                >
+                  <img
+                    src={profilePhotoPreview || konselorPhotoBlobUrl || `https://i.pravatar.cc/120?u=${encodeURIComponent(konselorForm.nama)}`}
+                    alt={konselorForm.nama}
+                    style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--primary)', display: 'block', opacity: profilePhotoUploading ? 0.5 : 1, transition: 'opacity 0.2s' }}
+                    onError={(e) => { e.target.src = 'https://via.placeholder.com/120?text=Profile'; }}
+                  />
+                  <div style={{
+                    position: 'absolute', bottom: 2, right: 2,
+                    width: '24px', height: '24px', borderRadius: '50%',
+                    background: 'var(--primary)',
+                    border: '2px solid #fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    pointerEvents: 'none',
+                  }}>
+                    {profilePhotoUploading ? (
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38"/></svg>
+                    ) : (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    )}
+                  </div>
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg"
+                    style={{ display: 'none' }}
+                    onChange={handleProfilePhotoChange}
+                  />
+                </div>
                 <div>
                   <h2 style={{ fontSize: '1.4rem', margin: 0 }}>{konselorForm.nama || 'Konselor'}</h2>
                   <p style={{ color: 'var(--text-secondary)', margin: '0.25rem 0 0' }}>{konselorForm.spesialisasi || 'Spesialisasi belum diatur'}</p>
@@ -1815,10 +1914,6 @@ function App() {
                     <div className="form-group">
                       <label>Nomor Telepon</label>
                       <input value={konselorForm.nomor_telepon} onChange={e => setKonselorField('nomor_telepon', e.target.value)} placeholder="cth: 08123456789" />
-                    </div>
-                    <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                      <label>URL Foto Profil</label>
-                      <input value={konselorForm.foto_profil} onChange={e => setKonselorField('foto_profil', e.target.value)} placeholder="https://..." />
                     </div>
                   </div>
 
