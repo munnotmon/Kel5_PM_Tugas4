@@ -1,269 +1,70 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
-// SVG Icons for Sidebar
-const IconDashboard = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <rect x="3" y="3" width="7" height="9" />
-    <rect x="14" y="3" width="7" height="5" />
-    <rect x="14" y="12" width="7" height="9" />
-    <rect x="3" y="16" width="7" height="5" />
-  </svg>
-);
+// Import Tab Components from src/tab/
+import {
+  IconDashboard,
+  IconCounselor,
+  IconReport,
+  IconBooking,
+  IconChat,
+  IconUsers,
+  IconShieldUser,
+  IconSignOut,
+  IconKey,
+  IconMenu,
+  IconRefresh,
+  LogoIcon,
+  IconWarning,
+  IconCheckCircle,
+  IconCheck,
+  IconX,
+  IconPaperclip,
+  IconCalendar,
+  IconClock,
+  IconMapPin,
+  IconMessageSquare,
+  IconDoubleCheck,
+  IconSingleCheck,
+  IconEye,
+  IconEyeOff
+} from './tab/Icons';
 
-const IconCounselor = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
-    <path d="M12 11v3" />
-    <path d="M10.5 12.5h3" />
-  </svg>
-);
-
-const IconReport = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <path d="M11 5L6 9H2v6h4l5 4V5z" />
-    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-  </svg>
-);
-
-const IconBooking = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <polyline points="16 11 18 13 22 9" />
-  </svg>
-);
-
-const IconChat = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-  </svg>
-);
-
-const IconUsers = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
-
-const IconShieldUser = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    <circle cx="12" cy="10" r="2.2" />
-    <path d="M8.5 16a3.5 3.5 0 0 1 7 0" />
-  </svg>
-);
-
-const IconSignOut = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-    <polyline points="16 17 21 12 16 7" />
-    <line x1="21" y1="12" x2="9" y2="12" />
-  </svg>
-);
-
-const IconKey = ({ size = 16, style }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
-    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
-  </svg>
-);
-
-const IconMenu = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <line x1="4" x2="20" y1="12" y2="12" />
-    <line x1="4" x2="20" y1="6" y2="6" />
-    <line x1="4" x2="20" y1="18" y2="18" />
-  </svg>
-);
-
-const IconRefresh = ({ spinning }) => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    style={{
-      flexShrink: 0,
-      animation: spinning ? 'spin 1s linear infinite' : 'none'
-    }}
-  >
-    <path d="M21.5 2v6h-6" />
-    <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
-  </svg>
-);
-
-const LogoIcon = ({ size = 36 }) => {
-  const shieldSize = size;
-  const heartSize = Math.round(size * 0.4);
-  return (
-    <div style={{ position: 'relative', width: `${size}px`, height: `${size}px`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-      {/* Shield */}
-      <svg width={shieldSize} height={shieldSize} viewBox="0 0 24 24" fill="#1068A3" stroke="#1068A3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-      {/* Heart */}
-      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: `${Math.round(size * 0.03)}px` }}>
-        <svg width={heartSize} height={heartSize} viewBox="0 0 24 24" fill="#ffffff" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-        </svg>
-      </div>
-    </div>
-  );
-};
-
-// SVG Icons for Dashboard Stat Cards
-const IconStatLaporan = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <path d="M11 5L6 9H2v6h4l5 4V5z" />
-    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-  </svg>
-);
-
-const IconStatVerifikasi = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <path d="M5 2h14" />
-    <path d="M5 22h14" />
-    <path d="M19 2v6a7 7 0 0 1-3.5 6L12 17l-3.5-3A7 7 0 0 1 5 8V2" />
-    <path d="M5 22v-6a7 7 0 0 1 3.5-6L12 7l3.5 3A7 7 0 0 1 19 16v6" />
-  </svg>
-);
-
-const IconStatKonseling = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <polyline points="16 11 18 13 22 9" />
-  </svg>
-);
-
-const IconStatJadwal = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-    <line x1="16" y1="2" x2="16" y2="6" />
-    <line x1="8" y1="2" x2="8" y2="6" />
-    <line x1="3" y1="10" x2="21" y2="10" />
-    <path d="M8 14h.01" />
-    <path d="M12 14h.01" />
-    <path d="M16 14h.01" />
-    <path d="M12 18h.01" />
-    <path d="M16 18h.01" />
-  </svg>
-);
-
-const IconWarning = ({ size = 16, className, style }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
-    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-    <line x1="12" y1="9" x2="12" y2="13" />
-    <line x1="12" y1="17" x2="12.01" y2="17" />
-  </svg>
-);
-
-const IconPaperclip = ({ size = 16, style }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
-    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-  </svg>
-);
-
-const IconCalendar = ({ size = 16, style }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-    <line x1="16" y1="2" x2="16" y2="6" />
-    <line x1="8" y1="2" x2="8" y2="6" />
-    <line x1="3" y1="10" x2="21" y2="10" />
-  </svg>
-);
-
-const IconClock = ({ size = 16, style }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12 6 12 12 16 14" />
-  </svg>
-);
-
-const IconMapPin = ({ size = 16, style }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-    <circle cx="12" cy="10" r="3" />
-  </svg>
-);
-
-const IconMessageSquare = ({ size = 16, style }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-  </svg>
-);
-
-const IconCheck = ({ size = 16, style }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
-
-const IconX = ({ size = 14, style }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
-    <line x1="18" y1="6" x2="6" y2="18" />
-    <line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-);
-
-const IconEye = ({ size = 16, style }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const IconEyeOff = ({ size = 16, style }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
-    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-    <line x1="1" y1="1" x2="23" y2="23" />
-  </svg>
-);
-
-const IconCheckCircle = ({ size = 16, style }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
-  </svg>
-);
-
-const IconSingleCheck = ({ size = 14, style, color = 'currentColor' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
-
-const IconDoubleCheck = ({ size = 14, style, color = 'currentColor' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}>
-    <path d="M17 6L8.5 14.5L5 11" />
-    <path d="M22 6L13.5 14.5L12 13" />
-  </svg>
-);
+import SkeletonWireframe from './tab/SkeletonWireframe';
+import DashboardTab from './tab/DashboardTab';
+import LaporanTab from './tab/LaporanTab';
+import KonselorTab from './tab/KonselorTab';
+import KonselingTab from './tab/KonselingTab';
+import ChatTab from './tab/ChatTab';
+import UsersTab from './tab/UsersTab';
+import SuperAdminTab from './tab/SuperAdminTab';
 
 // Configure Axios defaults
-const useNgrok = true;
+const useNgrok = false;
 axios.defaults.baseURL = useNgrok
   ? 'https://engraver-stride-chatter.ngrok-free.dev/api'
   : 'http://localhost:8000/api';
 
-const getImageUrl = (path) => {
+export const getImageUrl = (path) => {
   if (!path) return null;
-  if (path.startsWith('http://') || path.startsWith('https://')) return path;
-  return `${axios.defaults.baseURL}/storage/${path}`;
+  const serverRoot = axios.defaults.baseURL.replace(/\/api$/, '');
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    try {
+      const u = new URL(path);
+      const host = u.hostname.toLowerCase();
+      if (host === 'localhost' || host === '127.0.0.1' || host === '10.0.2.2') {
+        return `${serverRoot}${u.pathname}`;
+      }
+      return path;
+    } catch {
+      return path;
+    }
+  }
+  const cleanPath = path.startsWith('/') ? path : `/storage/${path}`;
+  return `${serverRoot}${cleanPath}`;
 };
 
-const getBuktiType = (fileName) => {
+export const getBuktiType = (fileName) => {
   if (!fileName) return 'other';
   const ext = fileName.split('.').pop().toLowerCase();
   if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext)) return 'image';
@@ -272,18 +73,27 @@ const getBuktiType = (fileName) => {
   return 'other';
 };
 
-const getBuktiUrl = (pathFile) => {
+export const getBuktiUrl = (pathFile) => {
   if (!pathFile) { console.warn('[getBuktiUrl] pathFile is null/empty'); return null; }
   const serverRoot = axios.defaults.baseURL.replace(/\/api$/, '');
   let result;
   if (pathFile.startsWith('http://') || pathFile.startsWith('https://')) {
     try {
       const u = new URL(pathFile);
-      result = `${serverRoot}${u.pathname}`;
+      const pathname = u.pathname;
+      if (pathname.startsWith('/storage/foto_profil/') || pathname.startsWith('/storage/chat/')) {
+        result = `${axios.defaults.baseURL}${pathname}`;
+      } else {
+        result = `${serverRoot}${pathname}`;
+      }
     } catch { result = pathFile; }
   } else {
     const cleanPath = pathFile.startsWith('/') ? pathFile : `/storage/${pathFile}`;
-    result = `${serverRoot}${cleanPath}`;
+    if (cleanPath.startsWith('/storage/foto_profil/') || cleanPath.startsWith('/storage/chat/')) {
+      result = `${axios.defaults.baseURL}${cleanPath}`;
+    } else {
+      result = `${serverRoot}${cleanPath}`;
+    }
   }
   console.log('[getBuktiUrl] raw:', pathFile, '| final:', result);
   return result;
@@ -369,7 +179,6 @@ function App() {
   const [deleteCounselorLoading, setDeleteCounselorLoading] = useState(false);
   const [, setMyProfileData] = useState(null);
 
-
   const toggleSidebar = () => {
     setSidebarCollapsed(prev => {
       const newVal = !prev;
@@ -416,34 +225,7 @@ function App() {
   // Laporan Search & Pagination States
   const [reportSearchQuery, setReportSearchQuery] = useState('');
   const [reportCurrentPage, setReportCurrentPage] = useState(1);
-  const reportsPerPage = 10;
 
-  // Reset page to 1 when search query changes
-  useEffect(() => {
-    setReportCurrentPage(1);
-  }, [reportSearchQuery]);
-
-  const filteredReports = reports.filter(r => {
-    const query = reportSearchQuery.toLowerCase();
-    const pelaporNama = (r.pelapor?.nama || '').toLowerCase();
-    const pelaporNim = (r.pelapor?.profil_mahasiswa?.nim || '').toLowerCase();
-    const judul = (r.judul_pelaporan || '').toLowerCase();
-    const jenis = (r.jenis_perundungan || '').toLowerCase();
-    const lokasi = (r.lokasi || '').toLowerCase();
-    const status = (r.status || '').toLowerCase();
-
-    return pelaporNama.includes(query) ||
-           pelaporNim.includes(query) ||
-           judul.includes(query) ||
-           jenis.includes(query) ||
-           lokasi.includes(query) ||
-           status.includes(query);
-  });
-
-  const indexOfLastReport = reportCurrentPage * reportsPerPage;
-  const indexOfFirstReport = indexOfLastReport - reportsPerPage;
-  const currentReports = filteredReports.slice(indexOfFirstReport, indexOfLastReport);
-  const totalPages = Math.ceil(filteredReports.length / reportsPerPage);
   // Profil konselor milik admin yang login
   const [konselorForm, setKonselorForm] = useState(emptyKonselorForm);
   const [konselorSaving, setKonselorSaving] = useState(false);
@@ -493,6 +275,7 @@ function App() {
       setChatImagePreview('');
     }
   };
+
   // Check Auth & Fetch Initial Data
   useEffect(() => {
     if (token) {
@@ -559,7 +342,7 @@ function App() {
         setKonselorPhotoBlobUrl(blob);
       })
       .catch(() => {
-        if (!cancelled) setKonselorPhotoBlobUrl(null);
+        if (!cancelled) setKonselorPhotoBlobUrl(url); // Fallback to direct URL instead of null on CORS error
       });
     return () => {
       cancelled = true;
@@ -1043,7 +826,6 @@ function App() {
     }
     setAdminRegistering(true);
     try {
-      // POST /konselor membuat user sesuai role yang dipilih (admin / superadmin).
       const res = await axios.post('/konselor', {
         nama: newAdminForm.nama,
         email: newAdminForm.email,
@@ -1107,7 +889,7 @@ function App() {
       if (editForm.password) {
         payload.password = editForm.password;
       }
-      
+
       const res = await axios.post(`/konselor/${editingCounselor.id}`, payload);
       if (res.data.success) {
         setSuccess('Data admin/konselor berhasil diperbarui.');
@@ -1366,7 +1148,7 @@ function App() {
 
   const hasNewReports = reports.some(r => r.status === 'Menunggu');
   const hasNewSessions = sessions.some(s => s.status === 'Diajukan');
-  const hasUnreadChats = sessions.some(s => 
+  const hasUnreadChats = sessions.some(s =>
     (s.status === 'Diterima' || s.status === 'Berlangsung') &&
     s.pesan?.some(m => m.sender_id !== user?.id && m.status_pesan === 'Terkirim')
   );
@@ -1526,1068 +1308,115 @@ function App() {
           <SkeletonWireframe activeTab={activeTab} isSuper={user && user.role === 'superadmin'} />
         ) : (
           <>
-            {/* TAB 1: DASHBOARD */}
             {activeTab === 'dashboard' && (
-          <>
-            <div className="grid-stats">
-              <div className="card stat-card">
-                <div className="stat-info">
-                  <h3>Total Laporan</h3>
-                  <p>{reports.length}</p>
-                </div>
-                <div className="stat-icon" style={{ background: 'var(--info-bg)', color: 'var(--info)' }}><IconStatLaporan /></div>
-              </div>
-              <div className="card stat-card">
-                <div className="stat-info">
-                  <h3>Menunggu Verifikasi</h3>
-                  <p>{reports.filter(r => r.status === 'Menunggu').length}</p>
-                </div>
-                <div className="stat-icon" style={{ background: 'var(--warning-bg)', color: 'var(--warning)' }}><IconStatVerifikasi /></div>
-              </div>
-              <div className="card stat-card">
-                <div className="stat-info">
-                  <h3>Konseling Aktif</h3>
-                  <p>{sessions.filter(s => s.status === 'Diterima' || s.status === 'Berlangsung').length}</p>
-                </div>
-                <div className="stat-icon" style={{ background: 'var(--primary-glow)', color: 'var(--primary)' }}><IconStatKonseling /></div>
-              </div>
-              <div className="card stat-card">
-                <div className="stat-info">
-                  <h3>Slot Jadwal Tersedia</h3>
-                  <p>{schedules.filter(s => s.status === 'Tersedia').length}</p>
-                </div>
-                <div className="stat-icon" style={{ background: 'var(--success-bg)', color: 'var(--success)' }}><IconStatJadwal /></div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div className="card">
-                <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>Laporan Terbaru</h2>
-                <div className="table-container">
-                  <table style={{ tableLayout: 'fixed', width: '100%' }}>
-                    <colgroup>
-                      <col style={{ width: '20%' }} />
-                      <col style={{ width: '15%' }} />
-                      <col style={{ width: '33%' }} />
-                      <col style={{ width: '10%' }} />
-                      <col style={{ width: '12%' }} />
-                      <col style={{ width: '10%' }} />
-                    </colgroup>
-                    <thead>
-                      <tr>
-                        <th>Pelapor</th>
-                        <th>NIM</th>
-                        <th>Judul Laporan</th>
-                        <th>Jenis</th>
-                        <th>Tanggal</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {reports.slice(0, 5).map(r => (
-                        <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedReport(r)}>
-                          <td>
-                            <strong>{r.pelapor?.nama || 'Mahasiswa'}</strong>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{r.pelapor?.nomor_telepon || '-'}</div>
-                          </td>
-                          <td style={{ whiteSpace: 'normal', wordBreak: 'break-all' }}>{r.pelapor?.profil_mahasiswa?.nim || '-'}</td>
-                          <td style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{r.judul_pelaporan}</td>
-                          <td>{r.jenis_perundungan || '-'}</td>
-                          <td>{new Date(r.created_at).toLocaleDateString('id-ID')}</td>
-                          <td>
-                            <span className={`badge ${r.status === 'Menunggu' ? 'badge-pending' :
-                              (r.status === 'Diterima' || r.status === 'Diproses') ? 'badge-process' :
-                                r.status === 'Selesai' ? 'badge-success' : 'badge-danger'
-                              }`}>{r.status}</span>
-                          </td>
-                        </tr>
-                      ))}
-                      {reports.length === 0 && (
-                        <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada laporan perundungan.</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div className="card">
-                <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>Jadwal Konseling Terdekat</h2>
-                <div className="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Tanggal</th>
-                        <th>Jam</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {schedules.slice(0, 5).map(s => (
-                        <tr key={s.id}>
-                          <td>{new Date(s.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' })}</td>
-                          <td>{s.jam_mulai.substring(0, 5)} - {s.jam_selesai.substring(0, 5)}</td>
-                          <td>
-                            <span className={`badge ${s.status === 'Tersedia' ? 'badge-success' :
-                              s.status === 'Penuh' ? 'badge-pending' : 'badge-danger'
-                              }`}>{s.status}</span>
-                          </td>
-                        </tr>
-                      ))}
-                      {schedules.length === 0 && (
-                        <tr><td colSpan="3" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada jadwal konseling.</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* TAB: PROFIL KONSELOR SAYA */}
-        {activeTab === 'konselor' && (
-          user && user.role === 'superadmin' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              {/* Ringkasan jumlah konselor terdaftar */}
-              <div className="grid-stats">
-                <div className="card stat-card">
-                  <div className="stat-info">
-                    <h3>Total Admin / Konselor Terdaftar</h3>
-                    <p>{allCounselors.length}</p>
-                  </div>
-                  <div className="stat-icon" style={{ background: 'var(--info-bg)', color: 'var(--info)' }}><IconStatKonseling /></div>
-                </div>
-                <div className="card stat-card">
-                  <div className="stat-info">
-                    <h3>Sedang Online</h3>
-                    <p>{allCounselors.filter(c => c.is_online).length}</p>
-                  </div>
-                  <div className="stat-icon" style={{ background: 'var(--success-bg)', color: 'var(--success)' }}><IconCounselor /></div>
-                </div>
-              </div>
-
-              {/* Form Registrasi Admin Baru */}
-              <div className="card" style={{ maxWidth: '600px', margin: '0 auto', width: '100%' }}>
-                <h2 style={{ fontSize: '1.2rem', marginBottom: '1.25rem' }}>Daftarkan Akun Baru (Admin / Super Admin)</h2>
-                <form onSubmit={handleRegisterAdmin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {adminRegisterError && (
-                    <div style={{ background: 'var(--danger-bg)', border: '1px solid var(--danger-border)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--danger)', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <IconWarning size={16} /> {adminRegisterError}
-                    </div>
-                  )}
-                  {adminRegisterSuccess && (
-                    <div style={{ background: 'var(--success-bg)', border: '1px solid var(--success-border)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--success)', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <IconCheckCircle size={16} /> {adminRegisterSuccess}
-                    </div>
-                  )}
-
-                  <div className="form-group">
-                    <label>Nama Lengkap *</label>
-                    <input
-                      type="text"
-                      value={newAdminForm.nama}
-                      onChange={e => setNewAdminForm({ ...newAdminForm, nama: e.target.value })}
-                      required
-                      placeholder="Nama Lengkap Admin"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Email *</label>
-                    <input
-                      type="email"
-                      value={newAdminForm.email}
-                      onChange={e => setNewAdminForm({ ...newAdminForm, email: e.target.value })}
-                      required
-                      placeholder="email@example.com"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Password *</label>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        type={showNewAdminPassword ? 'text' : 'password'}
-                        value={newAdminForm.password}
-                        onChange={e => setNewAdminForm({ ...newAdminForm, password: e.target.value })}
-                        required
-                        placeholder="Min. 8 karakter, angka, dan karakter khusus"
-                        style={{ paddingRight: '2.75rem' }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowNewAdminPassword(v => !v)}
-                        style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 0, display: 'flex', alignItems: 'center' }}
-                      >
-                        {showNewAdminPassword ? <IconEyeOff size={16} /> : <IconEye size={16} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label>Nomor Telepon (Opsional)</label>
-                    <input
-                      type="text"
-                      value={newAdminForm.nomor_telepon}
-                      onChange={e => setNewAdminForm({ ...newAdminForm, nomor_telepon: e.target.value })}
-                      placeholder="cth: 08123456789"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Role *</label>
-                    <select
-                      value={newAdminForm.role}
-                      onChange={e => setNewAdminForm({ ...newAdminForm, role: e.target.value })}
-                      required
-                    >
-                      <option value="admin">Admin / Konselor</option>
-                      <option value="superadmin">Super Admin</option>
-                    </select>
-                  </div>
-
-                  <button type="submit" className="btn btn-primary" disabled={adminRegistering} style={{ padding: '0.75rem', marginTop: '0.5rem' }}>
-                    {adminRegistering ? 'Mendaftarkan...' : 'Daftarkan Akun Baru'}
-                  </button>
-                </form>
-              </div>
-
-              {/* Tabel Semua Admin/Konselor */}
-              <div className="card">
-                <h2 style={{ fontSize: '1.2rem', marginBottom: '1.25rem' }}>Daftar Seluruh Admin & Konselor ({allCounselors.length})</h2>
-                <div className="table-container">
-                  <table style={{ minWidth: '1000px', width: '100%' }}>
-                    <thead>
-                      <tr>
-                        <th>Nama</th>
-                        <th>Email</th>
-                        <th>Nomor Telepon</th>
-                        <th>Role</th>
-                        <th>Sesi</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {allCounselors.map(c => (
-                        <tr key={c.id}>
-                          <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                              <img
-                                src={getBuktiUrl(c.foto_profil) || `https://i.pravatar.cc/40?u=${encodeURIComponent(c.name)}`}
-                                alt={c.name}
-                                style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
-                                onError={(e) => { e.target.src = 'https://via.placeholder.com/40?text=P'; }}
-                              />
-                              <strong>{c.name}</strong>
-                            </div>
-                          </td>
-                          <td>{c.email}</td>
-                          <td>{c.nomor_telepon || '-'}</td>
-                          <td>
-                            <span className={`badge ${c.role === 'superadmin' ? 'badge-pending' : 'badge-process'}`}>
-                              {c.role === 'superadmin' ? 'Super Admin' : 'Admin'}
-                            </span>
-                          </td>
-                          <td>{c.sessions}</td>
-                          <td>
-                            <span className={`badge ${c.is_online ? 'badge-success' : 'badge-danger'}`}>
-                              {c.is_online ? 'Online' : 'Offline'}
-                            </span>
-                          </td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '0.4rem' }}>
-                              <button className="btn btn-secondary btn-sm" onClick={() => handleOpenEditModal(c)}>Edit</button>
-                              <button className="btn btn-danger btn-sm" onClick={() => promptDeleteCounselor(c.id)}>Hapus</button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {allCounselors.length === 0 && (
-                        <tr><td colSpan="7" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada admin/konselor terdaftar.</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="card" style={{ maxWidth: '800px', margin: '0 auto' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.5rem' }}>
-                <div
-                  style={{ position: 'relative', width: '80px', height: '80px', flexShrink: 0, cursor: 'pointer' }}
-                  onClick={() => !profilePhotoUploading && photoInputRef.current?.click()}
-                  title="Klik untuk ubah foto profil"
-                >
-                  <img
-                    src={profilePhotoPreview || konselorPhotoBlobUrl || `https://i.pravatar.cc/120?u=${encodeURIComponent(konselorForm.nama)}`}
-                    alt={konselorForm.nama}
-                    style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--primary)', display: 'block', opacity: profilePhotoUploading ? 0.5 : 1, transition: 'opacity 0.2s' }}
-                    onError={(e) => { e.target.src = 'https://via.placeholder.com/120?text=Profile'; }}
-                  />
-                  <div style={{
-                    position: 'absolute', bottom: 2, right: 2,
-                    width: '24px', height: '24px', borderRadius: '50%',
-                    background: 'var(--primary)',
-                    border: '2px solid #fff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    pointerEvents: 'none',
-                  }}>
-                    {profilePhotoUploading ? (
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38"/></svg>
-                    ) : (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                    )}
-                  </div>
-                  <input
-                    ref={photoInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/jpg"
-                    style={{ display: 'none' }}
-                    onChange={handleProfilePhotoChange}
-                  />
-                </div>
-                <div>
-                  <h2 style={{ fontSize: '1.4rem', margin: 0 }}>{konselorForm.nama || 'Konselor'}</h2>
-                  <p style={{ color: 'var(--text-secondary)', margin: '0.25rem 0 0' }}>{konselorForm.spesialisasi || 'Spesialisasi belum diatur'}</p>
-                  <div style={{ marginTop: '0.5rem' }}>
-                    <span className={`badge ${konselorForm.is_online ? 'badge-success' : 'badge-danger'}`}>
-                      {konselorForm.is_online ? 'Online' : 'Offline'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {!konselorLoaded ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Memuat data profil konselor...</div>
-              ) : (
-                <form onSubmit={handleSaveKonselor} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  {konselorFormError && (
-                    <div style={{ background: 'var(--danger-bg)', border: '1px solid var(--danger-border)', padding: '0.75rem 1.25rem', borderRadius: '10px', color: 'var(--danger)', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <IconWarning size={16} /> {konselorFormError}
-                    </div>
-                  )}
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="form-group">
-                      <label>Nama Lengkap *</label>
-                      <input value={konselorForm.nama} onChange={e => setKonselorField('nama', e.target.value)} required />
-                    </div>
-                    <div className="form-group">
-                      <label>Spesialisasi (Judul) *</label>
-                      <input value={konselorForm.spesialisasi} onChange={e => setKonselorField('spesialisasi', e.target.value)} placeholder="cth: Psikolog Klinis" required />
-                    </div>
-                    <div className="form-group">
-                      <label>Pengalaman</label>
-                      <input value={konselorForm.pengalaman_tahun} onChange={e => setKonselorField('pengalaman_tahun', e.target.value)} placeholder="cth: 3 Tahun" />
-                    </div>
-                    <div className="form-group">
-                      <label>Nomor Telepon</label>
-                      <input value={konselorForm.nomor_telepon} onChange={e => setKonselorField('nomor_telepon', e.target.value)} placeholder="cth: 08123456789" />
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label>Tentang / Deskripsi Diri</label>
-                    <textarea rows={4} value={konselorForm.tentang} onChange={e => setKonselorField('tentang', e.target.value)} placeholder="Tulis deskripsi diri atau latar belakang Anda..." />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Spesialisasi (Chips, pisah dengan koma)</label>
-                    <input value={konselorForm.spesialisasi_list} onChange={e => setKonselorField('spesialisasi_list', e.target.value)} placeholder="cth: Perundungan, Trauma, Cemas" />
-                  </div>
-
-                  <KonselorRowEditor
-                    title="Pendidikan"
-                    rows={konselorForm.pendidikan}
-                    onAdd={() => addKonselorRow('pendidikan')}
-                    onRemove={(i) => removeKonselorRow('pendidikan', i)}
-                    onChange={(i, key, val) => updateKonselorRow('pendidikan', i, key, val)}
-                  />
-
-                  <KonselorRowEditor
-                    title="Pengalaman Kerja"
-                    rows={konselorForm.pengalaman}
-                    onAdd={() => addKonselorRow('pengalaman')}
-                    onRemove={(i) => removeKonselorRow('pengalaman', i)}
-                    onChange={(i, key, val) => updateKonselorRow('pengalaman', i, key, val)}
-                  />
-
-                  {/* SECTION: TAMBAH SLOT JADWAL PRAKTIK */}
-                  <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
-                    {(() => {
-                      const existingDatesSet = new Set(schedules.map(s => String(s.tanggal).substring(0, 10)));
-                      const uniqueDayCount = existingDatesSet.size;
-                      const isDateNew = newSchedDate && !existingDatesSet.has(newSchedDate);
-                      const isMaxDayReached = uniqueDayCount >= 3 && isDateNew;
-                      const isFormDisabled = addSchedLoading;
-                      return (
-                        <>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <h3 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--primary)' }}>
-                              Tambah Slot Jadwal Praktik ({uniqueDayCount}/3 hari)
-                            </h3>
-                            {uniqueDayCount >= 3 && (
-                              <span style={{ color: 'var(--warning)', fontSize: '0.85rem', fontWeight: '500' }}>
-                                3 hari sudah terisi — jam baru pada hari yang sama tetap bisa ditambah.
-                              </span>
-                            )}
-                          </div>
-
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                            <div className="form-group">
-                              <label>Tanggal</label>
-                              <input
-                                type="date"
-                                value={newSchedDate}
-                                onChange={e => setNewSchedDate(e.target.value)}
-                                disabled={isFormDisabled}
-                              />
-                            </div>
-                            <div className="form-group">
-                              <label>Ruangan / Lokasi</label>
-                              <input
-                                type="text"
-                                placeholder="Ruang Konseling Gd. AX"
-                                value={newSchedLoc}
-                                onChange={e => setNewSchedLoc(e.target.value)}
-                                disabled={isFormDisabled}
-                              />
-                            </div>
-                          </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
-                            <div className="form-group">
-                              <label>Jam Mulai</label>
-                              <input
-                                type="time"
-                                value={newSchedStart}
-                                onChange={e => setNewSchedStart(e.target.value)}
-                                disabled={isFormDisabled}
-                              />
-                            </div>
-                            <div className="form-group">
-                              <label>Jam Selesai</label>
-                              <input
-                                type="time"
-                                value={newSchedEnd}
-                                onChange={e => setNewSchedEnd(e.target.value)}
-                                disabled={isFormDisabled}
-                              />
-                            </div>
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '0.75rem' }}>
-                            <button
-                              type="button"
-                              className="btn btn-secondary btn-sm"
-                              onClick={handleAddSchedule}
-                              disabled={isFormDisabled || isMaxDayReached}
-                              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                            >
-                              <IconRefresh spinning={addSchedLoading} />
-                              {addSchedLoading ? 'Menyimpan...' : 'Tambah Slot Jadwal'}
-                            </button>
-                          </div>
-                        </>
-                      );
-                    })()}
-
-                    {/* Current slots list */}
-                    {schedules.length > 0 && (
-                      <div style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(16, 104, 163, 0.08)', paddingTop: '1.25rem' }}>
-                        <h4 style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.75rem', color: 'var(--text-secondary)' }}>
-                          Daftar Slot Jadwal Aktif
-                        </h4>
-                        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                          {schedules.map(s => (
-                            <li key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.85rem', background: 'rgba(16, 104, 163, 0.03)', borderRadius: '8px', border: '1px solid rgba(16, 104, 163, 0.06)', fontSize: '0.875rem' }}>
-                              <span>
-                                <strong>{new Date(s.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' })}</strong>: {s.jam_mulai.substring(0, 5)} - {s.jam_selesai.substring(0, 5)} ({s.lokasi || 'TBA'})
-                              </span>
-                              <button 
-                                type="button" 
-                                className="btn btn-danger btn-sm" 
-                                style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', borderRadius: '4px' }} 
-                                onClick={() => promptDeleteSchedule(s.id)}
-                              >
-                                Hapus
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
-                    <button type="submit" className="btn btn-primary" disabled={konselorSaving} style={{ padding: '0.6rem 2rem' }}>
-                      {konselorSaving ? 'Menyimpan...' : 'Simpan Profil Konselor'}
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
-          )
-        )}
-
-        {/* TAB 2: LAPORAN PERUNDUNGAN */}
-        {activeTab === 'laporan' && (
-          <div className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', gap: '1rem', flexWrap: 'wrap' }}>
-              <h2 style={{ fontSize: '1.2rem', margin: 0 }}>Daftar Pengaduan Perundungan</h2>
-              <div style={{ position: 'relative', width: '300px' }}>
-                <input
-                  type="text"
-                  placeholder="Cari laporan..."
-                  value={reportSearchQuery}
-                  onChange={(e) => setReportSearchQuery(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.6rem 1rem 0.6rem 2.5rem',
-                    borderRadius: '30px',
-                    border: '1px solid var(--border-color)',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    color: 'var(--text-primary)',
-                    fontSize: '0.9rem',
-                    outline: 'none',
-                    transition: 'border-color 0.2s'
-                  }}
-                />
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--text-secondary)"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
-                >
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-              </div>
-            </div>
-            
-            <div className="table-container">
-              <table style={{ tableLayout: 'fixed', width: '100%' }}>
-                <colgroup>
-                  <col style={{ width: '18%' }} />
-                  <col style={{ width: '15%' }} />
-                  <col style={{ width: '30%' }} />
-                  <col style={{ width: '10%' }} />
-                  <col style={{ width: '11%' }} />
-                  <col style={{ width: '10%' }} />
-                  <col style={{ width: '6%' }} />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th>Pelapor</th>
-                    <th>NIM</th>
-                    <th>Judul Laporan</th>
-                    <th>Jenis</th>
-                    <th>Tanggal</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentReports.map(r => (
-                    <tr key={r.id}>
-                      <td>
-                        <strong>{r.pelapor?.nama || 'Mahasiswa'}</strong>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{r.pelapor?.nomor_telepon || '-'}</div>
-                      </td>
-                      <td style={{ whiteSpace: 'normal', wordBreak: 'break-all' }}>{r.pelapor?.profil_mahasiswa?.nim || '-'}</td>
-                      <td style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{r.judul_pelaporan}</td>
-                      <td>{r.jenis_perundungan || '-'}</td>
-                      <td>{new Date(r.created_at).toLocaleDateString('id-ID')}</td>
-                      <td>
-                        <span className={`badge ${r.status === 'Menunggu' ? 'badge-pending' :
-                          (r.status === 'Diterima' || r.status === 'Diproses') ? 'badge-process' :
-                            r.status === 'Selesai' ? 'badge-success' : 'badge-danger'
-                          }`}>{r.status}</span>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '0.4rem' }}>
-                          <button className="btn btn-secondary btn-sm" onClick={() => setSelectedReport(r)}>Detail</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredReports.length === 0 && (
-                    <tr>
-                      <td colSpan="7" style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
-                        {reportSearchQuery ? 'Tidak ada laporan yang cocok dengan pencarian.' : 'Belum ada laporan perundungan.'}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination Controls */}
-            {totalPages > 0 && (
-              <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
-                  {/* Kiri: Info jumlah */}
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                    Menampilkan {filteredReports.length === 0 ? 0 : indexOfFirstReport + 1}–{Math.min(indexOfLastReport, filteredReports.length)} dari {filteredReports.length} laporan
-                  </div>
-
-                  {/* Kanan: Tombol paginasi */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <button
-                      className="btn btn-secondary btn-sm"
-                      disabled={reportCurrentPage === 1}
-                      onClick={() => setReportCurrentPage(prev => Math.max(prev - 1, 1))}
-                      style={{ padding: '0.4rem 0.9rem', minWidth: '64px' }}
-                    >
-                      ← Prev
-                    </button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                      <button
-                        key={page}
-                        className={`btn btn-sm ${reportCurrentPage === page ? 'btn-primary' : 'btn-secondary'}`}
-                        onClick={() => setReportCurrentPage(page)}
-                        style={{ padding: '0.4rem 0.75rem', minWidth: '36px' }}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                    <button
-                      className="btn btn-secondary btn-sm"
-                      disabled={reportCurrentPage === totalPages}
-                      onClick={() => setReportCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                      style={{ padding: '0.4rem 0.9rem', minWidth: '64px' }}
-                    >
-                      Next →
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <DashboardTab
+                reports={reports}
+                schedules={schedules}
+                sessions={sessions}
+                setSelectedReport={setSelectedReport}
+              />
             )}
-          </div>
-        )}
 
+            {activeTab === 'konselor' && (
+              <KonselorTab
+                user={user}
+                allCounselors={allCounselors}
+                newAdminForm={newAdminForm}
+                setNewAdminForm={setNewAdminForm}
+                adminRegisterError={adminRegisterError}
+                adminRegisterSuccess={adminRegisterSuccess}
+                adminRegistering={adminRegistering}
+                handleRegisterAdmin={handleRegisterAdmin}
+                showNewAdminPassword={showNewAdminPassword}
+                setShowNewAdminPassword={setShowNewAdminPassword}
+                handleOpenEditModal={handleOpenEditModal}
+                promptDeleteCounselor={promptDeleteCounselor}
 
+                profilePhotoPreview={profilePhotoPreview}
+                konselorPhotoBlobUrl={konselorPhotoBlobUrl}
+                profilePhotoUploading={profilePhotoUploading}
+                photoInputRef={photoInputRef}
+                handleProfilePhotoChange={handleProfilePhotoChange}
+                konselorForm={konselorForm}
+                setKonselorField={setKonselorField}
+                konselorLoaded={konselorLoaded}
+                konselorSaving={konselorSaving}
+                konselorFormError={konselorFormError}
+                handleSaveKonselor={handleSaveKonselor}
+                addKonselorRow={addKonselorRow}
+                removeKonselorRow={removeKonselorRow}
+                updateKonselorRow={updateKonselorRow}
+                schedules={schedules}
+                newSchedDate={newSchedDate}
+                setNewSchedDate={setNewSchedDate}
+                newSchedLoc={newSchedLoc}
+                setNewSchedLoc={setNewSchedLoc}
+                newSchedStart={newSchedStart}
+                setNewSchedStart={setNewSchedStart}
+                newSchedEnd={newSchedEnd}
+                setNewSchedEnd={setNewSchedEnd}
+                addSchedLoading={addSchedLoading}
+                handleAddSchedule={handleAddSchedule}
+                promptDeleteSchedule={promptDeleteSchedule}
+              />
+            )}
 
-        {/* TAB 4: PEMESANAN KONSELING */}
-        {activeTab === 'konseling' && (
-          <div className="card">
-            <h2 style={{ fontSize: '1.2rem', marginBottom: '1.25rem' }}>Pengajuan & Sesi Konseling</h2>
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Antrian</th>
-                    <th>Mahasiswa</th>
-                    <th>Tanggal & Waktu</th>
-                    <th>Keluhan</th>
-                    <th>Konselor</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sessions.filter(s => s.tipe !== 'laporan').map(s => (
-                    <tr key={s.id}>
-                      <td style={{ fontWeight: '700', color: 'var(--primary)' }}>Q-{s.nomor_antrian || '0'}</td>
-                      <td>
-                        <strong>{s.mahasiswa?.nama || 'Mahasiswa'}</strong>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>NIM: {s.mahasiswa?.profil_mahasiswa?.nim || '-'}</div>
-                      </td>
-                      <td>
-                        {s.jadwal_konseling ? (
-                          <>
-                            <div>{new Date(s.jadwal_konseling.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{s.jadwal_konseling.jam_mulai.substring(0, 5)} - {s.jadwal_konseling.jam_selesai.substring(0, 5)}</div>
-                          </>
-                        ) : 'Jadwal dihapus'}
-                      </td>
-                      <td><div style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={s.keluhan}>{s.keluhan || '-'}</div></td>
-                      <td>{s.admin?.nama || 'Belum ditugaskan'}</td>
-                      <td>
-                        <span className={`badge ${s.status === 'Diajukan' ? 'badge-pending' :
-                          s.status === 'Diterima' ? 'badge-process' :
-                            s.status === 'Berlangsung' ? 'badge-process' :
-                              s.status === 'Selesai' ? 'badge-success' : 'badge-danger'
-                          }`}>{s.status}</span>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                          {s.status === 'Diajukan' && (
-                            <button className="btn btn-primary btn-sm" onClick={() => handleUpdateSessionStatus(s.id, 'Diterima')}>Terima</button>
-                          )}
-                          {s.status === 'Diterima' && (
-                            <>
-                              <button className="btn btn-primary btn-sm" onClick={() => handleUpdateSessionStatus(s.id, 'Berlangsung')}>Mulai Sesi</button>
-                              <button className="btn btn-secondary btn-sm" onClick={() => startChatSession(s)}>Chat</button>
-                            </>
-                          )}
-                          {s.status === 'Berlangsung' && (
-                            <>
-                              <button className="btn btn-primary btn-sm" onClick={() => handleUpdateSessionStatus(s.id, 'Selesai')}>Selesai</button>
-                              <button className="btn btn-secondary btn-sm" onClick={() => startChatSession(s)}>Chat</button>
-                            </>
-                          )}
-                          <button className="btn btn-secondary btn-sm" onClick={() => setSelectedSession(s)}>Detail</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {sessions.filter(s => s.tipe !== 'laporan').length === 0 && (
-                    <tr><td colSpan="7" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada pengajuan konseling.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+            {activeTab === 'laporan' && (
+              <LaporanTab
+                reports={reports}
+                reportSearchQuery={reportSearchQuery}
+                setReportSearchQuery={setReportSearchQuery}
+                reportCurrentPage={reportCurrentPage}
+                setReportCurrentPage={setReportCurrentPage}
+                setSelectedReport={setSelectedReport}
+              />
+            )}
 
-        {/* TAB 5: CHAT ROOM */}
-        {activeTab === 'chat' && (
-          <div className="chat-wrapper">
-            <div className="card chat-sidebar">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', gap: '0.5rem' }}>
-                <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Sesi Chat</h2>
-                <select
-                  value={chatFilter}
-                  onChange={e => {
-                    setChatFilter(e.target.value);
-                    setActiveChatSession(null);
-                    setChatMessages([]);
-                  }}
-                  style={{
-                    padding: '0.4rem 0.6rem',
-                    borderRadius: '8px',
-                    border: '1px solid var(--border-color)',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    color: 'var(--text-primary)',
-                    fontSize: '0.85rem',
-                    fontWeight: '600',
-                    outline: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <option value="aktif" style={{ background: '#1e293b', color: '#fff' }}>Sesi Aktif</option>
-                  <option value="history" style={{ background: '#1e293b', color: '#fff' }}>Riwayat Selesai</option>
-                </select>
-              </div>
-              <div className="chat-sessions-list">
-                {sessions
-                  .filter(s => {
-                    if (chatFilter === 'aktif') {
-                      return s.status === 'Diterima' || s.status === 'Berlangsung';
-                    } else {
-                      return s.status === 'Selesai' || s.status === 'Dibatalkan';
-                    }
-                  })
-                  .map(s => (
-                    <div
-                      key={s.id}
-                      className={`chat-session-item ${activeChatSession?.id === s.id ? 'active' : ''}`}
-                      onClick={() => startChatSession(s)}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <strong>{s.mahasiswa?.nama}</strong>
-                          {s.pesan?.some(m => m.sender_id !== user?.id && m.status_pesan === 'Terkirim') && (
-                            <span 
-                              style={{ 
-                                width: '8px', 
-                                height: '8px', 
-                                borderRadius: '50%', 
-                                backgroundColor: '#ef4444', 
-                                display: 'inline-block' 
-                              }} 
-                              title="Pesan baru" 
-                            />
-                          )}
-                        </div>
-                        {s.tipe === 'laporan' ? (
-                          <span style={{ fontSize: '0.75rem', color: 'var(--warning)', fontWeight: '600', padding: '2px 6px', background: 'rgba(245, 158, 11, 0.15)', borderRadius: '4px' }}>Laporan</span>
-                        ) : (
-                          <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '600', padding: '2px 6px', background: 'rgba(16, 104, 163, 0.12)', borderRadius: '4px' }}>Konseling</span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                        {(() => {
-                          const lastMsg = s.pesan && s.pesan.length > 0 ? s.pesan[s.pesan.length - 1] : null;
-                          if (lastMsg) {
-                            return lastMsg.path_gambar ? '📷 Lampiran Gambar' : lastMsg.isi_pesan;
-                          }
-                          return s.keluhan || 'Tidak ada keluhan tertulis';
-                        })()}
-                      </div>
-                    </div>
-                  ))}
-                {sessions.filter(s => {
-                  if (chatFilter === 'aktif') {
-                    return s.status === 'Diterima' || s.status === 'Berlangsung';
-                  } else {
-                    return s.status === 'Selesai' || s.status === 'Dibatalkan';
-                  }
-                }).length === 0 && (
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', marginTop: '2rem' }}>
-                    {chatFilter === 'aktif' ? 'Tidak ada sesi konseling aktif saat ini.' : 'Tidak ada riwayat sesi konseling.'}
-                  </div>
-                )}
-              </div>
-            </div>
+            {activeTab === 'konseling' && (
+              <KonselingTab
+                sessions={sessions}
+                handleUpdateSessionStatus={handleUpdateSessionStatus}
+                startChatSession={startChatSession}
+                setSelectedSession={setSelectedSession}
+              />
+            )}
 
-            <div className="chat-main">
-              {activeChatSession ? (
-                <>
-                  <div className="chat-header">
-                    <div>
-                      <h3 style={{ fontSize: '1.1rem' }}>{activeChatSession.mahasiswa?.nama}</h3>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                        NIM: {activeChatSession.mahasiswa?.profil_mahasiswa?.nim || '-'} | Status: {activeChatSession.status}
-                        {activeChatSession.tipe === 'laporan' && (
-                          <span style={{ marginLeft: '0.5rem', color: 'var(--warning)', fontWeight: '600' }}>(Tindak Lanjut Laporan)</span>
-                        )}
-                      </p>
-                    </div>
-                    {activeChatSession.status !== 'Selesai' && activeChatSession.status !== 'Dibatalkan' && (
-                      <button className="btn btn-secondary btn-sm" onClick={() => handleUpdateSessionStatus(activeChatSession.id, 'Selesai')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <IconCheck size={14} /> Selesaikan Sesi
-                      </button>
-                    )}
-                  </div>
+            {activeTab === 'chat' && (
+              <ChatTab
+                chatFilter={chatFilter}
+                setChatFilter={setChatFilter}
+                setActiveChatSession={setActiveChatSession}
+                setChatMessages={setChatMessages}
+                sessions={sessions}
+                activeChatSession={activeChatSession}
+                startChatSession={startChatSession}
+                user={user}
+                handleUpdateSessionStatus={handleUpdateSessionStatus}
+                chatMessages={chatMessages}
+                chatImagePreview={chatImagePreview}
+                handleCancelChatImage={handleCancelChatImage}
+                chatImageFile={chatImageFile}
+                handleSendChatMessage={handleSendChatMessage}
+                handleChatImageChange={handleChatImageChange}
+                newMessageText={newMessageText}
+                setNewMessageText={setNewMessageText}
+                chatEndRef={chatEndRef}
+              />
+            )}
 
-                  <div className="chat-messages">
-                    {chatMessages.map(msg => (
-                      <div
-                        key={msg.id}
-                        className={`message-bubble ${msg.sender_id === user.id ? 'message-sent' : 'message-received'}`}
-                      >
-                        <div style={{ fontWeight: '600', fontSize: '0.8rem', opacity: 0.9, marginBottom: '0.2rem' }}>
-                          {msg.sender_id === user.id ? 'Anda' : msg.sender?.nama}
-                        </div>
-                        {msg.path_gambar && (
-                          <div style={{ marginBottom: '0.5rem', maxWidth: '240px' }}>
-                            <img
-                              src={getImageUrl(msg.path_gambar)}
-                              alt="Lampiran"
-                              style={{ width: '100%', borderRadius: '8px', cursor: 'pointer' }}
-                              onClick={() => window.open(getImageUrl(msg.path_gambar), '_blank')}
-                            />
-                          </div>
-                        )}
-                        {msg.isi_pesan && <div>{msg.isi_pesan}</div>}
-                        <div className="message-time" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-end' }}>
-                          <span>{new Date(msg.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
-                          {msg.sender_id === user.id && (
-                            msg.status_pesan === 'Dibaca' ? (
-                              <IconDoubleCheck size={13} color="#40C4FF" />
-                            ) : (
-                              <IconSingleCheck size={13} color="rgba(255, 255, 255, 0.6)" />
-                            )
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    <div ref={chatEndRef} />
-                  </div>
+            {activeTab === 'users' && (
+              <UsersTab
+                users={users}
+                handleResetPasswordPrompt={handleResetPasswordPrompt}
+              />
+            )}
 
-                  {activeChatSession.status === 'Selesai' || activeChatSession.status === 'Dibatalkan' ? (
-                    <div style={{
-                      padding: '1.25rem',
-                      background: 'rgba(255, 255, 255, 0.02)',
-                      borderTop: '1px solid var(--border-color)',
-                      textAlign: 'center',
-                      color: 'var(--text-secondary)',
-                      fontSize: '0.9rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.5rem',
-                      fontWeight: '600'
-                    }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ opacity: 0.6 }}>
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                      </svg>
-                      Sesi konseling telah selesai (Arsip / Read-Only)
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      {chatImagePreview && (
-                        <div style={{
-                          padding: '10px 1.5rem',
-                          borderTop: '1px solid var(--border-color)',
-                          background: 'rgba(255, 255, 255, 0.03)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px'
-                        }}>
-                          <div style={{ position: 'relative', width: '60px', height: '60px' }}>
-                            <img 
-                              src={chatImagePreview} 
-                              alt="Pratinjau" 
-                              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} 
-                            />
-                            <button
-                              type="button"
-                              onClick={handleCancelChatImage}
-                              style={{
-                                position: 'absolute',
-                                top: '-6px',
-                                right: '-6px',
-                                background: '#ef4444',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '50%',
-                                width: '18px',
-                                height: '18px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '10px',
-                                cursor: 'pointer',
-                                padding: 0,
-                                lineHeight: '18px'
-                              }}
-                            >
-                              ✕
-                            </button>
-                          </div>
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                            {chatImageFile ? chatImageFile.name : ''}
-                          </span>
-                        </div>
-                      )}
-                      <form className="chat-input-area" onSubmit={handleSendChatMessage} style={{ borderTop: chatImagePreview ? 'none' : '1px solid var(--border-color)' }}>
-                        <label 
-                          htmlFor="admin-chat-image-input" 
-                          style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center', 
-                            cursor: 'pointer',
-                            color: 'var(--primary)',
-                            padding: '0.5rem',
-                            borderRadius: '8px',
-                            background: 'rgba(16, 104, 163, 0.05)',
-                            transition: 'var(--transition-fast)'
-                          }}
-                          title="Lampirkan Gambar"
-                        >
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                            <circle cx="8.5" cy="8.5" r="1.5" />
-                            <polyline points="21 15 16 10 5 21" />
-                          </svg>
-                        </label>
-                        <input
-                          id="admin-chat-image-input"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleChatImageChange}
-                          style={{ display: 'none' }}
-                        />
-                        <input
-                          type="text"
-                          placeholder="Tulis pesan konseling di sini..."
-                          value={newMessageText}
-                          onChange={e => setNewMessageText(e.target.value)}
-                          required={!chatImageFile}
-                        />
-                        <button type="submit" className="btn btn-primary">Kirim</button>
-                      </form>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: 'var(--text-muted)', gap: '1rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'center', opacity: 0.3 }}><IconMessageSquare size={48} /></div>
-                  <p>Pilih salah satu sesi konseling aktif dari daftar sebelah kiri untuk mulai chatting.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 6: USERS */}
-        {activeTab === 'users' && (
-          <div className="card">
-            <h2 style={{ fontSize: '1.2rem', marginBottom: '1.25rem' }}>Daftar Mahasiswa Terdaftar</h2>
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Nama Lengkap</th>
-                    <th>NIM</th>
-                    <th>Email</th>
-                    <th>Nomor Telepon</th>
-                    <th style={{ textAlign: 'center' }}>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map(u => (
-                    <tr key={u.id}>
-                      <td><strong>{u.nama}</strong></td>
-                      <td>{u.profil_mahasiswa?.nim || u.nim || '-'}</td>
-                      <td>{u.email}</td>
-                      <td>{u.nomor_telepon || '-'}</td>
-                      <td style={{ textAlign: 'center' }}>
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => handleResetPasswordPrompt(u)}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
-                        >
-                          <IconKey size={12} />
-                          <span>Reset Sandi</span>
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {users.length === 0 && (
-                    <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada mahasiswa yang masuk dalam database.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* TAB: DATA SUPER ADMIN */}
-        {activeTab === 'superadmin' && (
-          <div className="card">
-            <h2 style={{ fontSize: '1.2rem', marginBottom: '1.25rem' }}>Daftar Akun Super Admin ({superAdmins.length})</h2>
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Nama Lengkap</th>
-                    <th>Email</th>
-                    <th>Nomor Telepon</th>
-                    <th>Terdaftar Sejak</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {superAdmins.map(s => (
-                    <tr key={s.id}>
-                      <td>
-                        <strong>{s.nama}</strong>
-                        {user && s.id === user.id && (
-                          <span className="badge badge-success" style={{ marginLeft: '0.5rem' }}>Anda</span>
-                        )}
-                      </td>
-                      <td>{s.email}</td>
-                      <td>{s.nomor_telepon || '-'}</td>
-                      <td>{s.created_at ? new Date(s.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</td>
-                    </tr>
-                  ))}
-                  {superAdmins.length === 0 && (
-                    <tr><td colSpan="4" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada akun super admin.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+            {activeTab === 'superadmin' && (
+              <SuperAdminTab
+                superAdmins={superAdmins}
+                user={user}
+              />
+            )}
           </>
         )}
       </main>
@@ -2886,7 +1715,7 @@ function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span className="info-label">Nomor Antrian</span>
-                <span style={{ fontSize: '1.35rem', fontWeight: '800', color: 'var(--primary)' }}>Q-{selectedSession.nomor_antrian}</span>
+                <span style={{ fontSize: '1.35rem', fontWeight: '800', color: 'var(--primary)' }}>Q-{selectedSession.displayQueueNumber || selectedSession.nomor_antrian}</span>
               </div>
 
               <div className="info-grid">
@@ -3117,34 +1946,40 @@ function App() {
                 </div>
               )}
 
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label>Kata Sandi Baru *</label>
+              <div className="form-group">
+                <label>Kata Sandi Baru</label>
                 <div style={{ position: 'relative' }}>
                   <input
                     type={resetPasswordForm.showPassword ? 'text' : 'password'}
-                    placeholder="Masukkan minimal 8 karakter"
+                    placeholder="Masukkan kata sandi baru"
                     value={resetPasswordForm.password}
-                    onChange={e => { setResetPasswordForm(prev => ({ ...prev, password: e.target.value })); setError(''); }}
+                    onChange={e => setResetPasswordForm({ ...resetPasswordForm, password: e.target.value })}
                     required
-                    style={{ paddingRight: '2.75rem' }}
+                    style={{ paddingRight: '2.5rem' }}
                   />
                   <button
                     type="button"
-                    onClick={() => setResetPasswordForm(prev => ({ ...prev, showPassword: !prev.showPassword }))}
-                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 0, display: 'flex', alignItems: 'center' }}
+                    onClick={() => setResetPasswordForm(f => ({ ...f, showPassword: !f.showPassword }))}
+                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}
                   >
                     {resetPasswordForm.showPassword ? <IconEyeOff size={16} /> : <IconEye size={16} />}
                   </button>
                 </div>
-
-                {resetPasswordForm.password.length > 0 && (() => {
+                {(() => {
                   const pwd = resetPasswordForm.password;
                   const hasMin = pwd.length >= 8;
                   const hasNum = /\d/.test(pwd);
                   const hasSpecial = /[@#$%^&*!_]/.test(pwd);
-                  const score = (hasMin ? 1 : 0) + (hasNum ? 1 : 0) + (hasSpecial ? 1 : 0);
-                  const label = score <= 1 ? 'Lemah' : score === 2 ? 'Sedang' : 'Kuat';
-                  const color = score <= 1 ? '#E53935' : score === 2 ? '#2A7B8A' : '#2A9B6E';
+                  let score = 0;
+                  if (hasMin) score++;
+                  if (hasNum) score++;
+                  if (hasSpecial) score++;
+
+                  let label = 'Sangat Lemah';
+                  let color = '#ef4444';
+                  if (score === 2) { label = 'Sedang'; color = '#f59e0b'; }
+                  else if (score === 3) { label = 'Kuat'; color = '#10b981'; }
+
                   return (
                     <div style={{ marginTop: '0.85rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
@@ -3190,7 +2025,7 @@ function App() {
           <div className="card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '90%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
               <h2 style={{ fontSize: '1.2rem', color: 'var(--success)' }}>Form Catatan Sesi & Pemulihan</h2>
-              <button className="btn btn-secondary btn-sm" onClick={() => setShowSelesaiModal(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconX size={14} /></button>
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowSelesaiModal(false)} style={{ display: 'flex', alignItems: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconX size={14} /></button>
             </div>
 
             <form onSubmit={handleSubmitSelesaiSession} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -3305,6 +2140,7 @@ function App() {
           </div>
         </div>
       )}
+
       {/* DELETE SCHEDULE CONFIRMATION MODAL */}
       {showDeleteSchedConfirm && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
@@ -3412,187 +2248,8 @@ function App() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
-
-// Editor baris untuk Pendidikan/Pengalaman konselor
-function KonselorRowEditor({ title, rows, onAdd, onRemove, onChange }) {
-  return (
-    <div className="form-group">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-        <label style={{ margin: 0 }}>{title}</label>
-        <button type="button" className="btn btn-secondary btn-sm" onClick={onAdd}>+ Tambah</button>
-      </div>
-      {rows.length === 0 && <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Belum ada {title.toLowerCase()}.</p>}
-      {rows.map((r, i) => (
-        <div key={i} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-          <input placeholder="Judul" value={r.title || ''} onChange={e => onChange(i, 'title', e.target.value)} />
-          <input placeholder="Keterangan" value={r.subtitle || ''} onChange={e => onChange(i, 'subtitle', e.target.value)} />
-          <button type="button" className="btn btn-danger btn-sm" onClick={() => onRemove(i)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconX size={12} /></button>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// Skeleton Loading / Wireframe Component
-const SkeletonWireframe = ({ activeTab, isSuper }) => {
-  const renderStatsGrid = (count) => (
-    <div className="grid-stats" style={{ marginBottom: '2.5rem' }}>
-      {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="card stat-card" style={{ height: '98px' }}>
-          <div className="stat-info" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '60%' }}>
-            <div className="skeleton-box" style={{ height: '14px', width: '80%' }} />
-            <div className="skeleton-box" style={{ height: '28px', width: '50%', marginTop: '4px' }} />
-          </div>
-          <div className="skeleton-box" style={{ width: '54px', height: '54px', borderRadius: '14px' }} />
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderTable = (rows = 5, cols = 5) => (
-    <div className="card" style={{ width: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', gap: '1rem' }}>
-        <div className="skeleton-box" style={{ height: '38px', width: '250px', borderRadius: '10px' }} />
-        <div className="skeleton-box" style={{ height: '38px', width: '120px', borderRadius: '10px' }} />
-      </div>
-      <div className="table-container">
-        <table style={{ width: '100%' }}>
-          <thead>
-            <tr>
-              {Array.from({ length: cols }).map((_, i) => (
-                <th key={i} style={{ padding: '1rem' }}>
-                  <div className="skeleton-box" style={{ height: '14px', width: '60%' }} />
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {Array.from({ length: rows }).map((_, r) => (
-              <tr key={r}>
-                {Array.from({ length: cols }).map((_, c) => (
-                  <td key={c} style={{ padding: '1.2rem 1rem' }}>
-                    <div className="skeleton-box" style={{ height: '14px', width: c === 0 ? '75%' : '50%' }} />
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
-  const renderProfileForm = () => (
-    <div className="card" style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.5rem' }}>
-        <div className="skeleton-box" style={{ width: '80px', height: '80px', borderRadius: '50%' }} />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <div className="skeleton-box" style={{ height: '20px', width: '40%' }} />
-          <div className="skeleton-box" style={{ height: '14px', width: '30%' }} />
-          <div className="skeleton-box" style={{ height: '22px', width: '15%', borderRadius: '9999px', marginTop: '4px' }} />
-        </div>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <div className="skeleton-box" style={{ height: '14px', width: '20%' }} />
-            <div className="skeleton-box" style={{ height: '38px', width: '100%', borderRadius: '10px' }} />
-          </div>
-        ))}
-        <div className="skeleton-box" style={{ height: '42px', width: '140px', borderRadius: '10px', marginTop: '0.5rem', alignSelf: 'flex-start' }} />
-      </div>
-    </div>
-  );
-
-  const renderChat = () => (
-    <div className="chat-wrapper">
-      <div className="chat-sidebar card">
-        <div className="skeleton-box" style={{ height: '38px', width: '100%', borderRadius: '10px', marginBottom: '0.5rem' }} />
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'rgba(255,255,255,0.2)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <div className="skeleton-box" style={{ height: '14px', width: '50%' }} />
-              <div className="skeleton-box" style={{ height: '10px', width: '20%' }} />
-            </div>
-            <div className="skeleton-box" style={{ height: '12px', width: '80%' }} />
-          </div>
-        ))}
-      </div>
-      <div className="chat-main card" style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', width: '50%' }}>
-            <div className="skeleton-box" style={{ height: '16px', width: '40%' }} />
-            <div className="skeleton-box" style={{ height: '12px', width: '60%' }} />
-          </div>
-          <div className="skeleton-box" style={{ height: '34px', width: '100px', borderRadius: '10px' }} />
-        </div>
-        <div className="chat-messages" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignSelf: 'flex-start', width: '40%' }}>
-            <div className="skeleton-box" style={{ height: '45px', width: '100%', borderRadius: '16px 16px 16px 4px' }} />
-            <div className="skeleton-box" style={{ height: '10px', width: '30%', alignSelf: 'flex-start' }} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignSelf: 'flex-end', width: '40%' }}>
-            <div className="skeleton-box" style={{ height: '60px', width: '100%', borderRadius: '16px 16px 4px 16px' }} />
-            <div className="skeleton-box" style={{ height: '10px', width: '30%', alignSelf: 'flex-end' }} />
-          </div>
-        </div>
-        <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '0.75rem' }}>
-          <div className="skeleton-box" style={{ height: '38px', flex: 1, borderRadius: '10px' }} />
-          <div className="skeleton-box" style={{ height: '38px', width: '48px', borderRadius: '10px' }} />
-        </div>
-      </div>
-    </div>
-  );
-
-  switch (activeTab) {
-    case 'dashboard':
-      return (
-        <div>
-          {renderStatsGrid(4)}
-          {renderTable(6, 6)}
-        </div>
-      );
-    case 'konselor':
-      if (isSuper) {
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            {renderStatsGrid(2)}
-            <div className="card" style={{ maxWidth: '600px', margin: '0 auto', width: '100%' }}>
-              <div className="skeleton-box" style={{ height: '24px', width: '50%', marginBottom: '1.5rem' }} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <div className="skeleton-box" style={{ height: '14px', width: '20%' }} />
-                    <div className="skeleton-box" style={{ height: '38px', width: '100%', borderRadius: '10px' }} />
-                  </div>
-                ))}
-                <div className="skeleton-box" style={{ height: '42px', width: '100%', borderRadius: '10px', marginTop: '0.5rem' }} />
-              </div>
-            </div>
-            {renderTable(4, 7)}
-          </div>
-        );
-      }
-      return renderProfileForm();
-    case 'chat':
-      return renderChat();
-    case 'laporan':
-      return renderTable(7, 6);
-    case 'jadwal':
-      return renderTable(6, 4);
-    case 'konseling':
-      return renderTable(7, 5);
-    case 'users':
-      return renderTable(8, 5);
-    case 'superadmin':
-      return renderTable(5, 4);
-    default:
-      return renderTable(5, 5);
-  }
-};
 
 export default App;

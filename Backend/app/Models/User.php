@@ -103,4 +103,28 @@ class User extends Authenticatable
         $instance->exists = true;
         return $instance;
     }
+
+    /**
+     * Dapatkan URL foto profil secara dinamis biar ga error pas ganti local/ngrok.
+     */
+    public function getFotoProfilAttribute($value)
+    {
+        if (!$value) {
+            return null;
+        }
+
+        // Kalo path-nya bentuk URL lengkap (http/https), ubah domainnya pake host yang sekarang aktif
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://')) {
+            $path = parse_url($value, PHP_URL_PATH);
+            $path = ltrim($path, '/');
+            return asset($path);
+        }
+
+        // Kalo disimpannya pake path relatif
+        if (str_starts_with($value, 'storage/')) {
+            return asset($value);
+        }
+
+        return asset('storage/' . $value);
+    }
 }

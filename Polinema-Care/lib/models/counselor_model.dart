@@ -1,3 +1,5 @@
+import '../services/api_service.dart';
+
 class EducationItem {
   final String title;
   final String subtitle;
@@ -86,7 +88,7 @@ class Konselor {
       experienceYears: map['experience_years'] ?? '',
       sessions: map['sessions'] ?? '',
       about: map['about'] ?? '',
-      fotoProfil: map['foto_profil'],
+      fotoProfil: map['foto_profil'] != null ? ApiService.buildImageUrl(map['foto_profil']) : null,
       isOnline: map['is_online'] == true || map['is_online'] == 1,
       isQuotaFull: map['is_quota_full'] == true || map['is_quota_full'] == 1,
       fullDates: List<String>.from(map['full_dates'] ?? []),

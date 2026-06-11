@@ -421,11 +421,15 @@ class _CounselingScreenState extends State<CounselingScreen> {
                         color: Colors.grey,
                       ),
                       const SizedBox(width: 3),
-                      Text(
-                        '${item.tanggal} · ${item.jam}',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          color: Colors.grey,
+                      Expanded(
+                        child: Text(
+                          '${item.tanggal} · ${item.jam}',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: Colors.grey,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                     ],

@@ -14,6 +14,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/login-google', [AuthController::class, 'loginGoogle']);
 Route::get('/storage/chat/{filename}', [ChatController::class, 'serveChatImage']);
+Route::get('/storage/foto_profil/{filename}', [KonselorController::class, 'serveProfileImage']);
 
 // Authenticated Routes (Protected by Sanctum)
 Route::middleware(['auth:sanctum', \App\Http\Middleware\UpdateLastSeen::class])->group(function () {

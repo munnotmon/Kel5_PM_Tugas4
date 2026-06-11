@@ -9,7 +9,6 @@ class HalamanDetailLaporan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Fallback data jika ternyata data kosong (safety)
     final id = laporanData?['id'] ?? 'RPT-00';
     final judul = laporanData?['judul'] ?? 'Detail Laporan';
     final tanggal = laporanData?['tanggal'] ?? 'Tanggal tidak diketahui';
@@ -17,7 +16,6 @@ class HalamanDetailLaporan extends StatelessWidget {
     final statusLabel = laporanData?['statusLabel'] ?? 'Menunggu';
     final Color statusColor = laporanData?['statusColor'] ?? Colors.orange;
 
-    // Ambil data dinamis dari map parameter
     final jenis = (laporanData?['jenis_perundungan'] != null && laporanData!['jenis_perundungan'].toString().trim().isNotEmpty)
         ? laporanData!['jenis_perundungan'].toString()
         : '-';
@@ -33,7 +31,6 @@ class HalamanDetailLaporan extends StatelessWidget {
     final korban = laporanData?['korban']?.toString() ?? 'saya';
     final statusPelapor = (korban.toLowerCase() == 'saya') ? 'Korban (Melaporkan Sendiri)' : 'Saksi / Kerabat Korban';
 
-    // Ekstrak deskripsi asli tanpa tambahan info korban/saksi
     String deskripsiClean = deskripsi;
     final indexKorban = deskripsi.indexOf('\n\nKorban:');
     if (indexKorban != -1) {

@@ -11,9 +11,30 @@ class ApiService {
       : (kIsWeb ? 'http://localhost:8000/api' : 'http://127.0.0.1:8000/api');
 
   static String buildImageUrl(String path) {
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    if (path.isEmpty) return '';
+    
+    String resolvedPath = path;
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      final uri = Uri.tryParse(path);
+      if (uri != null) {
+        final host = uri.host.toLowerCase();
+        if (host == 'localhost' || host == '127.0.0.1' || host == '10.0.2.2') {
+          final baseUri = Uri.parse(baseUrl);
+          resolvedPath = uri.replace(
+            scheme: baseUri.scheme,
+            host: baseUri.host,
+            port: baseUri.hasPort ? baseUri.port : null,
+          ).toString();
+        }
+      }
+      return resolvedPath;
+    }
+    
     final cleanPath = path.startsWith('/') ? path.substring(1) : path;
-    return '$baseUrl/storage/$cleanPath';
+    final serverRoot = baseUrl.endsWith('/api') 
+        ? baseUrl.substring(0, baseUrl.length - 4) 
+        : baseUrl;
+    return '$serverRoot/storage/$cleanPath';
   }
 
   // Header wajib untuk Image.network() agar ngrok tidak redirect ke halaman warning

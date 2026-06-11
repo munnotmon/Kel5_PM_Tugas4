@@ -53,7 +53,6 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: _buildAppBar(),
-      // Tombol sekarang ada di dalam scroll, bukan di luar
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -70,7 +69,6 @@ class _LaporanPerundunganPageState extends State<LaporanPerundunganPage> {
                 const SizedBox(height: 28),
                 _buildFormFields(),
                 const SizedBox(height: 32),
-                // Tombol "Selanjutnya" ikut scroll bersama konten
                 _buildNextButton(),
                 const SizedBox(height: 16),
               ],

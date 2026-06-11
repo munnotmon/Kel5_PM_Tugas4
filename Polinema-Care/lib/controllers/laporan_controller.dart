@@ -20,13 +20,11 @@ class LaporanController {
     required String nama,
     required String nim,
     required String telepon,
-    required String prodi,
   }) {
     activeReport = activeReport.copyWith(
       nama: nama,
       nim: nim,
       telepon: telepon,
-      prodi: prodi,
     );
   }
 

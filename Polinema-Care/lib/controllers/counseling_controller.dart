@@ -161,7 +161,7 @@ class CounselingController {
               'rating': admin['rating'] ?? 5.0,
               'experience_years': admin['pengalaman_tahun'] ?? '',
               'about': admin['tentang'] ?? '',
-              'foto_profil': admin['foto_profil'],
+              'foto_profil': admin['foto_profil'] != null ? ApiService.buildImageUrl(admin['foto_profil']) : null,
               'nomor_telepon': admin['nomor_telepon'],
               'is_online': admin['is_online'] == true || admin['is_online'] == 1,
               'is_quota_full': admin['is_quota_full'] == true || admin['is_quota_full'] == 1,
@@ -204,7 +204,7 @@ class CounselingController {
       final response = await ApiService.post('/konseling', {
         'jadwal_id': scheduleId,
         'keluhan': keluhan,
-        'admin_id': ?adminId,
+        'admin_id': adminId,
       });
       final body = jsonDecode(response.body);
       if ((response.statusCode == 201 || response.statusCode == 200) && body['success'] == true) {

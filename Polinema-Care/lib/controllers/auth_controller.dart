@@ -27,7 +27,7 @@ class AuthController {
       nomorTeleponVal: currentUserPhone,
       programStudiVal: currentUserProdi,
       angkatanVal: currentUserAngkatan,
-      photoUrlVal: currentUserFoto,
+      photoUrlVal: currentUserFoto.isNotEmpty ? ApiService.buildImageUrl(currentUserFoto) : "",
     );
     // Muat bytes foto yang sudah di-cache dari SharedPreferences
     if (currentUserEmail.isNotEmpty) {
